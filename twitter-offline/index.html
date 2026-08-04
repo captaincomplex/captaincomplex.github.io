@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Twitter Offline</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TW Offline">
+<meta name="theme-color" content="#0f1115">
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel-2:#1d212b;
+    --text:#e7eaf0; --muted:#9aa3b2; --line:#262b36;
+    --accent:#5b9dff; --accent-2:#7c5cff;
+    --tag:#222836;
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    background:var(--bg);color:var(--text);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;height:100vh;overflow:hidden;
+  }
+  header.topbar{
+    padding:calc(14px + var(--safe-top)) 18px 14px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;
+    background:var(--panel);
+  }
+  header.topbar h1{font-size:17px;margin:0;letter-spacing:-.01em}
+  header.topbar .status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .dot{width:7px;height:7px;border-radius:50%}
+  .dot.online{background:#46d39a}
+  .dot.offline{background:#f4c152}
+
+  main{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .view{display:none;padding:16px 16px calc(16px + var(--safe-bottom));max-width:640px;margin:0 auto}
+  .view.active{display:block}
+
+  nav.tabbar{
+    flex:0 0 auto;display:flex;border-top:1px solid var(--line);
+    background:var(--panel);padding-bottom:var(--safe-bottom);
+  }
+  nav.tabbar button{
+    flex:1;background:none;border:0;color:var(--muted);padding:12px 0 10px;
+    font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:4px;
+  }
+  nav.tabbar button .ic{font-size:19px}
+  nav.tabbar button.active{color:var(--accent)}
+
+  .empty{color:var(--muted);text-align:center;padding:60px 20px;font-size:14px}
+  .empty .big{font-size:32px;margin-bottom:10px}
+
+  .tweet{
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;
+  }
+  .tweet .head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .tweet .avatar{width:38px;height:38px;border-radius:50%;background:var(--panel-2);object-fit:cover;flex:0 0 auto}
+  .tweet .who{min-width:0}
+  .tweet .name{font-weight:700;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tweet .handle{color:var(--muted);font-size:13px}
+  .tweet .time{margin-left:auto;color:var(--muted);font-size:12.5px;white-space:nowrap}
+  .tweet .text{font-size:15px;white-space:pre-wrap;word-wrap:break-word;margin-bottom:10px}
+  .tweet .media{display:grid;gap:6px;border-radius:12px;overflow:hidden;margin-bottom:8px}
+  .tweet .media.n1{grid-template-columns:1fr}
+  .tweet .media.n2{grid-template-columns:1fr 1fr}
+  .tweet .media.n3{grid-template-columns:1fr 1fr}
+  .tweet .media.n4{grid-template-columns:1fr 1fr}
+  .tweet .media img,.tweet .media video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+  .tweet a.permalink{font-size:12px;color:var(--accent);text-decoration:none}
+
+  .card{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+  .card h2{font-size:16px;margin:0 0 8px}
+  .card p{color:var(--muted);font-size:14px;margin:0 0 10px}
+  .card p:last-child{margin-bottom:0}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:#fff;border:0;font-weight:600;font-size:14px;padding:11px 16px;border-radius:10px;
+    width:100%;cursor:pointer;
+  }
+  .btn.secondary{background:var(--panel);border:1px solid var(--line);color:var(--text)}
+  .btn.danger{background:var(--panel);border:1px solid #5a2a2a;color:#ff9d9d}
+  input[type=file]{display:none}
+  .progress{margin-top:10px;font-size:13px;color:var(--muted)}
+  .progress .bar{height:6px;border-radius:4px;background:var(--panel);overflow:hidden;margin-top:6px}
+  .progress .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%;transition:width .2s}
+  code{background:var(--panel);padding:2px 6px;border-radius:5px;font-size:12.5px}
+  .stat-row{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--line)}
+  .stat-row:last-child{border-bottom:0}
+  .stat-row b{color:var(--text)}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <h1>Twitter Offline</h1>
+    <span class="status"><span class="dot" id="netDot"></span><span id="netLabel">—</span></span>
+  </header>
+
+  <main>
+    <section class="view" id="view-feed">
+      <div id="feedList"></div>
+    </section>
+
+    <section class="view" id="view-import">
+      <div class="card">
+        <h2>1 · Capture your feed on X</h2>
+        <p>Install the bookmarklet once, then open it while browsing your feed on <code>x.com</code> (Safari or any browser, works great on iPhone). Scroll to load tweets, tap <b>Save &amp; Download</b> to get a JSON file.</p>
+        <button class="btn secondary" id="openBookmarkletBtn">Get the bookmarklet</button>
+      </div>
+      <div class="card">
+        <h2>2 · Import it here</h2>
+        <p>Pick the JSON file you downloaded. Tweets and their photos/videos are cached on this device for offline viewing.</p>
+        <label class="btn" for="fileInput">Choose file…</label>
+        <input type="file" id="fileInput" accept="application/json,.json">
+        <div class="progress" id="importProgress" style="display:none">
+          <div id="progressLabel">Importing…</div>
+          <div class="bar"><div class="fill" id="progressFill"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-settings">
+      <div class="card">
+        <h2>Storage</h2>
+        <div class="stat-row"><span>Tweets saved</span><b id="statTweets">0</b></div>
+        <div class="stat-row"><span>Media cached</span><b id="statMedia">0</b></div>
+        <div class="stat-row"><span>Estimated usage</span><b id="statUsage">—</b></div>
+      </div>
+      <div class="card">
+        <h2>Data</h2>
+        <p>Everything lives only on this device — nothing is uploaded anywhere.</p>
+        <button class="btn danger" id="clearBtn">Clear all saved data</button>
+      </div>
+      <div class="card">
+        <h2>About</h2>
+        <p>Twitter Offline captures tweets using your own logged-in X session via a bookmarklet, and stores full text, photos, and video for fully offline reading. It uses X's undocumented internal API, which is against X's Terms of Service — for personal, occasional use only. It may break if X changes its app.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-view="feed"><span class="ic">🗂️</span>Feed</button>
+    <button class="tab" data-view="import"><span class="ic">⬇️</span>Import</button>
+    <button class="tab" data-view="settings"><span class="ic">⚙️</span>Settings</button>
+  </nav>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
