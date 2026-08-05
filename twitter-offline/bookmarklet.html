@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Twitter Offline — Bookmarklet Setup</title>
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel-2:#1d212b;
+    --text:#e7eaf0; --muted:#9aa3b2; --line:#262b36;
+    --accent:#5b9dff; --accent-2:#7c5cff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:20px 18px calc(40px + env(safe-area-inset-bottom,0px));
+    max-width:640px;margin:0 auto;
+  }
+  a.back{color:var(--accent);text-decoration:none;font-size:14px;display:inline-block;margin-bottom:18px}
+  h1{font-size:22px;margin:0 0 6px}
+  .lede{color:var(--muted);font-size:14.5px;margin-bottom:24px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  .card h2{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .card h2 .n{
+    width:24px;height:24px;border-radius:50%;background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:#fff;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+  }
+  .card p{color:var(--muted);font-size:14.5px;margin:0 0 10px}
+  .card p:last-child{margin-bottom:0}
+  .bookmarklet-link{
+    display:inline-flex;align-items:center;gap:8px;background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 18px;border-radius:10px;
+  }
+  textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    border-radius:10px;padding:10px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;
+    resize:vertical;min-height:70px;margin-bottom:8px;
+  }
+  button.copy{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:9px 14px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;
+  }
+  button.copy.copied{color:#46d39a;border-color:#2a5a44}
+  code{background:var(--panel-2);padding:2px 6px;border-radius:5px;font-size:13px}
+  ol{color:var(--muted);font-size:14.5px;padding-left:20px;margin:0}
+  ol li{margin-bottom:8px}
+  ol li:last-child{margin-bottom:0}
+  .warn{background:#241a1a;border:1px solid #4a2a2a;color:#f0b4b4;border-radius:12px;padding:14px 16px;font-size:13.5px;margin-top:20px}
+</style>
+</head>
+<body>
+  <a class="back" href="index.html">← Back to app</a>
+  <h1>Set up the feed-capture bookmarklet</h1>
+  <p class="lede">This one-time setup adds a bookmarklet you'll tap while browsing x.com to capture tweets, then save them as a file you import into the app.</p>
+
+  <div class="card">
+    <h2><span class="n">1</span>Install it</h2>
+    <p><b>On a computer:</b> drag this button to your bookmarks bar.</p>
+    <p><a class="bookmarklet-link" id="dragLink" href="#">📥 Save Feed — Twitter Offline</a></p>
+    <p><b>On iPhone (Safari):</b> bookmarks can't be dragged, so copy the code below and paste it into a bookmark's address field.</p>
+    <ol>
+      <li>Tap the <b>Share</b> icon on any page, then <b>Add Bookmark</b>. Name it <code>Save Feed</code> and save it.</li>
+      <li>Tap <b>Copy code</b> below.</li>
+      <li>Open Safari's <b>Bookmarks</b> (the book icon), find <b>Save Feed</b>, swipe left → <b>Edit</b> (or tap Edit list, then the bookmark).</li>
+      <li>Clear the URL field and paste the copied code in its place. Tap <b>Done</b>.</li>
+    </ol>
+    <textarea id="codeBox" readonly rows="3"></textarea>
+    <button class="copy" id="copyBtn">Copy code</button>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">2</span>Capture your feed</h2>
+    <ol>
+      <li>Open <code>x.com</code> and go to your Home timeline (or any timeline you want to save).</li>
+      <li>Open <b>Bookmarks</b> and tap <b>Save Feed</b>. A small panel appears in the corner.</li>
+      <li>Scroll down slowly to load more tweets — the counter updates as it captures them.</li>
+      <li>Tap <b>Save &amp; Download</b>. A JSON file downloads (Files app on iPhone, usually the Downloads folder on desktop).</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span>Import it</h2>
+    <p>Go back to the app's <b>Import</b> tab and choose the file you just downloaded. Full text, photos, and video get cached on this device for offline reading.</p>
+    <p><a class="bookmarklet-link" href="index.html">Go to Import →</a></p>
+  </div>
+
+  <div class="warn">
+    ⚠️ This uses X's internal, undocumented API by reading your browser's own responses while you scroll — it never touches your password. It's against X's Terms of Service, so it's meant for personal, occasional use, and may stop working if X changes its app.
+  </div>
+
+  <script>
+    var CODE = "javascript:%28function%20%28%29%20%7B%20var%20NS%20%3D%20%22__twOfflineCapture%22%3B%20if%20%28window%5BNS%5D%29%20%7B%20window%5BNS%5D.show%28%29%3B%20return%3B%20%7D%20var%20state%20%3D%20%7B%20tweets%3A%20new%20Map%28%29%2C%20startedAt%3A%20Date.now%28%29%20%7D%3B%20function%20textOf%28node%29%20%7B%20var%20legacy%20%3D%20node.legacy%20%7C%7C%20node%3B%20var%20text%20%3D%20legacy.full_text%20%7C%7C%20legacy.text%20%7C%7C%20%22%22%3B%20var%20note%20%3D%20node.note_tweet%20%26%26%20node.note_tweet.note_tweet_results%20%26%26%20node.note_tweet.note_tweet_results.result%3B%20if%20%28note%20%26%26%20note.text%29%20text%20%3D%20note.text%3B%20return%20text%3B%20%7D%20function%20mediaOf%28legacy%29%20%7B%20var%20out%20%3D%20%5B%5D%3B%20var%20ext%20%3D%20legacy.extended_entities%20%7C%7C%20legacy.entities%3B%20var%20items%20%3D%20%28ext%20%26%26%20ext.media%29%20%7C%7C%20%5B%5D%3B%20items.forEach%28function%20%28m%29%20%7B%20if%20%28m.type%20%3D%3D%3D%20%22photo%22%29%20%7B%20out.push%28%7B%20type%3A%20%22photo%22%2C%20url%3A%20m.media_url_https%20%2B%20%22%3Fformat%3Djpg%26name%3Dlarge%22%20%7D%29%3B%20%7D%20else%20if%20%28m.type%20%3D%3D%3D%20%22video%22%20%7C%7C%20m.type%20%3D%3D%3D%20%22animated_gif%22%29%20%7B%20var%20variants%20%3D%20%28%28m.video_info%20%26%26%20m.video_info.variants%29%20%7C%7C%20%5B%5D%29.filter%28function%20%28v%29%20%7B%20return%20v.content_type%20%3D%3D%3D%20%22video%2Fmp4%22%3B%20%7D%29%3B%20variants.sort%28function%20%28a%2C%20b%29%20%7B%20return%20%28b.bitrate%20%7C%7C%200%29%20-%20%28a.bitrate%20%7C%7C%200%29%3B%20%7D%29%3B%20if%20%28variants%5B0%5D%29%20%7B%20out.push%28%7B%20type%3A%20m.type%20%3D%3D%3D%20%22animated_gif%22%20%3F%20%22gif%22%20%3A%20%22video%22%2C%20url%3A%20variants%5B0%5D.url%2C%20posterUrl%3A%20m.media_url_https%2C%20%7D%29%3B%20%7D%20%7D%20%7D%29%3B%20return%20out%3B%20%7D%20function%20parseTweetNode%28node%29%20%7B%20try%20%7B%20var%20legacy%20%3D%20node.legacy%3B%20if%20%28%21legacy%29%20return%20null%3B%20var%20id%20%3D%20node.rest_id%20%7C%7C%20legacy.id_str%3B%20if%20%28%21id%29%20return%20null%3B%20var%20userResult%20%3D%20node.core%20%26%26%20node.core.user_results%20%26%26%20node.core.user_results.result%3B%20var%20userLegacy%20%3D%20userResult%20%26%26%20%28userResult.legacy%20%7C%7C%20userResult%29%3B%20var%20author%20%3D%20%7B%20name%3A%20%28userLegacy%20%26%26%20%28userLegacy.name%20%7C%7C%20userLegacy.legacy_screen_name%29%29%20%7C%7C%20%22Unknown%22%2C%20handle%3A%20%28userLegacy%20%26%26%20userLegacy.screen_name%29%20%7C%7C%20%22%22%2C%20avatarUrl%3A%20%28userLegacy%20%26%26%20userLegacy.profile_image_url_https%29%20%7C%7C%20%22%22%2C%20%7D%3B%20return%20%7B%20id%3A%20id%2C%20author%3A%20author%2C%20text%3A%20textOf%28node%29%2C%20createdAt%3A%20legacy.created_at%2C%20favoriteCount%3A%20legacy.favorite_count%20%7C%7C%200%2C%20media%3A%20mediaOf%28legacy%29%2C%20permalinkUrl%3A%20%22https%3A%2F%2Fx.com%2F%22%20%2B%20%28author.handle%20%7C%7C%20%22i%22%29%20%2B%20%22%2Fstatus%2F%22%20%2B%20id%2C%20%7D%3B%20%7D%20catch%20%28e%29%20%7B%20return%20null%3B%20%7D%20%7D%20function%20walk%28obj%2C%20depth%29%20%7B%20if%20%28%21obj%20%7C%7C%20typeof%20obj%20%21%3D%3D%20%22object%22%20%7C%7C%20depth%20%3E%2040%29%20return%3B%20if%20%28Array.isArray%28obj%29%29%20%7B%20for%20%28var%20i%20%3D%200%3B%20i%20%3C%20obj.length%3B%20i%2B%2B%29%20walk%28obj%5Bi%5D%2C%20depth%20%2B%201%29%3B%20return%3B%20%7D%20var%20isTweet%20%3D%20obj.__typename%20%3D%3D%3D%20%22Tweet%22%20%7C%7C%20obj.__typename%20%3D%3D%3D%20%22TweetWithVisibilityResults%22%20%7C%7C%20%28obj.legacy%20%26%26%20obj.legacy.full_text%20%21%3D%3D%20undefined%20%26%26%20%28obj.rest_id%20%7C%7C%20obj.legacy.id_str%29%29%3B%20if%20%28isTweet%29%20%7B%20var%20inner%20%3D%20obj.__typename%20%3D%3D%3D%20%22TweetWithVisibilityResults%22%20%26%26%20obj.tweet%20%3F%20obj.tweet%20%3A%20obj%3B%20var%20parsed%20%3D%20parseTweetNode%28inner%29%3B%20if%20%28parsed%29%20state.tweets.set%28parsed.id%2C%20parsed%29%3B%20%7D%20for%20%28var%20k%20in%20obj%29%20%7B%20if%20%28Object.prototype.hasOwnProperty.call%28obj%2C%20k%29%29%20walk%28obj%5Bk%5D%2C%20depth%20%2B%201%29%3B%20%7D%20%7D%20var%20origFetch%20%3D%20window.fetch%3B%20window.fetch%20%3D%20function%20%28%29%20%7B%20var%20args%20%3D%20arguments%3B%20return%20origFetch.apply%28window%2C%20args%29.then%28function%20%28res%29%20%7B%20try%20%7B%20var%20url%20%3D%20typeof%20args%5B0%5D%20%3D%3D%3D%20%22string%22%20%3F%20args%5B0%5D%20%3A%20args%5B0%5D%20%26%26%20args%5B0%5D.url%3B%20if%20%28url%20%26%26%20url.indexOf%28%22%2Fgraphql%2F%22%29%20%21%3D%3D%20-1%20%26%26%20res.ok%29%20%7B%20res%20.clone%28%29%20.json%28%29%20.then%28function%20%28json%29%20%7B%20walk%28json%2C%200%29%3B%20render%28%29%3B%20%7D%29%20.catch%28function%20%28%29%20%7B%7D%29%3B%20%7D%20%7D%20catch%20%28e%29%20%7B%7D%20return%20res%3B%20%7D%29%3B%20%7D%3B%20var%20panel%20%3D%20document.createElement%28%22div%22%29%3B%20panel.style.cssText%20%3D%20%22position%3Afixed%3Bbottom%3A16px%3Bright%3A16px%3Bz-index%3A2147483647%3Bbackground%3A%23171a21%3B%22%20%2B%20%22color%3A%23e7eaf0%3Bborder%3A1px%20solid%20%23262b36%3Bborder-radius%3A14px%3Bpadding%3A14px%2016px%3B%22%20%2B%20%22font%3A14px%2F1.4%20-apple-system%2CBlinkMacSystemFont%2Csans-serif%3Bbox-shadow%3A0%2012px%2030px%20rgba%280%2C0%2C0%2C.45%29%3B%22%20%2B%20%22width%3A220px%3B%22%3B%20panel.innerHTML%20%3D%20%27%3Cdiv%20style%3D%22display%3Aflex%3Balign-items%3Acenter%3Bgap%3A8px%3Bmargin-bottom%3A8px%3B%22%3E%27%20%2B%20%27%3Cspan%20style%3D%22width%3A8px%3Bheight%3A8px%3Bborder-radius%3A50%25%3Bbackground%3A%2346d39a%3Bbox-shadow%3A0%200%200%203px%20rgba%2870%2C211%2C154%2C.15%29%3B%22%3E%3C%2Fspan%3E%27%20%2B%20%27%3Cstrong%3ETwitter%20Offline%3C%2Fstrong%3E%3C%2Fdiv%3E%27%20%2B%20%27%3Cdiv%20id%3D%22tw-offline-count%22%20style%3D%22color%3A%239aa3b2%3Bmargin-bottom%3A10px%3B%22%3E0%20tweets%20captured%3C%2Fdiv%3E%27%20%2B%20%27%3Cdiv%20style%3D%22color%3A%239aa3b2%3Bfont-size%3A12px%3Bmargin-bottom%3A10px%3B%22%3EScroll%20to%20load%20more%2C%20then%20save.%3C%2Fdiv%3E%27%20%2B%20%27%3Cbutton%20id%3D%22tw-offline-save%22%20style%3D%22width%3A100%25%3Bbackground%3Alinear-gradient%2890deg%2C%235b9dff%2C%237c5cff%29%3Bborder%3A0%3B%27%20%2B%20%27color%3A%23fff%3Bfont-weight%3A600%3Bpadding%3A9px%200%3Bborder-radius%3A9px%3Bmargin-bottom%3A6px%3B%22%3ESave%20%26%20Download%3C%2Fbutton%3E%27%20%2B%20%27%3Cbutton%20id%3D%22tw-offline-hide%22%20style%3D%22width%3A100%25%3Bbackground%3A%231d212b%3Bborder%3A1px%20solid%20%23262b36%3B%27%20%2B%20%27color%3A%239aa3b2%3Bpadding%3A7px%200%3Bborder-radius%3A9px%3B%22%3EHide%3C%2Fbutton%3E%27%3B%20document.documentElement.appendChild%28panel%29%3B%20function%20render%28%29%20%7B%20var%20el%20%3D%20document.getElementById%28%22tw-offline-count%22%29%3B%20if%20%28el%29%20el.textContent%20%3D%20state.tweets.size%20%2B%20%22%20tweets%20captured%22%3B%20%7D%20function%20download%28%29%20%7B%20var%20payload%20%3D%20%7B%20exportedAt%3A%20new%20Date%28%29.toISOString%28%29%2C%20source%3A%20location.href%2C%20tweets%3A%20Array.from%28state.tweets.values%28%29%29%2C%20%7D%3B%20var%20blob%20%3D%20new%20Blob%28%5BJSON.stringify%28payload%29%5D%2C%20%7B%20type%3A%20%22application%2Fjson%22%20%7D%29%3B%20var%20url%20%3D%20URL.createObjectURL%28blob%29%3B%20var%20a%20%3D%20document.createElement%28%22a%22%29%3B%20a.href%20%3D%20url%3B%20a.download%20%3D%20%22twitter-offline-%22%20%2B%20Date.now%28%29%20%2B%20%22.json%22%3B%20document.body.appendChild%28a%29%3B%20a.click%28%29%3B%20a.remove%28%29%3B%20setTimeout%28function%20%28%29%20%7B%20URL.revokeObjectURL%28url%29%3B%20%7D%2C%205000%29%3B%20%7D%20document.getElementById%28%22tw-offline-save%22%29.addEventListener%28%22click%22%2C%20download%29%3B%20document.getElementById%28%22tw-offline-hide%22%29.addEventListener%28%22click%22%2C%20function%20%28%29%20%7B%20panel.style.display%20%3D%20%22none%22%3B%20%7D%29%3B%20window%5BNS%5D%20%3D%20%7B%20state%3A%20state%2C%20show%3A%20function%20%28%29%20%7B%20panel.style.display%20%3D%20%22block%22%3B%20%7D%2C%20%7D%3B%20render%28%29%3B%20%7D%29%28%29%3B";
+    document.getElementById("dragLink").setAttribute("href", CODE);
+    document.getElementById("codeBox").value = CODE;
+    document.getElementById("copyBtn").addEventListener("click", function () {
+      var box = document.getElementById("codeBox");
+      box.select();
+      box.setSelectionRange(0, 999999);
+      navigator.clipboard && navigator.clipboard.writeText(CODE).catch(function () {
+        document.execCommand("copy");
+      });
+      var btn = document.getElementById("copyBtn");
+      btn.textContent = "Copied ✓";
+      btn.classList.add("copied");
+      setTimeout(function () {
+        btn.textContent = "Copy code";
+        btn.classList.remove("copied");
+      }, 1600);
+    });
+  </script>
+</body>
+</html>
