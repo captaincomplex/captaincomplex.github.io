@@ -1,4 +1,4 @@
-const SHELL_CACHE = "shell-v1";
+const SHELL_CACHE = "shell-v2";
 const MEDIA_CACHE = "media-v1";
 const SHELL_FILES = [
   "./",
