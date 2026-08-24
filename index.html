@@ -3,221 +3,463 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projects</title>
+<title>Projects — xpdr.aero</title>
+<meta name="description" content="Hardware and software projects: flight-duty displays, LED matrix art, offline-first apps.">
+<meta name="theme-color" content="#0f1115">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f1115'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='%235b9dff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%235b9dff'/%3E%3C/svg%3E">
 <style>
   :root{
-    --bg:#0f1115; --panel:#171a21; --panel-2:#1d212b;
-    --text:#e7eaf0; --muted:#9aa3b2; --line:#262b36;
+    --bg:#0f1115; --panel:#15181f; --panel-2:#1b1f28;
+    --text:#e9ecf2; --muted:#98a1b0; --dim:#6d7788; --line:#242a35;
     --accent:#5b9dff; --accent-2:#7c5cff;
-    --tag:#222836;
-    --radius:16px;
-    --shadow:0 1px 0 rgba(255,255,255,.03), 0 12px 30px rgba(0,0,0,.35);
-    --maxw:1080px;
+    --radius:18px;
+    --shadow:0 1px 0 rgba(255,255,255,.03), 0 18px 46px rgba(0,0,0,.45);
+    --maxw:1120px;
   }
   *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
   html,body{margin:0;padding:0}
   body{
     background:
-      radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,.12), transparent 60%),
-      radial-gradient(1000px 500px at -10% 0%, rgba(91,157,255,.10), transparent 55%),
+      radial-gradient(1100px 620px at 82% -12%, rgba(124,92,255,.13), transparent 60%),
+      radial-gradient(950px 520px at -12% -4%, rgba(91,157,255,.11), transparent 58%),
       var(--bg);
+    background-attachment:fixed;
     color:var(--text);
     font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:var(--maxw);margin:0 auto;padding:64px 24px 96px}
-  header.hero{margin-bottom:48px}
-  .kicker{
-    display:inline-block;letter-spacing:.16em;text-transform:uppercase;
-    font-size:12px;font-weight:600;color:var(--accent);
-    background:rgba(91,157,255,.10);border:1px solid rgba(91,157,255,.25);
-    padding:6px 12px;border-radius:999px;
+  img{display:block;max-width:100%}
+  a{color:inherit}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:72px 24px 104px}
+
+  /* ---------- hero ---------- */
+  header.hero{margin-bottom:52px;max-width:62ch}
+  .mark{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+  .mark svg{width:26px;height:26px;flex:none}
+  .mark span{font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+  h1{font-size:clamp(36px,5.4vw,58px);line-height:1.03;margin:0 0 16px;letter-spacing:-.025em}
+  h1 em{font-style:normal;background:linear-gradient(92deg,var(--accent),var(--accent-2));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:18.5px;margin:0}
+
+  /* ---------- section label ---------- */
+  .seclabel{
+    display:flex;align-items:center;gap:14px;margin:0 0 22px;
+    font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
   }
-  h1{font-size:clamp(34px,5vw,52px);line-height:1.05;margin:18px 0 12px;letter-spacing:-.02em}
-  .sub{color:var(--muted);font-size:18px;max-width:60ch}
-  .grid{
-    display:grid;gap:22px;
-    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-    margin-top:40px;
-  }
+  .seclabel::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* ---------- cards ---------- */
+  .grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
   .card{
-    position:relative;background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    position:relative;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
     border:1px solid var(--line);border-radius:var(--radius);
-    padding:26px 26px 24px;box-shadow:var(--shadow);
-    transition:transform .18s ease, border-color .18s ease;
-    overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:var(--shadow);overflow:hidden;
+    transition:transform .22s cubic-bezier(.2,.7,.3,1), border-color .22s ease;
   }
-  .card:hover{transform:translateY(-3px);border-color:#33405a}
-  .card::before{
-    content:"";position:absolute;inset:0 0 auto 0;height:3px;
-    background:linear-gradient(90deg,var(--accent),var(--accent-2));
-    opacity:.0;transition:opacity .18s ease;
+  .card:hover{transform:translateY(-4px);border-color:#33405a}
+  .media{
+    position:relative;aspect-ratio:16/9;background:#0c0e13;
+    border-bottom:1px solid var(--line);overflow:hidden;
   }
-  .card:hover::before{opacity:1}
-  .icon{
-    width:46px;height:46px;border-radius:12px;display:grid;place-items:center;
-    background:var(--panel-2);border:1px solid var(--line);font-size:22px;margin-bottom:16px;
+  .media img,.media svg{width:100%;height:100%;object-fit:cover;display:block}
+  .media::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,transparent 55%,rgba(15,17,21,.55));
   }
-  .card h2{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
-  .role{font-size:13px;color:var(--accent);font-weight:600;margin-bottom:12px}
-  .card p{color:var(--muted);font-size:15px;margin:0 0 16px}
-  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-  .tag{font-size:12px;color:#c3cbd9;background:var(--tag);border:1px solid var(--line);
-    padding:4px 10px;border-radius:999px}
-  .cardfoot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .status{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
-  .dot{width:8px;height:8px;border-radius:50%}
-  .dot.live{background:#46d39a;box-shadow:0 0 0 3px rgba(70,211,154,.15)}
-  .dot.wip{background:#f4c152;box-shadow:0 0 0 3px rgba(244,193,82,.15)}
-  .dot.draft{background:#7e8aa0;box-shadow:0 0 0 3px rgba(126,138,160,.15)}
-  .ghlink{
-    display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
-    color:var(--text);text-decoration:none;
-    background:var(--panel-2);border:1px solid var(--line);
-    padding:7px 12px;border-radius:9px;transition:border-color .15s ease, background .15s ease;
+  .body{padding:22px 24px 24px;display:flex;flex-direction:column;flex:1}
+  .card h2{font-size:21px;margin:0 0 4px;letter-spacing:-.015em}
+  .role{font-size:12.5px;color:var(--accent);font-weight:600;margin-bottom:12px;letter-spacing:.01em}
+  .card p{color:var(--muted);font-size:14.8px;margin:0 0 16px}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+  .tag{font-size:11.5px;color:#c1c9d7;background:#1f242e;border:1px solid var(--line);
+    padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .cardfoot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .status{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .dot.live{background:#46d39a;box-shadow:0 0 0 3px rgba(70,211,154,.16)}
+  .dot.wip{background:#f4c152;box-shadow:0 0 0 3px rgba(244,193,82,.16)}
+  .dot.draft{background:#79839a;box-shadow:0 0 0 3px rgba(121,131,154,.16)}
+  .links{display:flex;align-items:center;gap:12px}
+  .quiet{font-size:12.5px;color:var(--dim);text-decoration:none}
+  .quiet:hover{color:var(--muted)}
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+    text-decoration:none;background:#1f242e;border:1px solid var(--line);
+    padding:7px 13px;border-radius:10px;
+    transition:border-color .16s ease, background .16s ease, transform .16s ease;
   }
-  .ghlink:hover{border-color:#3a4a66;background:#20262f}
-  .ghlink svg{width:15px;height:15px;fill:currentColor}
-  footer{margin-top:64px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:22px}
+  .btn:hover{border-color:#3d4d69;background:#252b36;transform:translateY(-1px)}
+  .btn svg{width:14px;height:14px;fill:currentColor;flex:none}
+  .btn.primary{background:rgba(91,157,255,.13);border-color:rgba(91,157,255,.36);color:#cfe1ff}
+  .btn.primary:hover{background:rgba(91,157,255,.2);border-color:rgba(91,157,255,.55)}
+
+  /* ---------- featured ---------- */
+  .feature{
+    display:grid;grid-template-columns:1.15fr .85fr;gap:0;margin-bottom:44px;
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden;
+    transition:border-color .22s ease;
+  }
+  .feature:hover{border-color:#33405a}
+  .feature .media{aspect-ratio:auto;height:100%;min-height:300px;border-bottom:none;border-right:1px solid var(--line)}
+  .feature .media::after{background:linear-gradient(90deg,transparent 60%,rgba(21,24,31,.5))}
+  .feature .body{padding:34px 34px 32px}
+  .feature h2{font-size:29px;margin-bottom:6px}
+  .feature .role{font-size:13px;margin-bottom:14px}
+  .feature p{font-size:15.5px}
+  .ribbon{
+    position:absolute;top:16px;left:16px;z-index:2;
+    font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:#dfe8ff;background:rgba(15,17,21,.72);border:1px solid rgba(255,255,255,.14);
+    padding:6px 11px;border-radius:999px;backdrop-filter:blur(6px);
+  }
+  @media (max-width:860px){
+    .feature{grid-template-columns:1fr}
+    .feature .media{min-height:0;aspect-ratio:16/9;border-right:none;border-bottom:1px solid var(--line)}
+    .feature .body{padding:26px 24px 26px}
+  }
+
+  /* ---------- notes / footer ---------- */
+  footer{margin-top:72px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line);padding-top:26px}
   footer a{color:var(--accent);text-decoration:none}
-  .note{margin-top:8px;font-size:12.5px;color:#6f7a8c}
+  footer a:hover{text-decoration:underline}
+  .note{margin-top:10px;font-size:12.5px;color:var(--dim);max-width:70ch}
+
+  /* ---------- reveal ---------- */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease, transform .6s cubic-bezier(.2,.7,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .reveal{opacity:1;transform:none;transition:none}
+    .card,.btn{transition:none}
+    .card:hover,.btn:hover{transform:none}
+  }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="hero">
-      <span class="kicker">Built with Claude</span>
-      <h1>Projects</h1>
-      <p class="sub">A small workshop of things I'm building — flight tools, a music-and-photo display, and more. Most run on Raspberry Pi hardware around the house.</p>
-    </header>
+<div class="wrap">
 
-    <main class="grid">
+  <header class="hero reveal">
+    <div class="mark">
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="13" fill="none" stroke="#242a35" stroke-width="1.5"/>
+        <circle cx="16" cy="16" r="7" fill="none" stroke="#5b9dff" stroke-width="1.8"/>
+        <circle cx="16" cy="16" r="2.4" fill="#5b9dff"/>
+        <path d="M16 3v3M16 26v3M3 16h3M26 16h3" stroke="#3a4a66" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span>xpdr.aero</span>
+    </div>
+    <h1>Things I build, mostly out of <em>Raspberry Pis</em>.</h1>
+    <p class="sub">Displays for the wall, tools for the flight deck, and a few apps that only exist because nothing else did the job.</p>
+  </header>
 
-      <article class="card">
-        <div class="icon">🛫</div>
-        <h2>Ident</h2>
-        <div class="role">Flight-duty board · Raspberry Pi Zero</div>
-        <p>A wall-mounted duty board that logs into the pilot's roster and auto-refreshes. It shows the current and next duty — sectors, report time, first departure — alongside live route maps drawn on a bundled coastline, all rendered on-device. Physical buttons switch between views.</p>
-        <div class="tags">
-          <span class="tag">Raspberry Pi</span>
-          <span class="tag">Python</span>
-          <span class="tag">Roster</span>
-          <span class="tag">Maps</span>
-          <span class="tag">Live data</span>
-        </div>
-        <div class="cardfoot">
-          <span class="status"><span class="dot wip"></span>In active development</span>
-          <a class="ghlink" href="https://github.com/captaincomplex/ident" target="_blank" rel="noopener">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            Code
-          </a>
-        </div>
-      </article>
+  <!-- ================= FEATURED ================= -->
+  <p class="seclabel reveal">Featured</p>
 
-      <article class="card">
-        <div class="icon">📋</div>
-        <h2>Unable</h2>
-        <div class="role">Aviation · Electronic Flight Bag</div>
-        <p>A crew briefing tool for the electronic flight bag — pulling the day's flight details into a clean, single-page brief for the crew. <em>Details to confirm.</em></p>
-        <div class="tags">
-          <span class="tag">Aviation</span>
-          <span class="tag">Briefing</span>
-          <span class="tag">EFB</span>
+  <article class="feature reveal">
+    <div class="media">
+      <span class="ribbon">Product</span>
+      <img src="https://ident.xpdr.aero/img/photo/hero_wide.jpg"
+           alt="Ident e-paper duty board showing a pilot's flight roster, mounted in a kitchen"
+           loading="lazy" decoding="async">
+    </div>
+    <div class="body">
+      <h2>Ident</h2>
+      <div class="role">Flight-duty board · e-paper &amp; LED matrix</div>
+      <p>A wall-mounted board that reads a pilot's roster and keeps itself up to date. It shows today's duty — sectors, report time, first departure — plus the next duty on days off, with route maps drawn from a bundled coastline and rendered entirely on the device. Thirteen display styles, physical buttons to switch views, and a web panel for settings.</p>
+      <p>Built for the household as much as the pilot: a glance tells you when they're flying, when they land, and when they're home.</p>
+      <div class="tags">
+        <span class="tag">Raspberry Pi</span>
+        <span class="tag">Python</span>
+        <span class="tag">E-paper</span>
+        <span class="tag">HUB75</span>
+        <span class="tag">Roster parsing</span>
+        <span class="tag">On-device</span>
+      </div>
+      <div class="cardfoot">
+        <span class="status"><span class="dot wip"></span>In active development</span>
+        <div class="links">
+          <a class="btn primary" href="https://ident.xpdr.aero/" rel="noopener">Visit site ↗</a>
         </div>
-        <div class="cardfoot">
-          <span class="status"><span class="dot draft"></span>Outline — pending details</span>
-          <a class="ghlink" href="https://github.com/captaincomplex/unable" target="_blank" rel="noopener">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            Code
-          </a>
-        </div>
-      </article>
+      </div>
+    </div>
+  </article>
 
-      <article class="card">
-        <div class="icon">🎵</div>
+  <!-- ================= SHIPPED ================= -->
+  <p class="seclabel reveal">Shipped</p>
+
+  <main class="grid" style="margin-bottom:44px">
+
+    <article class="card reveal">
+      <div class="media">
+        <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-label="A 64 by 64 LED matrix panel showing album cover art">
+          <defs>
+            <linearGradient id="artg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ff7a45"/><stop offset=".5" stop-color="#d8365f"/><stop offset="1" stop-color="#5b3fd8"/>
+            </linearGradient>
+            <pattern id="px" width="4" height="4" patternUnits="userSpaceOnUse">
+              <rect width="4" height="4" fill="none"/>
+              <rect x="3.1" width=".9" height="4" fill="#0c0e13" opacity=".72"/>
+              <rect y="3.1" width="4" height=".9" fill="#0c0e13" opacity=".72"/>
+            </pattern>
+            <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+              <stop offset="0" stop-color="#ffffff" stop-opacity=".2"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="320" height="180" fill="#0c0e13"/>
+          <g transform="translate(96 6)">
+            <rect width="128" height="128" fill="#111318"/>
+            <rect width="128" height="128" fill="url(#artg)"/>
+            <circle cx="64" cy="60" r="30" fill="#0c0e13" opacity=".55"/>
+            <circle cx="64" cy="60" r="9" fill="#f5f3ee"/>
+            <rect x="14" y="104" width="66" height="6" fill="#0c0e13" opacity=".55"/>
+            <rect x="14" y="114" width="42" height="5" fill="#0c0e13" opacity=".4"/>
+            <rect width="128" height="128" fill="url(#px)"/>
+            <rect width="128" height="128" fill="url(#glow)"/>
+            <rect width="128" height="128" fill="none" stroke="#242a35" stroke-width="2"/>
+          </g>
+        </svg>
+      </div>
+      <div class="body">
         <h2>Spotipi + Photo</h2>
         <div class="role">64×64 LED matrix · Raspberry Pi</div>
-        <p>An LED matrix display that cycles photos from an Apple Photos album and switches to Spotify cover art whenever music is playing. A web UI controls modes, live brightness, photo interval, a screen timer, and a daily schedule — and album deletions sync to the panel automatically.</p>
+        <p>An LED panel that cycles photos from an Apple Photos album and switches to Spotify cover art the moment music starts. A web UI controls modes, live brightness, photo interval, a screen timer and a daily schedule — and deleting a photo from the album removes it from the panel.</p>
         <div class="tags">
-          <span class="tag">Raspberry Pi</span>
           <span class="tag">LED matrix</span>
-          <span class="tag">Spotify</span>
+          <span class="tag">Spotify API</span>
           <span class="tag">Apple Photos</span>
           <span class="tag">Flask</span>
         </div>
         <div class="cardfoot">
           <span class="status"><span class="dot live"></span>Deployed</span>
-          <a class="ghlink" href="https://github.com/captaincomplex/spotipi-photo" target="_blank" rel="noopener">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            Code
-          </a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="icon">🌿</div>
-        <h2>Plant Keeper-Aliver</h2>
-        <div class="role">Reference · Home</div>
-        <p>A personal care guide for the plants around the house — watering, light, and feeding schedules in one place so nothing gets forgotten. <em>Details to confirm.</em></p>
-        <div class="tags">
-          <span class="tag">Reference</span>
-          <span class="tag">Home</span>
-          <span class="tag">Schedules</span>
-        </div>
-        <div class="cardfoot">
-          <span class="status"><span class="dot draft"></span>Outline — pending details</span>
-          <a class="ghlink" href="https://github.com/captaincomplex/plant-keeper-aliver" target="_blank" rel="noopener">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            Code
-          </a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="icon">🛩️</div>
-        <h2>Format</h2>
-        <div class="role">New project</div>
-        <p>A new program in the workshop. <em>Details to confirm.</em></p>
-        <div class="tags">
-          <span class="tag">New</span>
-        </div>
-        <div class="cardfoot">
-          <span class="status"><span class="dot draft"></span>Outline — pending details</span>
-          <a class="ghlink" href="https://github.com/captaincomplex/format" target="_blank" rel="noopener">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            Code
-          </a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="icon">📵</div>
-        <h2>Twitter Offline</h2>
-        <div class="role">PWA · iPhone</div>
-        <p>Reads your X/Twitter feed with no connection — full tweet text, photos, and video, all cached on-device. A bookmarklet captures your feed using your own logged-in session; the app stores everything locally so it opens and scrolls with zero network.</p>
-        <div class="tags">
-          <span class="tag">PWA</span>
-          <span class="tag">iPhone</span>
-          <span class="tag">Offline-first</span>
-          <span class="tag">IndexedDB</span>
-        </div>
-        <div class="cardfoot">
-          <span class="status"><span class="dot live"></span>Deployed</span>
-          <div style="display:flex;align-items:center;gap:14px">
-            <a href="https://github.com/captaincomplex/captaincomplex.github.io/tree/main/twitter-offline" target="_blank" rel="noopener" style="font-size:13px;color:var(--muted);text-decoration:none">Source</a>
-            <a class="ghlink" href="https://captaincomplex.github.io/twitter-offline/" target="_blank" rel="noopener">
-              Open app ↗
+          <div class="links">
+            <a class="btn" href="https://github.com/captaincomplex/spotipi-photo" target="_blank" rel="noopener">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+              Code
             </a>
           </div>
         </div>
-      </article>
+      </div>
+    </article>
 
-    </main>
+    <article class="card reveal">
+      <div class="media">
+        <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-label="A phone showing a cached feed with the network disconnected">
+          <rect width="320" height="180" fill="#0c0e13"/>
+          <g opacity=".5" stroke="#1c212b" stroke-width="1">
+            <path d="M0 40h320M0 80h320M0 120h320M0 160h320"/>
+          </g>
+          <g transform="translate(112 14)">
+            <rect width="96" height="168" rx="13" fill="#15181f" stroke="#2b3240" stroke-width="1.5"/>
+            <rect x="36" y="5" width="24" height="4" rx="2" fill="#2b3240"/>
+            <g transform="translate(9 18)">
+              <circle cx="7" cy="7" r="7" fill="#2c3340"/>
+              <rect x="18" y="2" width="30" height="4" rx="2" fill="#3a4356"/>
+              <rect x="18" y="9" width="20" height="3.5" rx="1.75" fill="#2c3340"/>
+              <rect x="0" y="20" width="78" height="3.5" rx="1.75" fill="#333c4c"/>
+              <rect x="0" y="27" width="66" height="3.5" rx="1.75" fill="#2c3340"/>
+              <rect x="0" y="37" width="78" height="42" rx="5" fill="#1c212b" stroke="#262c38"/>
+              <circle cx="39" cy="58" r="9" fill="none" stroke="#3d4a60" stroke-width="1.6"/>
+              <path d="M36 54.5l7 3.5-7 3.5z" fill="#3d4a60"/>
+              <rect x="0" y="88" width="78" height="3.5" rx="1.75" fill="#333c4c"/>
+              <rect x="0" y="95" width="54" height="3.5" rx="1.75" fill="#2c3340"/>
+              <rect x="0" y="105" width="78" height="3.5" rx="1.75" fill="#2c3340"/>
+              <rect x="0" y="112" width="40" height="3.5" rx="1.75" fill="#262c38"/>
+            </g>
+          </g>
+          <g transform="translate(232 118)" opacity=".9">
+            <circle cx="20" cy="20" r="19" fill="#15181f" stroke="#2b3240" stroke-width="1.5"/>
+            <path d="M11 22a5.5 5.5 0 013.6-5.2 7.5 7.5 0 0114.2 1.4A4.6 4.6 0 0128 27H15.5A4.5 4.5 0 0111 22z" fill="none" stroke="#5b9dff" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M9 9l22 22" stroke="#ff6b6b" stroke-width="2.2" stroke-linecap="round"/>
+          </g>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Twitter Offline</h2>
+        <div class="role">Progressive web app · iPhone</div>
+        <p>Reads your X feed with no connection at all — full tweet text, photos and video, cached on the device. A bookmarklet captures the feed using your own logged-in session; the app stores it locally, so it opens and scrolls with zero network.</p>
+        <div class="tags">
+          <span class="tag">PWA</span>
+          <span class="tag">Offline-first</span>
+          <span class="tag">IndexedDB</span>
+          <span class="tag">Service worker</span>
+        </div>
+        <div class="cardfoot">
+          <span class="status"><span class="dot live"></span>Deployed</span>
+          <div class="links">
+            <a class="quiet" href="https://github.com/captaincomplex/captaincomplex.github.io/tree/main/twitter-offline" target="_blank" rel="noopener">Source</a>
+            <a class="btn primary" href="/twitter-offline/" rel="noopener">Open app ↗</a>
+          </div>
+        </div>
+      </div>
+    </article>
 
-    <footer>
-      <div><a href="mailto:support@xpdr.aero">support@xpdr.aero</a> · <a href="https://github.com/captaincomplex" target="_blank" rel="noopener">github.com/captaincomplex</a></div>
-      <div class="note">Ident, Spotipi+Photo, and Twitter Offline descriptions are drawn from build notes. Unable, Plant Keeper-Aliver, and Format are placeholders — send me a line on each and I'll fill them in.</div>
-    </footer>
-  </div>
+  </main>
+
+  <!-- ================= IN THE WORKSHOP ================= -->
+  <p class="seclabel reveal">In the workshop</p>
+
+  <section class="grid">
+
+    <article class="card reveal">
+      <div class="media">
+        <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-label="A tablet showing a single-page crew briefing">
+          <rect width="320" height="180" fill="#0c0e13"/>
+          <g transform="translate(88 16)">
+            <rect width="144" height="148" rx="9" fill="#15181f" stroke="#2b3240" stroke-width="1.5"/>
+            <rect x="14" y="16" width="52" height="6" rx="3" fill="#3a4356"/>
+            <rect x="104" y="16" width="26" height="6" rx="3" fill="#2a3444"/>
+            <path d="M14 30h116" stroke="#242a35" stroke-width="1"/>
+            <g fill="#2c3340">
+              <rect x="14" y="40" width="116" height="4" rx="2"/>
+              <rect x="14" y="49" width="96" height="4" rx="2"/>
+              <rect x="14" y="58" width="108" height="4" rx="2"/>
+            </g>
+            <rect x="14" y="72" width="55" height="34" rx="5" fill="#1c212b" stroke="#262c38"/>
+            <rect x="75" y="72" width="55" height="34" rx="5" fill="#1c212b" stroke="#262c38"/>
+            <rect x="20" y="80" width="26" height="4" rx="2" fill="#3d4a60"/>
+            <rect x="81" y="80" width="26" height="4" rx="2" fill="#3d4a60"/>
+            <rect x="20" y="90" width="38" height="4" rx="2" fill="#2c3340"/>
+            <rect x="81" y="90" width="32" height="4" rx="2" fill="#2c3340"/>
+            <g fill="#2c3340">
+              <rect x="14" y="116" width="116" height="4" rx="2"/>
+              <rect x="14" y="125" width="76" height="4" rx="2"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Unable</h2>
+        <div class="role">Aviation · Electronic flight bag</div>
+        <p>A crew briefing tool for the EFB — pulling the day's flight details into one clean page for the crew. <em>Details to confirm.</em></p>
+        <div class="tags"><span class="tag">Aviation</span><span class="tag">Briefing</span><span class="tag">EFB</span></div>
+        <div class="cardfoot">
+          <span class="status"><span class="dot draft"></span>Outline</span>
+          <div class="links">
+            <a class="btn" href="https://github.com/captaincomplex/unable" target="_blank" rel="noopener">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+              Code
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card reveal">
+      <div class="media">
+        <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-label="A potted plant beside a watering schedule">
+          <rect width="320" height="180" fill="#0c0e13"/>
+          <g transform="translate(96 26)">
+            <path d="M32 96V52" stroke="#3f7d5c" stroke-width="3" stroke-linecap="round"/>
+            <path d="M32 66c-12-2-19-10-20-21 12-1 19 7 20 21z" fill="#39714f"/>
+            <path d="M32 58c11-3 17-12 17-23-12 0-18 9-17 23z" fill="#478a63"/>
+            <path d="M32 78c-9 0-15-6-16-14 10-1 15 5 16 14z" fill="#2f6144"/>
+            <path d="M14 94h36l-4 30a5 5 0 01-5 4H23a5 5 0 01-5-4z" fill="#1f242e" stroke="#333c4c" stroke-width="1.5"/>
+            <path d="M12 90h40v6H12z" fill="#262c38" stroke="#333c4c" stroke-width="1.2"/>
+          </g>
+          <g transform="translate(178 46)">
+            <rect width="86" height="88" rx="8" fill="#15181f" stroke="#2b3240" stroke-width="1.4"/>
+            <g>
+              <rect x="12" y="16" width="30" height="4" rx="2" fill="#3a4356"/>
+              <circle cx="68" cy="18" r="4" fill="#46d39a" opacity=".8"/>
+              <rect x="12" y="34" width="46" height="4" rx="2" fill="#2c3340"/>
+              <circle cx="68" cy="36" r="4" fill="#5b9dff" opacity=".7"/>
+              <rect x="12" y="52" width="38" height="4" rx="2" fill="#2c3340"/>
+              <circle cx="68" cy="54" r="4" fill="#f4c152" opacity=".7"/>
+              <rect x="12" y="70" width="42" height="4" rx="2" fill="#262c38"/>
+              <circle cx="68" cy="72" r="4" fill="#39414f"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Plant Keeper-Aliver</h2>
+        <div class="role">Reference · Home</div>
+        <p>A care guide for the plants around the house — watering, light and feeding schedules in one place, so nothing gets forgotten. <em>Details to confirm.</em></p>
+        <div class="tags"><span class="tag">Reference</span><span class="tag">Home</span><span class="tag">Schedules</span></div>
+        <div class="cardfoot">
+          <span class="status"><span class="dot draft"></span>Outline</span>
+          <div class="links">
+            <a class="btn" href="https://github.com/captaincomplex/plant-keeper-aliver" target="_blank" rel="noopener">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+              Code
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card reveal">
+      <div class="media">
+        <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-label="Two aircraft silhouettes flying in formation">
+          <defs>
+            <linearGradient id="fmg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#1a1e27"/><stop offset="1" stop-color="#0c0e13"/>
+            </linearGradient>
+          </defs>
+          <rect width="320" height="180" fill="url(#fmg)"/>
+          <g stroke="#1e2430" stroke-width="1" opacity=".8">
+            <path d="M0 60h320M0 120h320M80 0v180M160 0v180M240 0v180"/>
+          </g>
+          <g fill="#3d4a60">
+            <path d="M132 62l6-12 6 12 22 10v6l-22-5-2 12 7 6v4l-11-3-11 3v-4l7-6-2-12-22 5v-6z"/>
+          </g>
+          <g fill="#5b9dff" opacity=".85">
+            <path d="M186 106l5-10 5 10 18 8v5l-18-4-2 10 6 5v3l-9-2.5-9 2.5v-3l6-5-2-10-18 4v-5z"/>
+          </g>
+          <g stroke="#2a3444" stroke-width="1.2" stroke-dasharray="3 4" fill="none">
+            <path d="M138 84 L191 120"/>
+          </g>
+        </svg>
+      </div>
+      <div class="body">
+        <h2>Format</h2>
+        <div class="role">New project</div>
+        <p>Something new on the bench. <em>Details to confirm.</em></p>
+        <div class="tags"><span class="tag">New</span></div>
+        <div class="cardfoot">
+          <span class="status"><span class="dot draft"></span>Outline</span>
+          <div class="links">
+            <a class="btn" href="https://github.com/captaincomplex/format" target="_blank" rel="noopener">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+              Code
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <footer class="reveal">
+    <div><a href="mailto:support@xpdr.aero">support@xpdr.aero</a> · <a href="https://ident.xpdr.aero/">ident.xpdr.aero</a></div>
+    <div class="note">Unable, Plant Keeper-Aliver and Format are outlines — the descriptions will be filled in as they take shape.</div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var els = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window) ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    els.forEach(function(e){ e.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en, i){
+      if (en.isIntersecting) {
+        var el = en.target;
+        setTimeout(function(){ el.classList.add('in'); }, i * 70);
+        io.unobserve(el);
+      }
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+  els.forEach(function(e){ io.observe(e); });
+})();
+</script>
 </body>
 </html>
