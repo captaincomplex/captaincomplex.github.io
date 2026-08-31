@@ -588,11 +588,14 @@
       if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); flip(); }
     });
   });
+  var slides = wrap.querySelectorAll('.ledslide').length || 1;
   function page(dir){
-    var w = sc.clientWidth, max = sc.scrollWidth - w, next = sc.scrollLeft + dir * w;
-    if (next > max + 2) next = 0;            // past the end -> back to the first
-    else if (next < -2)  next = max;         // before the start -> on to the last
-    sc.scrollTo({ left: Math.max(0, Math.min(max, next)), behavior: 'smooth' });
+    // Work in slide indices, not pixel offsets: adding a slide width to a
+    // half-scrolled position overshoots and wraps when it should advance.
+    var w = sc.clientWidth || 1;
+    var i = Math.round(sc.scrollLeft / w);
+    var next = ((i + dir) % slides + slides) % slides;   // wraps both ways
+    sc.scrollTo({ left: next * w, behavior: 'smooth' });
   }
   wrap.querySelector('.lednav.prev').addEventListener('click', function(){ page(-1); });
   wrap.querySelector('.lednav.next').addEventListener('click', function(){ page(1); });
