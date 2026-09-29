@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projects — xpdr.aero</title>
-<meta name="description" content="Hardware and software projects: flight-duty displays, LED matrix art, and tools for the flight deck.">
+<title>xpdr.aero — LED panels, e-paper and flight-deck tools</title>
+<meta name="description" content="Wall displays and small tools built on Raspberry Pis: a free, open-source LED photo and album-art panel, a flight-duty board, an LED equaliser, and more.">
 <meta name="theme-color" content="#0f1115">
 <script>document.documentElement.className+=" js";</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f1115'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='%235b9dff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%235b9dff'/%3E%3C/svg%3E">
@@ -190,6 +190,30 @@
   .enh .ledhint{display:none}
   @keyframes lednudge{0%,100%{opacity:.45;transform:translate(0,-50%)}50%{opacity:.9;transform:translate(3px,-50%)}}
   @media (prefers-reduced-motion:reduce){.ledhint{animation:none}}
+  /* ---------- additions: open-source badge, credit, section intros ---------- */
+  .oss{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;color:#bff0da;background:rgba(70,211,154,.12);border:1px solid rgba(70,211,154,.4);
+    padding:5px 11px;border-radius:999px;margin-bottom:14px;align-self:flex-start}
+  .oss::before{content:"";width:7px;height:7px;border-radius:50%;background:#46d39a}
+  .credit{margin:0 0 18px;padding:12px 14px;border:1px solid var(--line);border-left:3px solid #46d39a;
+    border-radius:10px;background:rgba(255,255,255,.02);font-size:13.8px;color:var(--muted)}
+  .credit strong{color:var(--text)}
+  .credit a{color:var(--accent);text-decoration:none}
+  .credit a:hover{text-decoration:underline}
+  .feature p.credit{font-size:13.8px}
+  .secintro{margin:-8px 0 22px;color:var(--muted);font-size:15px;max-width:68ch}
+  .media.pair{display:flex;align-items:center;justify-content:center;gap:4%;padding:6%}
+  .media.pair img{width:auto;height:auto;max-width:48%;max-height:100%;object-fit:contain;border-radius:6px;
+    image-rendering:pixelated;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .feature.first .ribbon{color:#bff0da;border-color:rgba(70,211,154,.4)}
+  .feature p{color:var(--muted)}
+  .feature.stack{grid-template-columns:1fr}
+  .feature.stack .media{aspect-ratio:2.35/1;height:auto;min-height:0;border-right:none;border-bottom:1px solid var(--line)}
+  .feature.stack .media::after{background:linear-gradient(180deg,transparent 60%,rgba(21,24,31,.5))}
+  .feature.stack .body{padding:30px 34px 32px;max-width:none}
+  .feature.stack .body>p,.feature.stack .body>.credit{max-width:78ch}
+  @media (max-width:860px){.feature.stack .media{aspect-ratio:16/9}}
+  .quiet.plain{font-size:12.5px}
 </style>
 </head>
 <body>
@@ -205,46 +229,15 @@
       </svg>
       <span>xpdr.aero</span>
     </div>
-    <h1>Things I build, mostly out of <em>Raspberry Pis</em>.</h1>
-    <p class="sub">Displays for the wall, tools for the flight deck, and a few apps that only exist because nothing else did the job.</p>
+    <h1>Useful things, built on <em>Raspberry Pis</em>.</h1>
+    <p class="sub">LED panels that play your photos and your music, an e-paper board that tells the house when the pilot is home, and a handful of small tools that each do one job. The first is free for anyone to build.</p>
   </header>
 
-  <!-- ================= FEATURED ================= -->
-  <p class="seclabel reveal">Featured</p>
 
-  <article class="feature reveal">
-    <div class="media">
-      <span class="ribbon">Product</span>
-      <img src="https://ident.xpdr.aero/img/photo/hero_wide.jpg"
-           alt="Ident e-paper duty board showing a pilot's flight roster, mounted in a kitchen"
-           loading="lazy" decoding="async">
-    </div>
-    <div class="body">
-      <h2>Ident</h2>
-      <div class="role">Flight-duty board · e-paper &amp; LED matrix</div>
-      <p>A wall-mounted board that reads a pilot's roster and keeps itself up to date — today's sectors, report time and first departure, plus the next duty on days off. Route maps are drawn on the device from a bundled coastline. Thirteen display styles.</p>
-      <p>Built for the household as much as the pilot: one glance tells you when they're flying and when they're home.</p>
-      <div class="tags">
-        <span class="tag">Raspberry Pi</span>
-        <span class="tag">Python</span>
-        <span class="tag">E-paper</span>
-        <span class="tag">HUB75</span>
-      </div>
-      <div class="cardfoot">
-        <span class="status"><span class="dot wip"></span>In active development</span>
-        <div class="links">
-          <a class="btn primary" href="https://ident.xpdr.aero/" rel="noopener">Visit site ↗</a>
-        </div>
-      </div>
-    </div>
-  </article>
+  <!-- ================= FREE & OPEN SOURCE ================= -->
+  <p class="seclabel reveal">Free &amp; open source</p>
 
-  <!-- ================= SHIPPED ================= -->
-  <p class="seclabel reveal">Shipped</p>
-
-  <main class="grid" style="margin-bottom:44px">
-
-    <article class="card wide reveal">
+  <article class="feature first stack reveal">
       <div class="media">
         <div class="ledwrap">
         <svg class="ledbg" viewBox="0 0 320 180" preserveAspectRatio="none" aria-hidden="true"><rect width="320" height="180" fill="#0c0e13"/><g opacity=".5" stroke="#1c212b" stroke-width="1"><path d="M0 40h320M0 80h320M0 120h320M0 160h320"/></g></svg>
@@ -382,35 +375,169 @@
     </g></svg>
       </div>
       </div>
-      <div class="body">
-        <h2>Spotipi + Photo</h2>
-        <div class="role">64×64 LED matrix · Raspberry Pi</div>
-        <p>An LED panel that cycles photos from an Apple Photos album and switches to Spotify cover art the moment music starts. A web UI controls modes, live brightness, photo interval, a screen timer and a daily schedule — and deleting a photo from the album removes it from the panel.</p>
-        <div class="tags">
-          <span class="tag">LED matrix</span>
-          <span class="tag">Spotify API</span>
-          <span class="tag">Apple Photos</span>
-          <span class="tag">Flask</span>
+    <div class="body">
+      <span class="oss">Free &amp; open source</span>
+      <h2>Spotipi Photos</h2>
+      <div class="role">64×64 LED matrix · Raspberry Pi</div>
+      <p>A glowing picture frame for the wall. It shows your photos, then switches to the album cover the moment Spotify starts playing, and back again when the music stops. Photos can come from an iCloud shared album (an iPhone is all you need), from any web browser, or from a named album in Apple Photos on a Mac. Take a photo out of the album and it disappears from the panel.</p>
+      <p>A web page on your phone controls it: brightness, a screen timer, a daily off-schedule, and a dimmer that follows sunrise and sunset. There is a beginner's guide that assumes you have never used a Pi.</p>
+      <p class="credit"><strong>Built on Spotipi, created by Ryan Ward.</strong> His <a href="https://github.com/ryanwa18/spotipi" target="_blank" rel="noopener">original project</a> (MIT licence) put Spotify cover art on an LED matrix; Spotipi Photos adds the photo slideshow and a rebuilt control panel. All credit for the idea and the foundation is his.</p>
+      <div class="tags">
+        <span class="tag">LED matrix</span>
+        <span class="tag">Raspberry Pi</span>
+        <span class="tag">Spotify</span>
+        <span class="tag">iCloud / Apple Photos</span>
+        <span class="tag">Python</span>
+      </div>
+      <div class="cardfoot">
+        <span class="status"><span class="dot live"></span>In use at home</span>
+        <div class="links">
+          <a class="btn primary" href="https://github.com/captaincomplex/spotipi-photos" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> Get the code</a>
+          <a class="btn" href="https://github.com/ryanwa18/spotipi" target="_blank" rel="noopener">Ryan Ward's Spotipi ↗</a>
         </div>
+      </div>
+    </div>
+  </article>
+
+
+  <!-- ================= IDENT ================= -->
+  <p class="seclabel reveal">Product</p>
+
+  <article class="feature reveal">
+    <div class="media">
+      <span class="ribbon">Product</span>
+      <img src="https://ident.xpdr.aero/img/photo/hero_wide.jpg"
+           alt="Ident e-paper duty board showing a pilot's flight roster, mounted in a kitchen"
+           loading="lazy" decoding="async">
+    </div>
+    <div class="body">
+      <h2>Ident</h2>
+      <div class="role">Flight-duty board · e-paper &amp; LED matrix</div>
+      <p>The wall board that answers “when are you back?” before anyone has to ask. Ident reads a pilot's roster and shows the household where they are, when they will be through the door, and how long they have together before the next duty.</p>
+      <p>It keeps itself up to date when crewing change the roster. <strong>The roster never leaves the device</strong>: it is read and drawn on the Raspberry Pi in your own house, not sent to a server.</p>
+      <div class="tags">
+        <span class="tag">Raspberry Pi</span>
+        <span class="tag">E-paper</span>
+        <span class="tag">HUB75 LED</span>
+        <span class="tag">Python</span>
+      </div>
+      <div class="cardfoot">
+        <span class="status"><span class="dot wip"></span>In active development</span>
+        <div class="links">
+          <a class="btn primary" href="https://ident.xpdr.aero/" rel="noopener">Visit ident.xpdr.aero ↗</a>
+        </div>
+      </div>
+    </div>
+  </article>
+
+
+  <!-- ================= ON THE WALL ================= -->
+  <p class="seclabel reveal">On the wall</p>
+  <p class="secintro reveal">Displays that live in a room. The first two are for an LED panel; the third is an e-ink picture frame.</p>
+
+  <section class="grid" style="margin-bottom:44px">
+
+    <article class="card reveal">
+      <div class="media pair">
+        <img src="assets/equalize-64x64.gif" alt="Equalize on a 64 by 64 LED panel: colourful equaliser bars rising and falling" loading="lazy" decoding="async">
+        <img src="assets/equalize-128x64.gif" alt="Equalize on a 128 by 64 LED panel in sunset colours" loading="lazy" decoding="async">
+      </div>
+      <div class="body">
+        <h2>Equalize</h2>
+        <div class="role">LED matrix · Raspberry Pi · AirPlay 2</div>
+        <p>A graphic equaliser for the wall. Play music to your Sonos from an iPhone and the panel dances to it: bass on the left, treble on the right, bars leaping on each beat and falling under gravity.</p><p>There is <strong>no microphone</strong>. The Pi joins your AirPlay group as a silent speaker called “Equalize” and receives the same digital audio, in step with the Sonos. It works with any app, not only Spotify. So far it has been tested off the Pi with a stand-in panel driver; it has not yet run on a real panel.</p><p class="credit">Grown from Spotipi Photos, and so from <a href="https://github.com/ryanwa18/spotipi" target="_blank" rel="noopener">Ryan Ward’s Spotipi</a>.</p>
+        <div class="tags"><span class="tag">LED matrix</span><span class="tag">AirPlay 2</span><span class="tag">Python</span><span class="tag">Raspberry Pi</span></div>
         <div class="cardfoot">
-          <span class="status"><span class="dot live"></span>Deployed</span>
-          <div class="links">
-            <a class="btn" href="https://github.com/captaincomplex/spotipi-photo" target="_blank" rel="noopener">
-              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-              Code
-            </a>
-          </div>
+          <span class="status"><span class="dot wip"></span>Early build</span>
+          <div class="links"><a class="btn" href="https://github.com/captaincomplex/equalize" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> Code</a></div>
         </div>
       </div>
     </article>
 
-  </main>
+    <article class="card reveal">
+      <div class="media"><svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" role="img" aria-label="An e-ink picture frame showing a painted portrait on a museum mat with a small plaque">
+          <rect width="320" height="180" fill="#0c0e13"/>
+          <g transform="translate(96 14)">
+            <rect width="128" height="152" rx="5" fill="#15181f" stroke="#2b3240" stroke-width="1.5"/>
+            <rect x="10" y="10" width="108" height="112" fill="#e9e4d6"/>
+            <rect x="18" y="18" width="92" height="96" fill="#c98a4b"/>
+            <path d="M18 114V84c14-10 28-8 40-22 12 12 34 4 52 16v36z" fill="#3f5a7a"/>
+            <circle cx="64" cy="54" r="15" fill="#f0d0a8"/>
+            <path d="M46 52c0-18 36-18 36 0-8-6-28-6-36 0z" fill="#5a3a22"/>
+            <circle cx="79" cy="64" r="3.2" fill="#f4f1ea" stroke="#b9b2a2" stroke-width=".6"/>
+            <rect x="34" y="130" width="60" height="4" rx="2" fill="#3d4a60"/>
+            <rect x="44" y="139" width="40" height="3" rx="1.5" fill="#2c3340"/>
+          </g>
+          <g fill="#3a4356"><rect x="212" y="150" width="9" height="9" rx="2"/><rect x="212" y="134" width="9" height="9" rx="2"/><rect x="212" y="118" width="9" height="9" rx="2"/><rect x="212" y="102" width="9" height="9" rx="2"/></g>
+        </svg></div>
+      <div class="body">
+        <h2>You’re Famous</h2>
+        <div class="role">E-ink picture frame · Raspberry Pi</div>
+        <p>Turn your photos into famous paintings. Grandma becomes the <em>Girl with a Pearl Earring</em>; the family become <em>American Gothic</em>; a holiday lake becomes <em>The Starry Night</em>. There are 87 artworks to choose from, and four buttons on the frame: paint a new one, next in the gallery, before-and-after, and re-roll.</p><p>An AI image service does the painting: free on Cloudflare’s allowance (about 170 a day), or paid with OpenAI or Google Gemini. <strong>Unlike Ident, the photo is sent to that service</strong> to be painted, so use pictures of people who are happy for that.</p>
+        <div class="tags"><span class="tag">E-ink</span><span class="tag">Pimoroni Inky Impression</span><span class="tag">AI painting</span><span class="tag">Python</span></div>
+        <div class="cardfoot">
+          <span class="status"><span class="dot wip"></span>In development</span>
+          <div class="links"><span class="quiet plain">Not published yet</span></div>
+        </div>
+      </div>
+    </article>
 
-  <!-- ================= IN THE WORKSHOP ================= -->
-  <p class="seclabel reveal">In the workshop</p>
+    <article class="card reveal">
+      <div class="media"><svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" role="img" aria-label="An alley drawn in one-point perspective, its walls converging on a small figure at the vanishing point">
+          <rect width="320" height="180" fill="#0c0e13"/>
+          <path d="M0 0L146 70V110L0 180z" fill="#171b23"/>
+          <path d="M320 0L174 70V110L320 180z" fill="#12151c"/>
+          <path d="M0 0H320L174 70H146z" fill="#0f1218"/>
+          <path d="M0 180L146 110H174L320 180z" fill="#1c212b"/>
+          <rect x="146" y="70" width="28" height="40" fill="#f4c152" opacity=".9"/>
+          <rect x="146" y="70" width="28" height="40" fill="url(#pvg)"/>
+          <defs><radialGradient id="pvg"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#f4c152" stop-opacity="0"/></radialGradient></defs>
+          <g stroke="#2a3444" stroke-width="1" fill="none" opacity=".9">
+            <path d="M0 0L146 70M0 180L146 110M320 0L174 70M320 180L174 110M0 90L146 90M320 90L174 90"/>
+          </g>
+          <rect x="158.5" y="88" width="3" height="10" rx="1.4" fill="#0c0e13"/><circle cx="160" cy="85.5" r="2.2" fill="#0c0e13"/>
+        </svg></div>
+      <div class="body">
+        <h2>Perspective</h2>
+        <div class="role">Photography · a study album</div>
+        <p>Eighty-five photographs chosen from more than 1,700 favourites, each one picked for what it shows about composition: one-point perspective and the vanishing point, leading lines, where to put the horizon, framing, repetition, and depth made from tone alone.</p><p>Every picture comes with a note on what it demonstrates, and there are paired shots that differ in one thing only, such as a figure’s distance or the height of the horizon, so you can see what that one thing does.</p>
+        <div class="tags"><span class="tag">Photography</span><span class="tag">Composition</span><span class="tag">Apple Photos</span></div>
+        <div class="cardfoot">
+          <span class="status"><span class="dot draft"></span>Album and notes</span>
+          <div class="links"><span class="quiet plain">Not published yet</span></div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ================= TOOLS ================= -->
+  <p class="seclabel reveal">Tools</p>
+  <p class="secintro reveal">Small programs that each do one job.</p>
 
   <section class="grid">
 
+    <article class="card reveal">
+      <div class="media"><svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A photo file passing through a converter and coming out in a different format">
+          <rect width="320" height="180" fill="#0c0e13"/>
+          <g transform="translate(46 50)"><rect width="74" height="80" rx="7" fill="#15181f" stroke="#2b3240" stroke-width="1.5"/>
+            <circle cx="22" cy="24" r="7" fill="#f4c152" opacity=".85"/><path d="M8 68l20-22 14 14 10-10 14 18z" fill="#3d4a60"/>
+            <rect x="8" y="8" width="26" height="8" rx="3" fill="#2a3444"/><text x="40" y="15" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#98a1b0">.HEIC</text></g>
+          <g stroke="#5b9dff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M136 90h48"/><path d="M174 80l10 10-10 10"/></g>
+          <g transform="translate(200 50)"><rect width="74" height="80" rx="7" fill="#15181f" stroke="#33405a" stroke-width="1.5"/>
+            <circle cx="22" cy="24" r="7" fill="#f4c152" opacity=".85"/><path d="M8 68l20-22 14 14 10-10 14 18z" fill="#5b9dff" opacity=".8"/>
+            <text x="40" y="15" font-family="ui-monospace,Menlo,monospace" font-size="7" fill="#cfe1ff">.JPG</text></g>
+        </svg></div>
+      <div class="body">
+        <h2>Format</h2>
+        <div class="role">Photo tool · Python · runs on your computer</div>
+        <p>Convert photos between formats without losing anything. Drop in HEIC, JPG, PNG, WebP, TIFF, BMP, GIF or AVIF, and get JPEG, PNG, WebP, TIFF, HEIC or BMP back. It opens in a browser tab, but it runs entirely on your own machine: <strong>no photo is ever uploaded</strong>.</p><p>Photos are never resized or cropped. Date, camera and GPS data and colour profiles are kept wherever the format allows, sideways photos are straightened, and an existing file is never overwritten. Drop in a batch, or type a folder path to do the lot.</p>
+        <div class="tags"><span class="tag">Python</span><span class="tag">HEIC</span><span class="tag">Private</span><span class="tag">Batch</span></div>
+        <div class="cardfoot">
+          <span class="status"><span class="dot live"></span>Available</span>
+          <div class="links"><a class="btn" href="https://github.com/captaincomplex/format" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> Code</a></div>
+        </div>
+      </div>
+    </article>
     <article class="card reveal">
       <div class="media">
         <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-label="A tablet showing a single-page crew briefing">
@@ -499,45 +626,7 @@
       </div>
     </article>
 
-    <article class="card reveal">
-      <div class="media">
-        <svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-label="Two aircraft silhouettes flying in formation">
-          <defs>
-            <linearGradient id="fmg" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#1a1e27"/><stop offset="1" stop-color="#0c0e13"/>
-            </linearGradient>
-          </defs>
-          <rect width="320" height="180" fill="url(#fmg)"/>
-          <g stroke="#1e2430" stroke-width="1" opacity=".8">
-            <path d="M0 60h320M0 120h320M80 0v180M160 0v180M240 0v180"/>
-          </g>
-          <g fill="#3d4a60">
-            <path d="M132 62l6-12 6 12 22 10v6l-22-5-2 12 7 6v4l-11-3-11 3v-4l7-6-2-12-22 5v-6z"/>
-          </g>
-          <g fill="#5b9dff" opacity=".85">
-            <path d="M186 106l5-10 5 10 18 8v5l-18-4-2 10 6 5v3l-9-2.5-9 2.5v-3l6-5-2-10-18 4v-5z"/>
-          </g>
-          <g stroke="#2a3444" stroke-width="1.2" stroke-dasharray="3 4" fill="none">
-            <path d="M138 84 L191 120"/>
-          </g>
-        </svg>
-      </div>
-      <div class="body">
-        <h2>Format</h2>
-        <div class="role">New project</div>
-        <p>Something new on the bench. <em>Details to confirm.</em></p>
-        <div class="tags"><span class="tag">New</span></div>
-        <div class="cardfoot">
-          <span class="status"><span class="dot draft"></span>Outline</span>
-          <div class="links">
-            <a class="btn" href="https://github.com/captaincomplex/format" target="_blank" rel="noopener">
-              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-              Code
-            </a>
-          </div>
-        </div>
-      </div>
-    </article>
+
 
     <article class="card reveal">
       <div class="media"><svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-label="A camera lens framing an aircraft"><rect width="320" height="180" fill="#0c0e13"/><path d="M40 66l52-16 6 18-52 18z" fill="#2c3340"/><path d="M92 50l30-6 4 10-28 12z" fill="#3d4a60"/><g transform="translate(150 54)"><rect x="0" y="20" width="104" height="72" rx="12" fill="#15181f" stroke="#2b3240" stroke-width="1.6"/><rect x="34" y="8" width="34" height="16" rx="5" fill="#1c212b" stroke="#2b3240"/><circle cx="52" cy="58" r="24" fill="#0c0e13" stroke="#3d4a60" stroke-width="2"/><circle cx="52" cy="58" r="13" fill="none" stroke="#5b9dff" stroke-width="2"/><circle cx="86" cy="36" r="3.5" fill="#f4c152"/></g></svg></div>
@@ -574,12 +663,12 @@
         </div>
       </div>
     </article>
-
   </section>
 
+
   <footer class="reveal">
-    <div><a href="mailto:support@xpdr.aero">support@xpdr.aero</a> · <a href="https://ident.xpdr.aero/">ident.xpdr.aero</a></div>
-    <div class="note">Unable, Plant Keeper-Aliver and Format are outlines — the descriptions will be filled in as they take shape.</div>
+    <div><a href="mailto:support@xpdr.aero">support@xpdr.aero</a> · <a href="https://ident.xpdr.aero/">ident.xpdr.aero</a> · <a href="https://github.com/captaincomplex" target="_blank" rel="noopener">GitHub</a></div>
+    <div class="note">Spotipi Photos is built on <a href="https://github.com/ryanwa18/spotipi" target="_blank" rel="noopener">Spotipi</a> by Ryan Ward, and Equalize on Spotipi Photos. Thank you, Ryan.</div>
   </footer>
 
 </div>
