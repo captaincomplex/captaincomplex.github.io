@@ -7,7 +7,9 @@
 <meta name="description" content="Wall displays and small tools built on Raspberry Pis: a free, open-source LED photo and album-art panel, a flight-duty board, an LED equaliser, and more.">
 <meta name="theme-color" content="#0f1115">
 <script>document.documentElement.className+=" js";</script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23f2b705'/%3E%3Ccircle cx='50' cy='50' r='15' fill='%231a1405'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%231a1405' stroke-width='11' stroke-linecap='round' stroke-dasharray='0 17.8'/%3E%3C/svg%3E">
+<link rel="icon" href="logo/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="logo/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
 <style>
   :root{
     --bg:#0f1115; --panel:#15181f; --panel-2:#1b1f28;
@@ -36,9 +38,8 @@
 
   /* ---------- hero ---------- */
   header.hero{margin-bottom:52px;max-width:62ch}
-  .mark{display:flex;align-items:center;gap:11px;margin-bottom:26px}
-  .mark svg{width:26px;height:26px;flex:none}
-  .mark span{font-size:13px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+  .mark{display:inline-block;margin:-12px 0 14px -11px;line-height:0}
+  .mark img{display:block;height:66px;width:auto}
   h1{font-size:clamp(36px,5.4vw,58px);line-height:1.03;margin:0 0 16px;letter-spacing:-.025em}
   h1 em{font-style:normal;background:linear-gradient(92deg,var(--accent),var(--accent-2));
     -webkit-background-clip:text;background-clip:text;color:transparent}
@@ -220,14 +221,7 @@
 <div class="wrap">
 
   <header class="hero reveal">
-    <div class="mark">
-      <svg viewBox="0 0 100 100" aria-hidden="true">
-        <circle cx="50" cy="50" r="12" fill="#f2b705"/>
-        <circle cx="50" cy="50" r="29" fill="none" stroke="#f2b705" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 15.18"/>
-        <circle cx="50" cy="50" r="43" fill="none" stroke="#f2b705" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 15.01" transform="rotate(10 50 50)"/>
-      </svg>
-      <span>xpdr.aero</span>
-    </div>
+    <a class="mark" href="/"><img src="logo/xpdr-lockup-A2.svg" alt="xpdr.aero" width="190" height="66"></a>
     <h1>Useful things, built on <em>Raspberry Pis</em>.</h1>
     <p class="sub">LED panels that play your photos and your music, an e-paper board that tells the house when the pilot is home, and a handful of small tools that each do one job. The first is free for anyone to build.</p>
   </header>
