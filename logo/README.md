@@ -12,8 +12,8 @@ to outlines in the SVG files, so nothing here needs the font installed.
 | `xpdr-lockup-M1-black.svg` / `.png` | Black and white only: black, for light backgrounds. |
 | `xpdr-lockup-M2-white.svg` / `.png` | Black and white only: white, for dark backgrounds. |
 | `xpdr-mark-*.svg` | The beacon on its own, in saffron, ink, black or white. |
-| `favicon.svg`, `favicon-16/32/48.png` | Tab icon: dark tile, saffron dots (centre + two rings). The bolder small-size artwork, for 16–48 px. |
-| `app-icon.svg`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Square app icons (the system rounds the corners): the finer large-size artwork of the same idea. |
+| `favicon.svg`, `favicon-16/32/48.png` | Tab icon: the full beacon (centre + three rings) in saffron on a dark tile, dots slightly bolder than the lockup mark so they hold up small. |
+| `app-icon.svg`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` | Square app icons (the system rounds the corners): the same beacon on a dark tile. |
 
 Colours: saffron `#f2b705`, near-black `#14110a`, ink `#1a1405`, red `#ff5a36` on dark and
 `#d8381a` on saffron or light.
