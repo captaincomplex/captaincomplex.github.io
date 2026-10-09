@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Equalize — xpdr.aero</title>
-<meta name="description" content="An equalizer, known to be graphic. Music on a Raspberry Pi LED panel, with no microphone. Free and open source.">
+<meta name="description" content="Watch the music. Spotify and Apple Music on a Raspberry Pi LED panel, with no microphone. Free and open source.">
 <meta name="theme-color" content="#14110a">
 <link rel="icon" href="../logo/favicon.svg" type="image/svg+xml">
 <link rel="alternate icon" href="../logo/favicon-32.png" sizes="32x32" type="image/png">
@@ -44,11 +44,10 @@ p{text-wrap:pretty;max-width:52ch}
 .hero .pic img{width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;border-radius:12px;background:#000;image-rendering:pixelated;display:block}
 .sty{grid-column:span 3;background:#000;color:#fff;border:1px solid #3a3320;padding:18px;gap:12px}
 .sty img{width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;border-radius:10px;image-rendering:pixelated;display:block}
-.sty h2{font-size:1.375rem;letter-spacing:-.02em}
-.sty p{font-size:var(--t-body);color:#d8d0b8;font-weight:500;line-height:1.55}
+.sty h2{font-size:1.375rem;letter-spacing:-.02em;text-align:center}
 .more{grid-column:1/-1;color:var(--mut);padding:0 6px;font-size:.9375rem;max-width:none}
 .more a{color:var(--cream);text-decoration:underline;text-underline-offset:3px}
-.info{grid-column:span 4;min-height:200px}
+.info{grid-column:span 3;min-height:0}
 .info h2{font-size:var(--t-md);letter-spacing:-.03em}
 .info p{line-height:1.5}
 .c-w{background:var(--white)}.c-y{background:var(--saf)}.c-c{background:var(--cream)}
@@ -60,9 +59,9 @@ p{text-wrap:pretty;max-width:52ch}
 footer{margin-top:22px;padding:0 4px 8px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;color:var(--mut);font-size:.875rem;line-height:1.5}
 footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--saf)}
 a:focus-visible{outline:3px solid var(--saf);outline-offset:3px}
-@media(max-width:1000px){.sty{grid-column:span 6}.info{grid-column:span 6}.info:last-of-type{grid-column:1/-1}}
+@media(max-width:1000px){.sty{grid-column:span 6}.info{grid-column:span 6}}
 @media(max-width:760px){.hero{flex-direction:column;align-items:stretch}.hero .pic{flex:none;width:100%;max-width:420px}.hw{flex-direction:column}}
-@media(max-width:600px){.t{padding:20px}.sty{grid-column:span 6;padding:12px;gap:8px}.sty h2{font-size:1.125rem}.sty p{display:none}.info{grid-column:1/-1;min-height:0}.top a.back span{display:none}}
+@media(max-width:600px){.t{padding:20px}.sty{grid-column:span 6;padding:12px;gap:8px}.sty h2{font-size:1.125rem}.info{grid-column:1/-1;min-height:0}.top a.back span{display:none}}
 </style>
 </head>
 <body>
@@ -72,26 +71,27 @@ a:focus-visible{outline:3px solid var(--saf);outline-offset:3px}
     <section class="t hero">
       <div class="tx">
         <div class="ttl"><img src="../assets/equalize-icon.png" alt="" width="72" height="72"><h1>Equalize</h1></div>
-        <p class="tag">An equalizer, known to be graphic.</p>
-        <p class="lead">Music on a Raspberry Pi LED panel, in sixteen styles from classic bars to Dance Dance Revolution. Free and open source.</p>
+        <p class="tag">Watch the music.</p>
+        <p class="lead">A Raspberry Pi and an LED panel that draw whatever you play. Works with Spotify and Apple Music. Free and open source.</p>
         <div class="btns"><a class="btn p" href="https://github.com/captaincomplex/equalize" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Code on GitHub</a><a class="btn" href="../">All projects</a></div>
       </div>
-      <div class="pic"><img src="../assets/equalize/style-ledring.gif" alt="Equalize's default LED ring style: rings of LED dots lighting outward with the music" width="420" height="420"></div>
+      <div class="pic"><img src="../assets/equalize/style-sunset.gif" alt="Equalize's Sunset style: bars standing on a neon horizon" width="420" height="420"></div>
     </section>
 
-    <article class="t sty"><img src="../assets/equalize/style-dance.gif" alt="Dance style: arrows scroll up to the beat" loading="lazy" width="400" height="400"><h2>Dance</h2><p>Arrows scroll up and land on the beat, like the arcade game.</p></article>
-    <article class="t sty"><img src="../assets/equalize/style-meter.gif" alt="Meter style: stacked LED segments with peak markers" loading="lazy" width="400" height="400"><h2>Meter</h2><p>A hi-fi LED meter with a lit segment marking each peak.</p></article>
-    <article class="t sty"><img src="../assets/equalize/style-sunset.gif" alt="Sunset style: bars standing on a neon horizon" loading="lazy" width="400" height="400"><h2>Sunset</h2><p>Bars on a horizon, with the sun’s stripes cut through them.</p></article>
-    <article class="t sty"><img src="../assets/equalize/style-disc.gif" alt="Disc style: a ring of rays around a striped sun" loading="lazy" width="400" height="400"><h2>Disc</h2><p>A ring of rays around a small striped sun.</p></article>
-    <p class="more">Sixteen styles in all, switchable from your phone. The full list is in the <a href="https://github.com/captaincomplex/equalize#styles" target="_blank" rel="noopener">README</a>. These animations are rendered by Equalize’s own code from a demo track, not recorded from a panel.</p>
+    <article class="t info c-y"><h2>Apple Music</h2><p>Pick Equalize in the AirPlay menu, next to your speakers.</p></article>
+    <article class="t info c-w"><h2>Spotify</h2><p>Pick Equalize in Spotify’s device list. Needs Premium.</p></article>
+    <article class="t info c-y"><h2>No microphone</h2><p>It never listens to the room.</p></article>
+    <article class="t info c-c"><h2>Shares a Pi</h2><p>Takes turns with Spotipi Photo on one panel.</p></article>
 
-    <article class="t info c-y"><h2>No microphone</h2><p>The Pi never listens to the room. It shows up as a silent speaker called “Equalize” and receives the same audio your speakers get, in step with them.</p></article>
-    <article class="t info c-c"><h2>Two ways in</h2><p>AirPlay 2 for Apple Music and most apps. Spotify Connect for Spotify (Premium): choose Equalize in Spotify’s device list.</p></article>
-    <article class="t info c-w"><h2>Shares a Pi</h2><p>Install it beside Spotipi Photo and the panel takes turns: album covers and photos when you play to the speaker alone, the equalizer when you also play to Equalize.</p></article>
+    <article class="t sty"><img src="../assets/equalize/style-dance.gif" alt="Dance style: arrows scroll up to the beat" loading="lazy" width="400" height="400"><h2>Dance</h2></article>
+    <article class="t sty"><img src="../assets/equalize/style-vu.gif" alt="Needle style: a hi-fi meter needle swings with the music" loading="lazy" width="400" height="400"><h2>Needle</h2></article>
+    <article class="t sty"><img src="../assets/equalize/style-trails.gif" alt="Trails style: colour flies out of the middle" loading="lazy" width="400" height="400"><h2>Trails</h2></article>
+    <article class="t sty"><img src="../assets/equalize/style-disc.gif" alt="Disc style: a ring of rays around a striped sun" loading="lazy" width="400" height="400"><h2>Disc</h2></article>
+    <p class="more">Seventeen styles in all, chosen from your phone. <a href="https://github.com/captaincomplex/equalize#styles" target="_blank" rel="noopener">See them all</a>. These animations are drawn by Equalize’s own code from a demo track, not filmed on a panel.</p>
 
     <section class="t hw">
-      <div><h2>What you need</h2><p>A Raspberry Pi 3 Model A+, an Adafruit RGB Matrix Bonnet, a 64×64 LED panel and a 5 V 4 A power supply. Two panels side by side give 128×64; 64×32 panels work too. A web page on your phone sets the style, colours, brightness and timers.</p></div>
-      <div><h2>Status</h2><span class="st"><i></i>Ready for release</span><p>Running on a real Raspberry Pi and LED panel. Free and open source under the MIT licence.</p></div>
+      <div><h2>What you need</h2><p>A Raspberry Pi 3 Model A+, an Adafruit RGB Matrix Bonnet, a 64×64 LED panel and a 5 V 4 A power supply.</p></div>
+      <div><h2>Status</h2><span class="st"><i></i>Ready for release</span><p>Running on a real Pi and panel. MIT licence.</p></div>
     </section>
   </main>
   <footer><span>Equalize grew out of Spotipi Photo, which is built on <a href="https://github.com/ryanwa18/spotipi" target="_blank" rel="noopener">Spotipi</a> by Ryan Ward (MIT, 2020). His copyright notice is kept. Part of <a href="../">xpdr.aero</a>.</span></footer>
