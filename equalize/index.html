@@ -4,99 +4,97 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Equalize — xpdr.aero</title>
-<meta name="description" content="An equalizer, known to be graphic. Music on a Raspberry Pi LED panel in sixteen styles, with no microphone. Free and open source.">
-<meta name="theme-color" content="#0f1115">
+<meta name="description" content="An equalizer, known to be graphic. Music on a Raspberry Pi LED panel, with no microphone. Free and open source.">
+<meta name="theme-color" content="#14110a">
 <link rel="icon" href="../logo/favicon.svg" type="image/svg+xml">
 <link rel="alternate icon" href="../logo/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="../logo/apple-touch-icon.png">
 <style>
-  :root{--bg:#0f1115;--panel:#15181f;--panel-2:#1b1f28;--text:#e9ecf2;--muted:#98a1b0;--dim:#6d7788;--line:#242a35;--accent:#5b9dff;--radius:18px}
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-  a{color:var(--accent)} img{display:block;max-width:100%}
-  .wrap{max-width:1040px;margin:0 auto;padding:40px 24px 90px}
-  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:44px;flex-wrap:wrap}
-  .top img{height:44px;width:auto} .top a.back{color:var(--muted);text-decoration:none;font-size:14px} .top a.back:hover{color:var(--text)}
-  h1{font-size:clamp(40px,7vw,68px);line-height:1;margin:0 0 12px;letter-spacing:-.03em}
-  .tag1{font-size:clamp(20px,3vw,28px);color:var(--muted);margin:0 0 22px}
-  .lead{max-width:62ch;color:var(--muted);font-size:17.5px;margin:0 0 26px}
-  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:56px}
-  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);text-decoration:none;font-weight:600;font-size:14.5px}
-  .btn:hover{border-color:#33405a} .btn.primary{background:var(--accent);border-color:var(--accent);color:#06101f}
-  .btn svg{width:16px;height:16px;fill:currentColor}
-  h2{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin:0 0 20px;display:flex;align-items:center;gap:14px}
-  h2::after{content:"";flex:1;height:1px;background:var(--line)}
-  .sec{margin-bottom:56px}
-  .gallery{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
-  .sty{margin:0;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:14px;overflow:hidden}
-  .sty img{width:100%;aspect-ratio:1/1;object-fit:contain;background:#000;image-rendering:pixelated}
-  .sty figcaption{padding:12px 14px 14px;font-size:13.5px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
-  .sty strong{color:var(--text);font-size:15px}
-  .cols{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-  .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
-  .box h3{margin:0 0 8px;font-size:17px} .box p{margin:0 0 10px;color:var(--muted);font-size:15px} .box p:last-child{margin:0}
-  .note{border-left:3px solid #e0b341;padding:12px 16px;background:rgba(224,179,65,.07);border-radius:0 10px 10px 0;color:var(--muted);font-size:14.5px;max-width:70ch}
-  footer{color:var(--dim);font-size:13.5px;border-top:1px solid var(--line);padding-top:22px;max-width:75ch}
+@font-face{font-family:"Familjen Grotesk";font-weight:500 700;font-style:normal;font-display:swap;src:url(../fonts/familjen-grotesk-latin.woff2) format("woff2")}
+@font-face{font-family:"Familjen Fallback";src:local("Arial"),local("Liberation Sans");size-adjust:102%;ascent-override:100%;descent-override:22%;line-gap-override:0%}
+:root{--f:"Familjen Grotesk","Familjen Fallback",system-ui,sans-serif;
+ --t-display:clamp(2.75rem,7vw,6rem);--t-md:clamp(1.5rem,2.6vw,2.125rem);--t-body:1rem;--t-meta:.8125rem;
+ --bg:#14110a;--saf:#f2b705;--white:#fbf8ef;--cream:#f3ecd6;--ink:#14110a;--mut:#a79d82}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:var(--t-body);line-height:1.5;padding:0 14px 14px;text-rendering:optimizeLegibility}
+a{color:inherit;text-decoration:none}
+::selection{background:#f2b705;color:#14110a}
+h1,h2,p{margin:0}
+h1,h2{font-weight:700;text-wrap:balance;line-height:.96}
+p{text-wrap:pretty;max-width:52ch}
+.wrap{max-width:1300px;margin:0 auto}
+.top{padding:16px 4px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.top img{height:34px;width:auto;display:block}
+.top a.back{color:var(--cream);font-size:.9375rem;font-weight:500}.top a.back:hover{color:var(--saf)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.t{border-radius:26px;padding:26px;display:flex;flex-direction:column;gap:14px;min-width:0;overflow:hidden}
+.hero{grid-column:1/-1;background:#000;color:#fff;border:2px solid var(--saf);flex-direction:row;align-items:center;gap:clamp(20px,4vw,56px);padding:clamp(24px,4vw,48px)}
+.hero .tx{display:flex;flex-direction:column;gap:18px;min-width:0;flex:1 1 0}
+.hero .ttl{display:flex;align-items:center;gap:18px}
+.hero .ttl img{width:72px;height:72px;border-radius:17px;flex:none}
+.hero h1{font-size:var(--t-display);letter-spacing:-.04em}
+.tag{font-size:clamp(1.25rem,2.4vw,1.75rem);font-weight:600;letter-spacing:-.02em;line-height:1.2}
+.lead{font-size:1.125rem;line-height:1.58;font-weight:500;letter-spacing:.006em;color:#e9e2cc}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:99px;font-weight:600;font-size:.9375rem;border:1.5px solid var(--saf);color:#fff}
+.btn.p{background:var(--saf);color:var(--ink)}
+.btn:hover{transform:translateY(-1px)}
+.btn svg{width:16px;height:16px;fill:currentColor}
+.hero .pic{flex:0 0 min(38%,420px)}
+.hero .pic img{width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;border-radius:12px;background:#000;image-rendering:pixelated;display:block}
+.sty{grid-column:span 3;background:#000;color:#fff;border:1px solid #3a3320;padding:18px;gap:12px}
+.sty img{width:100%;height:auto;aspect-ratio:1/1;object-fit:contain;border-radius:10px;image-rendering:pixelated;display:block}
+.sty h2{font-size:1.375rem;letter-spacing:-.02em}
+.sty p{font-size:var(--t-body);color:#d8d0b8;font-weight:500;line-height:1.55}
+.more{grid-column:1/-1;color:var(--mut);padding:0 6px;font-size:.9375rem;max-width:none}
+.more a{color:var(--cream);text-decoration:underline;text-underline-offset:3px}
+.info{grid-column:span 4;min-height:200px}
+.info h2{font-size:var(--t-md);letter-spacing:-.03em}
+.info p{line-height:1.5}
+.c-w{background:var(--white)}.c-y{background:var(--saf)}.c-c{background:var(--cream)}
+.hw{grid-column:1/-1;background:var(--white);flex-direction:row;gap:clamp(20px,4vw,56px);align-items:flex-start}
+.hw>div{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:12px}
+.hw h2{font-size:var(--t-md);letter-spacing:-.03em}
+.st{display:flex;gap:8px;align-items:center;font-weight:600;font-size:var(--t-meta);letter-spacing:.07em;text-transform:uppercase}
+.st i{width:9px;height:9px;border-radius:50%;background:#1f9d55;flex:none}
+footer{margin-top:22px;padding:0 4px 8px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;color:var(--mut);font-size:.875rem;line-height:1.5}
+footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--saf)}
+a:focus-visible{outline:3px solid var(--saf);outline-offset:3px}
+@media(max-width:1000px){.sty{grid-column:span 6}.info{grid-column:span 6}.info:last-of-type{grid-column:1/-1}}
+@media(max-width:760px){.hero{flex-direction:column;align-items:stretch}.hero .pic{flex:none;width:100%;max-width:420px}.hw{flex-direction:column}}
+@media(max-width:600px){.t{padding:20px}.sty{grid-column:span 6;padding:12px;gap:8px}.sty h2{font-size:1.125rem}.sty p{display:none}.info{grid-column:1/-1;min-height:0}.top a.back span{display:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><a href="../"><img src="../logo/xpdr-lockup-A2.svg" alt="xpdr.aero" width="130" height="45"></a><a class="back" href="../">← All projects</a></div>
+  <div class="top"><a href="../"><img src="../logo/xpdr-lockup-A2.svg" alt="xpdr.aero" width="98" height="34"></a><a class="back" href="../">All projects</a></div>
+  <main class="grid">
+    <section class="t hero">
+      <div class="tx">
+        <div class="ttl"><img src="../assets/equalize-icon.png" alt="" width="72" height="72"><h1>Equalize</h1></div>
+        <p class="tag">An equalizer, known to be graphic.</p>
+        <p class="lead">Music on a Raspberry Pi LED panel, in sixteen styles from classic bars to Dance Dance Revolution. Free and open source.</p>
+        <div class="btns"><a class="btn p" href="https://github.com/captaincomplex/equalize" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Code on GitHub</a><a class="btn" href="../">All projects</a></div>
+      </div>
+      <div class="pic"><img src="../assets/equalize/style-ledring.gif" alt="Equalize's default LED ring style: rings of LED dots lighting outward with the music" width="420" height="420"></div>
+    </section>
 
-  <header>
-    <h1>Equalize</h1>
-    <p class="tag1">An equalizer, known to be graphic.</p>
-    <p class="lead">Music on a Raspberry Pi LED panel, in sixteen styles from classic bars to Dance Dance Revolution. Free and open source.</p>
-    <div class="btns"><a class="btn primary" href="https://github.com/captaincomplex/equalize" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> Code on GitHub</a><a class="btn" href="../">Other projects</a></div>
-  </header>
+    <article class="t sty"><img src="../assets/equalize/style-dance.gif" alt="Dance style: arrows scroll up to the beat" loading="lazy" width="400" height="400"><h2>Dance</h2><p>Arrows scroll up and land on the beat, like the arcade game.</p></article>
+    <article class="t sty"><img src="../assets/equalize/style-meter.gif" alt="Meter style: stacked LED segments with peak markers" loading="lazy" width="400" height="400"><h2>Meter</h2><p>A hi-fi LED meter with a lit segment marking each peak.</p></article>
+    <article class="t sty"><img src="../assets/equalize/style-sunset.gif" alt="Sunset style: bars standing on a neon horizon" loading="lazy" width="400" height="400"><h2>Sunset</h2><p>Bars on a horizon, with the sun’s stripes cut through them.</p></article>
+    <article class="t sty"><img src="../assets/equalize/style-disc.gif" alt="Disc style: a ring of rays around a striped sun" loading="lazy" width="400" height="400"><h2>Disc</h2><p>A ring of rays around a small striped sun.</p></article>
+    <p class="more">Sixteen styles in all, switchable from your phone. The full list is in the <a href="https://github.com/captaincomplex/equalize#styles" target="_blank" rel="noopener">README</a>. These animations are rendered by Equalize’s own code from a demo track, not recorded from a panel.</p>
 
-  <section class="sec">
-    <h2>Sixteen styles</h2>
-    <div class="gallery">
-<figure class="sty"><img src="../assets/equalize/style-ledring.gif" alt="Equalize in LED ring style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>LED ring</strong><span>Rings of LED dots round the middle, lit outward where it’s louder. The default.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-ring.gif" alt="Equalize in Ring style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Ring</strong><span>Rays round an empty circle, longer where it’s louder.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-dots.gif" alt="Equalize in LED grid style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>LED grid</strong><span>Big round LEDs in columns, the unlit ones faintly showing.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-dance.gif" alt="Equalize in Dance style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Dance</strong><span>Dance Dance Revolution: arrows scroll up and land on the beat.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-sunset.gif" alt="Equalize in Sunset style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Sunset</strong><span>Bars on a horizon with the sun’s stripes cut through, over a neon grid.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-disc.gif" alt="Equalize in Disc style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Disc</strong><span>A ring of rays around a small striped sun.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-meter.gif" alt="Equalize in Meter style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Meter</strong><span>A hi-fi LED meter with a lit segment marking each peak.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-equals.gif" alt="Equalize in Equals style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Equals</strong><span>Bars rising from a centre line, with their reflection below.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-mirror.gif" alt="Equalize in Mirror style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Mirror</strong><span>Bars growing up and down from the middle at once.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-wave.gif" alt="Equalize in Wave style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Wave</strong><span>One smooth line through the bar tops, like hills moving with the music.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-waterfall.gif" alt="Equalize in Waterfall style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Waterfall</strong><span>The last few seconds scrolling down, so you can see the beat.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-vu.gif" alt="Equalize in Needle style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Needle</strong><span>An old hi-fi’s needle meter.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-analyser.gif" alt="Equalize in Analyser style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Analyser</strong><span>Winamp’s spectrum analyser: thin bars, grey peak dots.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-scope.gif" alt="Equalize in Scope style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Scope</strong><span>Winamp’s oscilloscope, drawing the sound wave itself.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-trails.gif" alt="Equalize in Trails style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Trails</strong><span>Each picture grows and fades behind the next, as in MilkDrop.</span></figcaption></figure>
-<figure class="sty"><img src="../assets/equalize/style-plasma.gif" alt="Equalize in Plasma style on an LED panel" loading="lazy" decoding="async"><figcaption><strong>Plasma</strong><span>Slow flowing colour pushed into ripples by the bass.</span></figcaption></figure>
-    </div>
-    <p style="color:var(--dim);font-size:13.5px;margin-top:14px">Animations are rendered by Equalize’s own code from a built-in demo track, not recorded from a real panel. Every style works with every colour theme and panel size.</p>
-  </section>
+    <article class="t info c-y"><h2>No microphone</h2><p>The Pi never listens to the room. It shows up as a silent speaker called “Equalize” and receives the same audio your speakers get, in step with them.</p></article>
+    <article class="t info c-c"><h2>Two ways in</h2><p>AirPlay 2 for Apple Music and most apps. Spotify Connect for Spotify (Premium): choose Equalize in Spotify’s device list.</p></article>
+    <article class="t info c-w"><h2>Shares a Pi</h2><p>Install it beside Spotipi Photo and the panel takes turns: album covers and photos when you play to the speaker alone, the equalizer when you also play to Equalize.</p></article>
 
-  <section class="sec">
-    <h2>How it works</h2>
-    <div class="cols">
-      <div class="box"><h3>No microphone</h3><p>The Pi never listens to the room. It appears as a silent speaker called “Equalize” and receives the same digital audio your speakers get, in step with them.</p></div>
-      <div class="box"><h3>Two ways in</h3><p><strong>AirPlay 2</strong> for Apple Music and most apps: tick your speaker and Equalize in the AirPlay picker.</p><p><strong>Spotify Connect</strong> for Spotify (Premium): choose Equalize in Spotify’s device list.</p></div>
-      <div class="box"><h3>Works with Spotipi Photo</h3><p>Both can share one Pi and take turns on the panel: album covers and photos when you play to the speaker alone, the equalizer when you play to the speaker and Equalize.</p></div>
-    </div>
-  </section>
-
-  <section class="sec">
-    <h2>What you need</h2>
-    <div class="cols">
-      <div class="box"><h3>Hardware</h3><p>Raspberry Pi 3 Model A+, Adafruit RGB Matrix Bonnet, a 64×64 3 mm LED panel and a 5 V 4 A supply. For 128×64, chain two panels and use 5 V 8 A. Panels of 64×32, 32×64 and 64×128 also work.</p></div>
-      <div class="box"><h3>Control panel</h3><p>A web page on your phone (equalize.local) sets style, colours, brightness, sensitivity, number of bars, a screen timer, quiet hours and a sunrise/sunset dimmer.</p></div>
-    </div>
-  </section>
-
-  <section class="sec">
-    <h2>Status</h2>
-    <p class="note">Running on a real Raspberry Pi and LED panel, and ready for release.</p>
-  </section>
-
-  <footer>Free and open source under the MIT licence. Equalize grew out of Spotipi Photo, which is built on <a href="https://github.com/ryanwa18/spotipi" target="_blank" rel="noopener">Spotipi</a> by Ryan Ward (MIT, 2020); his copyright notice is kept. Part of <a href="../">xpdr.aero</a>.</footer>
+    <section class="t hw">
+      <div><h2>What you need</h2><p>A Raspberry Pi 3 Model A+, an Adafruit RGB Matrix Bonnet, a 64×64 LED panel and a 5 V 4 A power supply. Two panels side by side give 128×64; 64×32 panels work too. A web page on your phone sets the style, colours, brightness and timers.</p></div>
+      <div><h2>Status</h2><span class="st"><i></i>Ready for release</span><p>Running on a real Raspberry Pi and LED panel. Free and open source under the MIT licence.</p></div>
+    </section>
+  </main>
+  <footer><span>Equalize grew out of Spotipi Photo, which is built on <a href="https://github.com/ryanwa18/spotipi" target="_blank" rel="noopener">Spotipi</a> by Ryan Ward (MIT, 2020). His copyright notice is kept. Part of <a href="../">xpdr.aero</a>.</span></footer>
 </div>
 </body>
 </html>
