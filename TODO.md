@@ -2,7 +2,7 @@
 
 - [x] **Redesign the website.** Direction A (colour-blocked tiles) built 5 Oct 2026, typeset with Impeccable. The `/equalize/` page restyled to match (four styles shown, not all sixteen).
 - [ ] **You're Famous needs work.** Marked "Needs work · to do later" on its card. Revisit before it is published.
-- [x] Perspective wordmark (golden P, shutter on the i's peak) and the matching redrawn P icon are on its tile, side by side.
+- [x] Perspective wordmark (golden P, shutter on the i's peak) fills the picture panel on its tile; the matching redrawn P icon is in the brand set.
 - [x] Equalize wordmark (sliced letters, Big Shoulders Display) is on its card and page. [ ] The Equalize icon is still the one from the other session. (Equalize is now running on a real panel and ready for release: card and page updated 5 Oct.)
 - [x] Retire the stale `spotipi-photos` (plural) repository: archived.
 - [x] Ident logo (A + A2, from the Ident logo design session) is on its tile.
