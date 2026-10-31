@@ -28,13 +28,13 @@ A single maker's own tools: wall displays and small programs that run on the vis
 
 ## Operating Context
 
-Projects on the site: Spotipi Photo (64×64 LED panel for photos and album covers; free and open source; built on Ryan Ward's Spotipi), Ident (flight-duty board, a product with its own site at ident.xpdr.aero), Equalize (LED equalizer; ready for release; runs on a real panel; works with Spotipi Photo on one Pi), Perspective (finds well-composed photos in Apple Photos), and the small tools Format, Unable, Spotted, Divert Diplomat and Plant Keeper-Aliver. You're Famous (e-ink picture frame) is unpublished and marked "needs work, to do later". Equalize has its own page at /equalize/.
+Projects on the site: Spotipi Photo (64×64 LED panel for photos and album covers; free and open source; built on Ryan Ward's Spotipi), Ident (flight-duty board, a product with its own site at ident.xpdr.aero), Equalize (LED equalizer; ready for release; runs on a real panel; works with Spotipi Photo on one Pi), Perspective (finds well-composed photos in Apple Photos), and the small tools Format, Unable, Spotted, Divert Diplomat and Plant Keeper-Aliver. You're Famous (e-ink picture frame) is unpublished and marked "needs work, to do later". Equalize has its own page at /equalize/. Ground Speed Mini, an interactive explainer of the Airbus managed approach speed, has its own page at /gs-mini/.
 
 ## Capabilities and Constraints
 
 - Each project's status wording must match its repository's own state; do not claim more than a repository says.
 - Ident's roster privacy claim belongs to Ident's own site. Do not restate it here beyond what that site says.
-- Static hosting only. The site must work without JavaScript.
+- Static hosting only. The site must work without JavaScript. The one exception is the calculator and simulation on /gs-mini/, which need it; the rest of that page reads without it.
 - Open undecided facts: licences of the small tools are per repository and not confirmed here; Ident pricing is not shown on this site.
 
 ## Brand Commitments
