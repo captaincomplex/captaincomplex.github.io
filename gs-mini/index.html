@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ground Speed Mini — xpdr.aero</title>
+<meta name="description" content="An interactive explainer of the Airbus ground speed mini function: how the managed approach speed target moves with the wind, and why it matters when a headwind dies on short final.">
+<meta name="theme-color" content="#14110a">
+<link rel="icon" href="../logo/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="../logo/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../logo/apple-touch-icon.png">
+<style>
+@font-face{font-family:"Familjen Grotesk";font-weight:500 700;font-style:normal;font-display:swap;src:url(../fonts/familjen-grotesk-latin.woff2) format("woff2")}
+@font-face{font-family:"Familjen Fallback";src:local("Arial"),local("Liberation Sans");size-adjust:102%;ascent-override:100%;descent-override:22%;line-gap-override:0%}
+/* Site identity (Familjen Grotesk, colour-blocked tiles on the dark page); the explainer's own data and instrument colours sit inside the tiles. */
+:root{--f:"Familjen Grotesk","Familjen Fallback",system-ui,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+ --t-display:clamp(2.75rem,7vw,6rem);--t-md:clamp(1.5rem,2.6vw,2.125rem);--t-meta:.8125rem;
+ --page:#14110a;--saf:#f2b705;--white:#fbf8ef;--cream:#f3ecd6;--mut:#a79d82;
+ --surface:#fbf8ef;--field:#f3ecd6;--ink:#14110a;--muted:#5f5747;--line:#d8ceb2;
+ --magenta:#b01fa8;--amber:#a35a00;--green:#12804a;--slate:#6f7468;--cyan:#0a7096;
+ --pfd-bg:#1b252f;--pfd-ink:#e8eef2;--pfd-magenta:#ff40f6;--pfd-amber:#ffa51f;--pfd-yellow:#ffe23d;
+ --rwy:#46515c;--rwy-mark:#f4f7f9;
+ --font-display:var(--f);--font-body:var(--f);--font-data:var(--mono)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--f);font-size:1rem;line-height:1.55;padding:0 14px 14px;text-rendering:optimizeLegibility}
+a{color:inherit}
+::selection{background:#f2b705;color:#14110a}
+h1,h2,h3{font-family:var(--f);font-weight:700;text-wrap:balance;margin:0;line-height:1}
+p{margin:0;text-wrap:pretty}
+.wrap{max-width:1300px;margin:0 auto}
+.top{padding:16px 4px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.top img{height:34px;width:auto;display:block}
+.top a.back{color:var(--cream);font-size:.9375rem;font-weight:500;text-decoration:none}.top a.back:hover{color:var(--saf)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.t{border-radius:26px;padding:clamp(20px,3vw,36px);display:flex;flex-direction:column;gap:20px;min-width:0}
+.c-w{background:var(--white)}.c-c{background:var(--cream)}.c-y{background:var(--saf)}
+.hero{gap:16px}
+.eyebrow{font-weight:600;font-size:var(--t-meta);letter-spacing:.07em;text-transform:uppercase}
+.hero h1{font-size:var(--t-display);letter-spacing:-.04em;line-height:.94}
+.lede{font-size:clamp(1.0625rem,1.5vw,1.1875rem);line-height:1.55;max-width:62ch;font-weight:500}
+h2{font-size:var(--t-md);letter-spacing:-.03em}
+.muted{color:var(--muted)}
+section>p,.prose{max-width:68ch}
+.prose{display:flex;flex-direction:column;gap:12px}
+.mag{color:var(--magenta)}.amb{color:var(--amber)}.grn{color:var(--green)}
+.formula{font-family:var(--mono);font-size:15px;line-height:1.9;background:var(--white);border-radius:14px;padding:16px 20px;overflow-x:auto;white-space:nowrap}
+footer{margin-top:22px;padding:0 4px 8px;display:flex;justify-content:space-between;gap:12px 28px;flex-wrap:wrap;color:var(--mut);font-size:.875rem;line-height:1.5}
+footer p{max-width:80ch}
+footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--saf)}
+a:focus-visible{outline:3px solid var(--saf);outline-offset:3px}
+
+/* Calculator */
+.lab {
+  display: grid; gap: 28px; align-items: start;
+  grid-template-columns: minmax(200px, 250px) minmax(0, 1fr) 172px;
+  grid-template-areas: "inputs wind tape" "ro ro ro";
+  
+}
+.area-inputs { grid-area: inputs; display: flex; flex-direction: column; gap: 26px; min-width: 0; }
+.area-wind { grid-area: wind; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.area-tape { grid-area: tape; }
+.readouts { grid-area: ro; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 28px; align-items: start; min-width: 0; }
+.readouts .side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.block-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.block-h b { font-weight: 600; font-size: 14px; }
+.hint { font-size: 13px; color: var(--muted); line-height: 1.45; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* Runway and tower wind entry */
+.fg { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.fl { font-weight: 600; font-size: 14px; }
+.fl .muted { font-weight: 400; font-size: 13px; }
+.entry { display: flex; align-items: center; gap: 6px; font-family: var(--font-data); }
+.entry input {
+  font: 700 22px var(--font-data); width: 4.4ch; padding: 6px 4px; text-align: center;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--field); color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.entry input:hover { border-color: var(--slate); }
+.entry input[aria-invalid="true"] { border-color: var(--amber); }
+.entry .unit { font-size: 15px; color: var(--muted); }
+.entry .pre { font-size: 13px; letter-spacing: .08em; color: var(--muted); margin-right: 2px; }
+#rwy { width: 4ch; text-transform: uppercase; }
+.err { color: var(--amber); }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.preset {
+  font: 13px var(--font-data); padding: 3px 9px; border-radius: 4px; cursor: pointer;
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+}
+.preset:hover { border-color: var(--slate); }
+
+/* Wind dial */
+#pad { width: 100%; max-width: 330px; height: auto; display: block; margin: 0 auto; touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; }
+#pad .hnd { cursor: grab; outline: none; }
+#pad .hnd:active { cursor: grabbing; }
+#pad .hnd .focus { fill: none; stroke: transparent; stroke-width: 2; }
+#pad .hnd:focus-visible .focus { stroke: var(--magenta); }
+.wind-ro { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.wr { display: flex; flex-direction: column; gap: 2px; border-top: 2px solid var(--line); padding-top: 6px; min-width: 0; }
+.wr.wt { border-color: var(--ink); } .wr.c { border-color: var(--cyan); }
+.wr .k { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.wr .k .muted { text-transform: none; letter-spacing: 0; }
+.wr .v { font-family: var(--font-data); font-size: 14px; line-height: 1.6; font-variant-numeric: tabular-nums; }
+
+/* Speed tape */
+.tape-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.tape-col svg { width: 150px; max-width: 100%; height: auto; border-radius: 6px; display: block; }
+#tape-svg { width: 172px; border-radius: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.vls-h { cursor: ns-resize; outline: none; }
+.vls-h .pill { fill: var(--surface); stroke: var(--amber); stroke-width: 1.5; }
+.vls-h:hover .pill { stroke-width: 2.2; }
+.vls-h:focus-visible .pill { stroke: var(--magenta); stroke-width: 2.5; }
+.tape-cap { font-family: var(--font-data); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-align: center; line-height: 1.5; }
+
+dl.ro { margin: 0; display: grid; grid-template-columns: 1fr auto; }
+dl.ro > div { display: contents; }
+dl.ro dt, dl.ro dd { padding: 8px 0; border-bottom: 1px solid var(--line); margin: 0; }
+dl.ro dt { font-size: 14px; color: var(--muted); }
+dl.ro dt b { color: var(--ink); font-weight: 600; }
+dl.ro dd { font-family: var(--font-data); font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+dl.ro .key dt b, dl.ro .key dd { color: var(--magenta); }
+dl.ro .key dd { font-size: 20px; font-weight: 700; }
+.calc-line { font-family: var(--font-data); font-size: 13px; color: var(--muted); line-height: 1.6; overflow-wrap: anywhere; }
+.compare { font-size: 14px; line-height: 1.5; padding: 12px 14px; border-radius: 6px; background: color-mix(in srgb, var(--magenta) 8%, transparent); border: 1px solid color-mix(in srgb, var(--magenta) 30%, transparent); }
+
+/* Simulator */
+.sim {  display: flex; flex-direction: column; gap: 18px; }
+.sim-bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 600 13px var(--font-body); padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.chip:hover { border-color: var(--slate); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--white); border-color: var(--ink); }
+.play { font: 600 13px var(--font-body); padding: 7px 16px; border-radius: 6px; border: 1px solid var(--magenta); background: var(--magenta); color: #fff; cursor: pointer; min-width: 88px; }
+.sim-body { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: start; }
+.chart-box { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+canvas { width: 100%; height: 340px; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+.sw.dash { background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px) !important; height: 2px; }
+.scrub { display: flex; align-items: center; gap: 12px; }
+.scrub input { flex: 1; accent-color: var(--magenta); }
+.scrub output { font-family: var(--font-data); font-size: 13px; min-width: 56px; text-align: right; font-variant-numeric: tabular-nums; }
+.twin { display: flex; gap: 14px; }
+.twin .tape-col svg { width: 112px; }
+.sim-ro { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.stat { border-top: 2px solid var(--line); padding-top: 8px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat.m { border-color: var(--magenta); } .stat.f { border-color: var(--slate); } .stat.w { border-color: var(--cyan); }
+.stat .k { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font-family: var(--font-data); font-size: 14px; font-variant-numeric: tabular-nums; line-height: 1.7; }
+.verdict { font-size: 15px; max-width: 72ch; }
+
+/* Rules */
+.rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; margin: 0; padding: 0; list-style: none; }
+.rules li { padding: 14px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.rules li b { font-family: var(--font-display); font-size: 15px; }
+.rules li span { color: var(--muted); font-size: 15px; }
+
+@media (max-width: 940px) {
+  .lab { grid-template-columns: minmax(0, 1fr) 172px; grid-template-areas: "inputs inputs" "wind tape" "ro ro"; }
+  .area-inputs { flex-direction: row; flex-wrap: wrap; gap: 20px 40px; }
+  .sim-body { grid-template-columns: minmax(0, 1fr); }
+  .twin { justify-content: center; }
+}
+@media (max-width: 600px) {
+  .lab { grid-template-columns: minmax(0, 1fr) 112px; gap: 20px 12px; }
+  #tape-svg { width: 100%; }
+  .readouts { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .rules { grid-template-columns: minmax(0, 1fr); }
+  .sim-ro { grid-template-columns: minmax(0, 1fr); }
+  canvas { height: 280px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="../"><img src="../logo/xpdr-lockup-A2.svg" alt="xpdr.aero" width="98" height="34"></a><a class="back" href="../">All projects</a></div>
+  <main class="grid">
+  <header class="t hero c-y">
+    <div class="eyebrow">Airbus FMGS · managed speed · approach phase</div>
+    <h1>Ground Speed Mini</h1>
+    <p class="lede">On final approach in managed speed, an Airbus does not simply fly V<sub>APP</sub>. It flies whatever indicated airspeed keeps its <b>ground speed</b> from dropping below a floor called <b>GS mini</b>. The magenta speed target moves with the wind, so the aircraft carries extra energy into gusts and keeps it when a headwind suddenly dies.</p>
+  </header>
+
+  <section class="t c-c" aria-labelledby="h-idea">
+    <h2 id="h-idea">The idea in one sentence</h2>
+    <div class="prose">
+      <p>The tower wind you enter on the MCDU PERF APPR page tells the computer what headwind to expect at the runway. From that, it works out the lowest ground speed you should ever see on approach. If the headwind aloft is stronger than at the runway, the aircraft must fly faster through the air to keep that ground speed. When the extra headwind disappears near the ground, the aircraft's inertia keeps its ground speed, and the airspeed falls back to V<sub>APP</sub> instead of below it.</p>
+    </div>
+    <div class="formula" role="math" aria-label="Ground speed mini formulas">
+      APPR COR&nbsp;&nbsp;= ⅓ × tower headwind, min 5, max 15 kt<br>
+      V<sub>APP</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= V<sub>LS</sub> + APPR COR<br>
+      GS mini&nbsp;&nbsp;&nbsp;= V<sub>APP</sub> − tower headwind<br>
+      <span class="mag">IAS target = max( V<sub>APP</sub> , GS mini + current headwind )</span>
+    </div>
+  </section>
+
+  <section class="t c-w" aria-labelledby="h-calc">
+    <h2 id="h-calc">Try it: where does the magenta triangle go?</h2>
+    <p class="muted">Set the runway and tower wind, drag the current wind around the runway, and drag V<sub>LS</sub> on the speed scale. The speed scale assumes the aircraft settles at its target speed.</p>
+    <noscript><p class="muted">The calculator needs JavaScript. The formulas and rules on this page read without it.</p></noscript>
+    <div class="lab">
+      <div class="area-inputs">
+        <div class="fg">
+          <label class="fl" for="rwy">Landing runway</label>
+          <div class="entry"><span class="pre">RWY</span><input id="rwy" type="text" value="27" maxlength="3" autocomplete="off" spellcheck="false" autocapitalize="characters" aria-describedby="rwy-h"></div>
+          <p class="hint" id="rwy-h">A runway number such as 09 or 27L, or a three-digit heading. The wind dial turns to match.</p>
+        </div>
+        <div class="fg">
+          <span class="fl" id="twr-l">Tower wind <span class="muted">(PERF APPR, MAG WIND)</span></span>
+          <div class="entry" role="group" aria-labelledby="twr-l">
+            <input id="twr-d" type="text" inputmode="numeric" maxlength="3" autocomplete="off" aria-label="Tower wind direction in degrees">
+            <span class="unit">° /</span>
+            <input id="twr-s" type="text" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Tower wind speed in knots">
+            <span class="unit">kt</span>
+          </div>
+          <div class="presets" id="presets" aria-label="Suggested tower winds"></div>
+          <p class="hint">Shown on the dial as the dashed arrow.</p>
+        </div>
+      </div>
+
+      <div class="area-wind">
+        <div class="block-h"><b id="wind-l">Current wind</b><span class="hint">Drag the cyan dot</span></div>
+        <svg id="pad" viewBox="-22 -22 364 364" role="group" aria-labelledby="wind-l"></svg>
+        <div class="wind-ro">
+          <div class="wr wt"><span class="k">Tower wind <span class="muted">(dashed)</span></span><span class="v" id="w-t"></span></div>
+          <div class="wr c"><span class="k">Current wind</span><span class="v" id="w-c"></span></div>
+        </div>
+        <p class="hint">The dot sits where the wind blows from, and its distance from the centre is the speed (rings every 10 kt). Only the headwind component counts. With the dot focused, the arrow keys change direction and speed.</p>
+      </div>
+
+      <div class="tape-col area-tape">
+        <svg id="tape-svg" viewBox="0 0 160 300" aria-label="PFD speed scale with VLS adjuster">
+          <g id="tape-main"></g>
+          <g id="vls-h" class="vls-h" tabindex="0" role="slider" aria-label="VLS" aria-valuemin="112" aria-valuemax="150" aria-valuenow="128">
+            <rect x="86" y="-20" width="74" height="40" fill="transparent"/>
+            <line x1="88" x2="104" y1="0" y2="0" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="3 2"/>
+            <path class="pill" d="M103 0 L111 -15 H158 V15 H111 Z"/>
+            <text x="132" y="-4" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="9" fill="var(--amber)">VLS</text>
+            <text id="vls-v" x="132" y="10" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="13" font-weight="700" fill="var(--amber)">128</text>
+            <path d="M152 -9 l3 4 h-6z M152 9 l3 -4 h-6z" fill="var(--amber)"/>
+          </g>
+        </svg>
+        <div class="tape-cap">PFD speed scale<br>drag V<sub>LS</sub> up or down</div>
+      </div>
+
+      <div class="readouts">
+        <dl class="ro">
+          <div><dt><b>APPR COR</b></dt><dd id="r-corr"></dd></div>
+          <div><dt><b>V<sub>APP</sub></b> (V<sub>LS</sub> + COR)</dt><dd id="r-vapp"></dd></div>
+          <div><dt><b>GS mini</b> (V<sub>APP</sub> − tower HW)</dt><dd id="r-gsm"></dd></div>
+          <div class="key"><dt><b>IAS target</b></dt><dd id="r-tgt"></dd></div>
+          <div><dt><b>Ground speed</b> at target</dt><dd id="r-gs" class="grn"></dd></div>
+        </dl>
+        <div class="side">
+          <div class="calc-line" id="r-calc"></div>
+          <div class="compare" id="r-compare"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="t c-w" aria-labelledby="h-sim">
+    <h2 id="h-sim">Why it matters: a headwind that dies on short final</h2>
+    <div class="prose">
+      <p>An aircraft's ground speed cannot change instantly. When the headwind drops by 20 kt in a few seconds, indicated airspeed drops by roughly 20 kt at once, and autothrust needs time to win it back. The simulation below flies the same approach twice with autothrust: once in managed speed with GS mini, once holding a fixed V<sub>APP</sub>. Tower wind is 20 kt headwind and V<sub>LS</sub> is 128 kt, so V<sub>APP</sub> is 135 kt and GS mini is 115 kt.</p>
+    </div>
+    <div class="sim">
+      <div class="sim-bar">
+        <div class="chips" role="group" aria-label="Wind scenario">
+          <button class="chip" type="button" data-sc="shear" id="sc-shear">Headwind loss</button>
+          <button class="chip" type="button" data-sc="gust" id="sc-gust">Gusty</button>
+          <button class="chip" type="button" data-sc="steady" id="sc-steady">Wind as forecast</button>
+        </div>
+        <button class="play" type="button" id="play">Play</button>
+      </div>
+      <div class="sim-body">
+        <div class="chart-box">
+          <canvas id="chart" aria-label="Indicated airspeed and headwind over 60 seconds for both modes"></canvas>
+          <div class="legend">
+            <span><i class="sw" style="background:var(--magenta)"></i>IAS, managed (GS mini)</span>
+            <span><i class="sw" style="background:var(--slate)"></i>IAS, fixed V<sub>APP</sub></span>
+            <span style="color:var(--amber)"><i class="sw dash"></i><span style="color:var(--muted)">V<sub>LS</sub></span></span>
+            <span><i class="sw" style="background:var(--cyan)"></i>Headwind</span>
+          </div>
+          <div class="scrub">
+            <input type="range" id="t" min="0" max="600" step="1" value="300" aria-label="Time">
+            <output id="t-o" for="t"></output>
+          </div>
+        </div>
+        <div class="twin">
+          <div class="tape-col"><svg id="tape-m" viewBox="0 0 100 300" role="img" aria-label="Speed tape, managed"></svg><div class="tape-cap mag">Managed<br>GS mini</div></div>
+          <div class="tape-col"><svg id="tape-f" viewBox="0 0 100 300" role="img" aria-label="Speed tape, fixed VAPP"></svg><div class="tape-cap">Fixed<br>V<sub>APP</sub></div></div>
+        </div>
+      </div>
+      <div class="sim-ro">
+        <div class="stat w"><span class="k">Wind at playhead</span><span class="v" id="s-w"></span></div>
+        <div class="stat m"><span class="k">Managed</span><span class="v" id="s-m"></span></div>
+        <div class="stat f"><span class="k">Fixed V<sub>APP</sub></span><span class="v" id="s-f"></span></div>
+      </div>
+      <p class="verdict" id="verdict"></p>
+    </div>
+  </section>
+
+  <section class="t c-c" aria-labelledby="h-rules">
+    <h2 id="h-rules">Rules of the function</h2>
+    <ul class="rules">
+      <li><b>Managed speed only</b><span>GS mini drives the target only when speed is managed and the approach phase is active. With a selected speed, the aircraft flies exactly what you dialled.</span></li>
+      <li><b>Never below V<sub>APP</sub></b><span>The target has a floor of V<sub>APP</sub>. GS mini can only add speed, never take it away.</span></li>
+      <li><b>Headwind components only</b><span>Tailwind is treated as zero headwind, both for the tower wind and the current wind. With a tower tailwind, GS mini equals V<sub>APP</sub>.</span></li>
+      <li><b>Capped by flap limits</b><span>The target stays below V<sub>FE</sub> of the current configuration, so a strong wind aloft cannot drive it into a flap overspeed.</span></li>
+      <li><b>Garbage in, garbage out</b><span>The tower wind on PERF APPR sets GS mini. Enter the latest ATIS or tower wind; an exaggerated headwind lowers GS mini and removes the protection.</span></li>
+      <li><b>Watch it move</b><span>In gusty conditions the magenta triangle walks up and down the speed tape. That is normal and is the function working.</span></li>
+    </ul>
+  </section>
+
+  </main>
+  <footer><p>Training illustration only. The numbers use a simplified A320-family model: IAS and TAS treated as equal, autothrust as a first-order response with thrust and drag limits, and a V<sub>FE</sub> CONF FULL of 177 kt. The PERF APPR page is simplified. Exact rounding, limits and V<sub>APP</sub> increments vary by type and standard; your FCOM and FCTM are the authority.</p><p>Part of <a href="../">xpdr.aero</a> · <a href="mailto:support@xpdr.aero">support@xpdr.aero</a></p></footer>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const VFE = 177;
+  const pos = x => Math.max(0, x);
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const fmtW = hw => hw >= 0 ? `${hw} kt head` : `${-hw} kt tail`;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const svgPt = (svg, e) => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
+
+  function appr(vls, towerHW) {
+    const corr = Math.min(15, Math.max(5, Math.round(pos(towerHW) / 3)));
+    const vapp = vls + corr;
+    const gsm = vapp - pos(towerHW);
+    return { corr, vapp, gsm };
+  }
+  const targetOf = (vapp, gsm, hw) => Math.min(VFE - 5, Math.max(vapp, gsm + pos(hw)));
+
+  // PFD speed tape: labels left, ticks right, amber VLS strip, magenta target triangle, yellow reference at current IAS
+  const TAPE_K = 3.2;
+  function drawTape(el, { ias, target, vls }) {
+    const C = 150, K = TAPE_K, y = v => C - (v - ias) * K;
+    let s = `<rect width="100" height="300" rx="6" fill="var(--pfd-bg)"/>`;
+    s += `<clipPath id="${el.id}-c"><rect x="0" y="6" width="100" height="288"/></clipPath><g clip-path="url(#${el.id}-c)">`;
+    const lo = Math.floor((ias - 50) / 5) * 5, hi = ias + 50;
+    for (let v = lo; v <= hi; v += 5) {
+      const yy = y(v);
+      s += `<line x1="${v % 10 ? 74 : 68}" x2="82" y1="${yy}" y2="${yy}" stroke="var(--pfd-ink)" stroke-width="1.4"/>`;
+      if (v % 20 === 0) s += `<text x="60" y="${yy + 5}" text-anchor="end" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="15" fill="var(--pfd-ink)">${v}</text>`;
+    }
+    const yv = y(vls);
+    if (yv < 300) s += `<rect x="83" y="${Math.max(0, yv)}" width="4" height="${300 - Math.max(0, yv)}" fill="var(--pfd-amber)"/>`;
+    const yt = y(target);
+    if (yt > 0 && yt < 300) s += `<polygon points="86,${yt} 98,${yt - 7} 98,${yt + 7}" fill="var(--pfd-magenta)"/>`;
+    else s += `<text x="92" y="${yt <= 0 ? 22 : 290}" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, monospace" font-size="12" fill="var(--pfd-magenta)">${Math.round(target)}</text>`;
+    s += `</g>`;
+    s += `<line x1="0" x2="82" y1="${C}" y2="${C}" stroke="var(--pfd-yellow)" stroke-width="2.5"/>`;
+    s += `<polygon points="82,${C} 92,${C - 6} 92,${C + 6}" fill="var(--pfd-yellow)"/>`;
+    el.innerHTML = s;
+  }
+
+  // ---- Calculator state ----
+  const PC = 160, K = 140 / 60;
+  const S = { vls: 128, rwy: 270, des: '27', t: { dir: 270, spd: 20 }, c: { dir: 270, spd: 30, max: 60 } };
+  function comp(w) { const a = (w.dir - S.rwy) * Math.PI / 180; return { hw: w.spd * Math.cos(a), xw: w.spd * Math.sin(a) }; }
+  const fmt3 = d => String((Math.round(d) % 360) || 360).padStart(3, '0');
+  const fmtDir = d => fmt3(d) + '°';
+
+  let tgtNow = 0, center = 0, holdCenter = false, anim = null;
+
+  function updateCalc() {
+    const twr = Math.round(comp(S.t).hw), cur = Math.round(comp(S.c).hw);
+    const { corr, vapp, gsm } = appr(S.vls, twr);
+    const raw = Math.max(vapp, gsm + pos(cur));
+    const tgt = targetOf(vapp, gsm, cur);
+    const gs = tgt - cur;
+    $('r-corr').textContent = `+${corr} kt`;
+    $('r-vapp').textContent = `${vapp} kt`;
+    $('r-gsm').textContent = `${gsm} kt`;
+    $('r-tgt').textContent = `${tgt} kt`;
+    $('r-gs').textContent = `${gs} kt`;
+    let calc = `max(${vapp}, ${gsm} + ${pos(cur)}) = ${raw} kt`;
+    if (raw > tgt) calc += `, capped at VFE − 5 = ${tgt} kt`;
+    $('r-calc').textContent = calc;
+    const fixedGS = vapp - cur, extra = tgt - vapp;
+    let msg;
+    if (extra > 0) msg = `Current headwind is ${pos(cur) - pos(twr)} kt stronger than at the runway, so the target sits <b>${extra} kt above V<sub>APP</sub></b>. Flying plain V<sub>APP</sub> here would give a ground speed of ${fixedGS} kt, ${gsm - fixedGS} kt below GS mini. If this wind drops to the tower value, the extra ${extra} kt bleeds off and leaves you at V<sub>APP</sub>.`;
+    else if (cur < 0 || pos(cur) < pos(twr)) msg = `Current headwind is weaker than the tower value${cur < 0 ? ' (a tailwind counts as zero)' : ''}, so ground speed is already above GS mini. The target stays on its floor, V<sub>APP</sub>.`;
+    else msg = `The wind is exactly as forecast. GS mini adds nothing and the target is V<sub>APP</sub>.`;
+    $('r-compare').innerHTML = msg;
+
+    syncTower();
+
+    tgtNow = tgt;
+    if (!holdCenter) { if (anim) cancelAnimationFrame(anim); anim = null; center = tgt; }
+    renderTape();
+    drawPad();
+  }
+
+  // ---- Speed tape with VLS adjuster ----
+  const tsvg = $('tape-svg'), vh = $('vls-h');
+  function renderTape() {
+    drawTape($('tape-main'), { ias: center, target: tgtNow, vls: S.vls });
+    const y = clamp(150 - (S.vls - center) * TAPE_K, 18, 282);
+    vh.setAttribute('transform', `translate(0 ${y})`);
+    $('vls-v').textContent = S.vls;
+    vh.setAttribute('aria-valuenow', S.vls);
+    vh.setAttribute('aria-valuetext', `${S.vls} knots`);
+  }
+  // While VLS is being adjusted the scale holds still so the marker tracks the pointer; afterwards it scrolls to the new target.
+  function recenter() {
+    const from = center, to = tgtNow, t0 = performance.now(), dur = reduceMotion ? 0 : 650;
+    if (anim) cancelAnimationFrame(anim);
+    const step = now => {
+      const k = dur ? Math.min(1, (now - t0) / dur) : 1;
+      center = from + (to - from) * (1 - Math.pow(1 - k, 3));
+      renderTape();
+      anim = k < 1 ? requestAnimationFrame(step) : null;
+    };
+    anim = requestAnimationFrame(step);
+  }
+  let vDrag = null, keyTimer = null;
+  vh.addEventListener('pointerdown', e => {
+    vDrag = { y: svgPt(tsvg, e).y, v: S.vls };
+    holdCenter = true; if (anim) cancelAnimationFrame(anim); anim = null;
+    vh.setPointerCapture(e.pointerId);
+    vh.focus({ preventScroll: true });
+    e.preventDefault();
+  });
+  vh.addEventListener('pointermove', e => {
+    if (!vDrag) return;
+    const v = clamp(Math.round(vDrag.v - (svgPt(tsvg, e).y - vDrag.y) / TAPE_K), 112, 150);
+    if (v !== S.vls) { S.vls = v; updateCalc(); }
+  });
+  const endV = () => { if (!vDrag) return; vDrag = null; holdCenter = false; recenter(); };
+  vh.addEventListener('pointerup', endV);
+  vh.addEventListener('pointercancel', endV);
+  vh.addEventListener('keydown', e => {
+    const d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 5, PageDown: -5 }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    holdCenter = true; if (anim) cancelAnimationFrame(anim); anim = null;
+    S.vls = clamp(S.vls + d, 112, 150); updateCalc();
+    clearTimeout(keyTimer);
+    keyTimer = setTimeout(() => { holdCenter = false; recenter(); }, 700);
+  });
+
+  // ---- Tower wind entry ----
+  const td = $('twr-d'), ts = $('twr-s');
+  function syncTower() {
+    if (document.activeElement !== td) { td.value = fmt3(S.t.dir); td.removeAttribute('aria-invalid'); }
+    if (document.activeElement !== ts) { ts.value = String(Math.round(S.t.spd)).padStart(2, '0'); ts.removeAttribute('aria-invalid'); }
+  }
+  td.addEventListener('input', () => {
+    const v = td.value.trim(), n = +v;
+    const ok = /^\d{1,3}$/.test(v) && n <= 360;
+    td.setAttribute('aria-invalid', String(!ok));
+    if (ok) { S.t.dir = n || 360; updateCalc(); }
+  });
+  ts.addEventListener('input', () => {
+    const v = ts.value.trim(), ok = /^\d{1,2}$/.test(v);
+    ts.setAttribute('aria-invalid', String(!ok));
+    if (ok) { S.t.spd = +v; updateCalc(); }
+  });
+  [td, ts].forEach(i => {
+    i.addEventListener('blur', syncTower);
+    i.addEventListener('focus', () => i.select());
+  });
+  // Suggested winds follow the runway: straight down it, 30° either side, and a light tailwind
+  function renderPresets() {
+    const box = $('presets');
+    box.innerHTML = '';
+    [[0, 20], [30, 25], [-40, 12], [180, 5]].forEach(([off, spd]) => {
+      const dir = ((S.rwy + off) % 360 + 360) % 360 || 360;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'preset';
+      b.textContent = `${fmt3(dir)}/${String(spd).padStart(2, '0')}`;
+      b.addEventListener('click', () => { S.t.dir = dir; S.t.spd = spd; updateCalc(); });
+      box.appendChild(b);
+    });
+  }
+
+  // ---- Runway entry: "27", "09L" or a heading like "273" ----
+  function parseRwy(v) {
+    v = v.trim().toUpperCase();
+    let m = v.match(/^(\d{1,2})([LRC]?)$/);
+    if (m) { const n = +m[1]; return n >= 1 && n <= 36 ? { hdg: n * 10, n, suf: m[2] } : null; }
+    m = v.match(/^(\d{3})$/);
+    if (m) { const h = +m[1]; return h >= 1 && h <= 360 ? { hdg: h, n: Math.round(h / 10) || 36, suf: '' } : null; }
+    return null;
+  }
+  const rwyHint = $('rwy-h'), rwyHintText = rwyHint.innerHTML;
+  $('rwy').addEventListener('input', e => {
+    const r = parseRwy(e.target.value);
+    e.target.setAttribute('aria-invalid', String(!r));
+    if (!r) { rwyHint.innerHTML = '<span class="err">Enter a runway from 01 to 36 (with L, R or C if needed), or a heading from 001 to 360.</span>'; return; }
+    rwyHint.innerHTML = rwyHintText;
+    const recipN = ((r.n + 17) % 36) + 1, recipSuf = { L: 'R', R: 'L', C: 'C', '': '' }[r.suf];
+    S.rwy = r.hdg;
+    S.des = String(r.n).padStart(2, '0') + r.suf;
+    S.recip = String(recipN).padStart(2, '0') + recipSuf;
+    rwyGroup.setAttribute('transform', `rotate(${S.rwy} ${PC} ${PC})`);
+    rwyNum.textContent = S.des; rwyRecip.textContent = S.recip;
+    $('wind-l').textContent = `Current wind, runway ${S.des}`;
+    renderPresets();
+    updateCalc();
+  });
+
+  // ---- Wind dial: north up, runway drawn on its heading. The dot sits where the wind blows FROM; radius is speed. ----
+  const pad = $('pad'), NS = 'http://www.w3.org/2000/svg';
+  const mk = (tag, attrs, parent = pad, text) => {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    if (text != null) el.textContent = text;
+    parent.appendChild(el); return el;
+  };
+  const tx = { 'font-family': 'ui-monospace, SF Mono, Menlo, monospace', 'text-anchor': 'middle', 'dominant-baseline': 'middle' };
+  for (let s = 10; s <= 60; s += 10) mk('circle', { cx: PC, cy: PC, r: s * K, fill: 'none', stroke: 'var(--line)', 'stroke-width': s % 20 ? 0.8 : 1.5 });
+  for (const s of [20, 40, 60]) mk('text', { ...tx, x: PC + s * K * 0.707 + 3, y: PC - s * K * 0.707 - 3, 'font-size': 9, fill: 'var(--muted)' }, pad, s);
+  // compass rose: ticks every 10°, cardinal letters outside
+  for (let a = 0; a < 360; a += 10) {
+    const r = a * Math.PI / 180, r1 = 140, r2 = a % 30 ? 145 : 150;
+    mk('line', { x1: PC + r1 * Math.sin(r), y1: PC - r1 * Math.cos(r), x2: PC + r2 * Math.sin(r), y2: PC - r2 * Math.cos(r), stroke: 'var(--muted)', 'stroke-width': a % 90 ? 1 : 1.8 });
+  }
+  [[0, 'N'], [90, 'E'], [180, 'S'], [270, 'W']].forEach(([a, l]) => {
+    const r = a * Math.PI / 180;
+    mk('text', { ...tx, x: PC + 162 * Math.sin(r), y: PC - 162 * Math.cos(r), 'font-size': 12, 'font-weight': 700, fill: 'var(--ink)' }, pad, l);
+  });
+  // runway drawn heading-up, then rotated to its heading; numbers sit at each threshold as painted
+  const rwyGroup = mk('g', { transform: `rotate(${S.rwy} ${PC} ${PC})` });
+  mk('rect', { x: PC - 11, y: PC - 62, width: 22, height: 124, rx: 2, fill: 'var(--rwy)' }, rwyGroup);
+  mk('line', { x1: PC, x2: PC, y1: PC - 36, y2: PC + 36, stroke: 'var(--rwy-mark)', 'stroke-width': 1.2, 'stroke-dasharray': '6 5' }, rwyGroup);
+  const rwyNum = mk('text', { ...tx, x: PC, y: PC + 51, 'font-size': 11, 'font-weight': 700, fill: 'var(--rwy-mark)' }, rwyGroup, '27');
+  const rwyRecip = mk('text', { ...tx, x: PC, y: PC - 51, 'font-size': 11, 'font-weight': 700, fill: 'var(--rwy-mark)', transform: `rotate(180 ${PC} ${PC - 51})` }, rwyGroup, '09');
+  mk('polygon', { points: `${PC},${PC + 74} ${PC - 7},${PC + 88} ${PC},${PC + 84} ${PC + 7},${PC + 88}`, fill: 'var(--muted)' }, rwyGroup);
+  mk('line', { x1: PC, x2: PC, y1: PC + 92, y2: PC + 118, stroke: 'var(--muted)', 'stroke-width': 1.2, 'stroke-dasharray': '2 3' }, rwyGroup);
+
+  const parts = {};
+  // Tower wind: a read-only ghost set from the MCDU
+  {
+    const g = mk('g', { 'pointer-events': 'none', opacity: 0.85 });
+    const line = mk('line', { stroke: 'var(--ink)', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-dasharray': '5 4' }, g);
+    const head = mk('polygon', { fill: 'var(--ink)' }, g);
+    const h = mk('g', {}, g);
+    mk('circle', { r: 7, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 2 }, h);
+    const lab = mk('text', { 'font-family': 'ui-monospace, SF Mono, Menlo, monospace', 'font-size': 10, 'font-weight': 700, fill: 'var(--ink)' }, h, 'TWR');
+    parts.t = { line, head, h, lab };
+  }
+  // Current wind: draggable
+  {
+    const col = 'var(--cyan)', g = mk('g', {});
+    const line = mk('line', { stroke: col, 'stroke-width': 2.5, 'stroke-linecap': 'round' }, g);
+    const head = mk('polygon', { fill: col }, g);
+    const h = mk('g', { class: 'hnd', tabindex: 0, role: 'slider', 'aria-label': 'Current wind' }, g);
+    mk('circle', { r: 22, fill: 'transparent' }, h);
+    mk('circle', { r: 14, class: 'focus' }, h);
+    mk('circle', { r: 9, fill: col, stroke: 'var(--surface)', 'stroke-width': 2 }, h);
+    const lab = mk('text', { 'font-family': 'ui-monospace, SF Mono, Menlo, monospace', 'font-size': 10, 'font-weight': 700, fill: col }, h, 'NOW');
+    parts.c = { line, head, h, lab };
+  }
+
+  function windText(w) {
+    const spd = Math.round(w.spd);
+    if (!spd) return 'Calm<br>HW 0';
+    const { hw, xw } = comp(w), H = Math.round(hw), X = Math.round(xw);
+    const along = H >= 0 ? `HW ${H}` : `TW ${-H}`;
+    const cross = X ? ` · XW ${Math.abs(X)} ${X > 0 ? 'R' : 'L'}` : '';
+    return `${fmtDir(w.dir)}/${spd} kt<br>${along}${cross}`;
+  }
+  function drawPad() {
+    for (const k of ['t', 'c']) {
+      const w = S[k], p = parts[k], a = w.dir * Math.PI / 180;
+      const ux = Math.sin(a), uy = -Math.cos(a), r = Math.min(60, w.spd) * K;
+      const hx = PC + r * ux, hy = PC + r * uy;
+      p.h.setAttribute('transform', `translate(${hx} ${hy})`);
+      p.lab.setAttribute('x', ux >= 0 ? 13 : -13);
+      p.lab.setAttribute('text-anchor', ux >= 0 ? 'start' : 'end');
+      p.lab.setAttribute('y', uy > 0 ? 20 : -12);
+      // arrow from the dot toward the runway, the way the wind blows
+      const ex = PC + 16 * ux, ey = PC + 16 * uy, show = r > 30;
+      p.line.setAttribute('visibility', show ? 'visible' : 'hidden');
+      p.head.setAttribute('visibility', show ? 'visible' : 'hidden');
+      p.line.setAttribute('x1', hx - 10 * ux); p.line.setAttribute('y1', hy - 10 * uy);
+      p.line.setAttribute('x2', ex + 8 * ux); p.line.setAttribute('y2', ey + 8 * uy);
+      const px = -uy, py = ux;
+      p.head.setAttribute('points', `${ex},${ey} ${ex + 11 * ux + 5 * px},${ey + 11 * uy + 5 * py} ${ex + 11 * ux - 5 * px},${ey + 11 * uy - 5 * py}`);
+      $(k === 't' ? 'w-t' : 'w-c').innerHTML = windText(w);
+    }
+    parts.c.h.setAttribute('aria-valuetext', Math.round(S.c.spd) ? `${fmtDir(S.c.dir)} at ${Math.round(S.c.spd)} knots` : 'calm');
+  }
+
+  function setFrom(p) {
+    const w = S.c, dx = p.x - PC, dy = p.y - PC;
+    w.spd = Math.min(w.max, Math.hypot(dx, dy) / K);
+    if (w.spd > 0.2) w.dir = (Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360;
+    updateCalc();
+  }
+  let dragging = false;
+  pad.addEventListener('pointerdown', e => {
+    dragging = true;
+    parts.c.h.focus({ preventScroll: true });
+    pad.setPointerCapture(e.pointerId);
+    setFrom(svgPt(pad, e));
+    e.preventDefault();
+  });
+  pad.addEventListener('pointermove', e => { if (dragging) setFrom(svgPt(pad, e)); });
+  ['pointerup', 'pointercancel'].forEach(t => pad.addEventListener(t, () => { dragging = false; }));
+  pad.addEventListener('keydown', e => {
+    if (!e.target.closest('.hnd')) return;
+    const step = { ArrowLeft: [-2, 0], ArrowRight: [2, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const w = S.c;
+    w.dir = ((w.dir + step[0]) % 360 + 360) % 360;
+    w.spd = clamp(w.spd + step[1], 0, w.max);
+    updateCalc();
+  });
+  $('wind-l').textContent = `Current wind, runway ${S.des}`;
+  renderPresets();
+  updateCalc();
+
+  // ---- Simulation ----
+  const SIM = { vls: 128, twr: 20, dt: 0.1, n: 601, tau: 4, accMax: 1.5, decMax: 1.2 };
+  const P = appr(SIM.vls, SIM.twr);
+  const winds = {
+    shear: t => (t < 24 ? 30 : t < 28 ? 30 - 21 * (t - 24) / 4 : 9) + 1.2 * Math.sin(1.7 * t),
+    gust: t => 20 + 7 * Math.sin(0.55 * t) + 4 * Math.sin(1.6 * t + 1) + 3 * Math.sin(2.9 * t + 2),
+    steady: t => 20 + 0.8 * Math.sin(1.3 * t),
+  };
+  function simulate(sc) {
+    const w = winds[sc], out = [];
+    let hw0 = w(0);
+    let gsM = targetOf(P.vapp, P.gsm, hw0) - hw0, gsF = P.vapp - hw0;
+    for (let i = 0; i < SIM.n; i++) {
+      const t = i * SIM.dt, hw = w(t);
+      const iasM = gsM + hw, iasF = gsF + hw, tgtM = targetOf(P.vapp, P.gsm, hw);
+      out.push({ t, hw, iasM, iasF, gsM, gsF, tgtM });
+      const step = (tgt, ias) => Math.min(SIM.accMax, Math.max(-SIM.decMax, (tgt - ias) / SIM.tau)) * SIM.dt;
+      gsM += step(tgtM, iasM);
+      gsF += step(P.vapp, iasF);
+    }
+    return out;
+  }
+
+  let sc = 'shear', data = simulate(sc), idx = 300;
+  try { const s = localStorage.getItem('gsmini-sc'); if (s && winds[s]) { sc = s; data = simulate(sc); } } catch (e) {}
+
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const canvas = $('chart'), ctx = canvas.getContext('2d');
+
+  function drawChart() {
+    const dpr = window.devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
+    if (!W) return;
+    canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const ink = css('--ink'), muted = css('--muted'), line = css('--line');
+    const L = 40, R = 10, T = 10, gap = 26, Hb = Math.round(H * 0.24), Ht = H - T - gap - Hb - 22;
+    const x = t => L + (t / 60) * (W - L - R);
+
+    let mn = Infinity, mx = -Infinity;
+    for (const d of data) { mn = Math.min(mn, d.iasM, d.iasF); mx = Math.max(mx, d.iasM, d.iasF); }
+    mn = Math.min(mn, SIM.vls) - 3; mx = mx + 3;
+    mn = Math.floor(mn / 5) * 5; mx = Math.ceil(mx / 5) * 5;
+    const yT = v => T + Ht - (v - mn) / (mx - mn) * Ht;
+    ctx.font = '11px ui-monospace, Menlo, monospace'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    const stepY = (mx - mn) > 40 ? 10 : 5;
+    for (let v = Math.ceil(mn / stepY) * stepY; v <= mx; v += stepY) {
+      ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, yT(v)); ctx.lineTo(W - R, yT(v)); ctx.stroke();
+      ctx.fillStyle = muted; ctx.fillText(v, L - 6, yT(v));
+    }
+    ctx.fillStyle = muted; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('IAS kt', L + 4, T + 2);
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = css('--amber'); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(L, yT(SIM.vls)); ctx.lineTo(W - R, yT(SIM.vls)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = css('--amber'); ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText('VLS ' + SIM.vls, W - R - 2, yT(SIM.vls) - 2);
+    ctx.strokeStyle = muted; ctx.globalAlpha = .5; ctx.setLineDash([2, 4]);
+    ctx.beginPath(); ctx.moveTo(L, yT(P.vapp)); ctx.lineTo(W - R, yT(P.vapp)); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+    ctx.fillStyle = muted; ctx.textAlign = 'left'; ctx.fillText('VAPP ' + P.vapp, L + 4, yT(P.vapp) - 2);
+
+    const path = (key, yf, color, w) => {
+      ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineJoin = 'round'; ctx.beginPath();
+      data.forEach((d, i) => i ? ctx.lineTo(x(d.t), yf(d[key])) : ctx.moveTo(x(d.t), yf(d[key]))); ctx.stroke();
+    };
+    path('iasF', yT, css('--slate'), 2);
+    path('iasM', yT, css('--magenta'), 2.5);
+
+    const B0 = T + Ht + gap;
+    let wmn = Infinity, wmx = -Infinity;
+    for (const d of data) { wmn = Math.min(wmn, d.hw); wmx = Math.max(wmx, d.hw); }
+    wmn = Math.floor(Math.min(wmn, SIM.twr) / 10) * 10; wmx = Math.ceil(Math.max(wmx, SIM.twr) / 10) * 10;
+    if (wmx - wmn < 20) wmx = wmn + 20;
+    const yB = v => B0 + Hb - (v - wmn) / (wmx - wmn) * Hb;
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (let v = wmn; v <= wmx; v += 10) {
+      ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, yB(v)); ctx.lineTo(W - R, yB(v)); ctx.stroke();
+      ctx.fillStyle = muted; ctx.fillText(v, L - 6, yB(v));
+    }
+    ctx.setLineDash([5, 4]); ctx.strokeStyle = muted; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(L, yB(SIM.twr)); ctx.lineTo(W - R, yB(SIM.twr)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = muted; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('Headwind kt (dashed: tower 20)', L + 4, B0 + 2);
+    path('hw', yB, css('--cyan'), 2);
+
+    ctx.fillStyle = muted; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (let t = 0; t <= 60; t += 10) ctx.fillText(t + ' s', Math.min(Math.max(x(t), L + 10), W - R - 14), B0 + Hb + 6);
+
+    const d = data[idx], px = x(d.t);
+    ctx.strokeStyle = ink; ctx.globalAlpha = .55; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(px, T); ctx.lineTo(px, B0 + Hb); ctx.stroke(); ctx.globalAlpha = 1;
+    [['iasM', yT, '--magenta'], ['iasF', yT, '--slate'], ['hw', yB, '--cyan']].forEach(([k, yf, c]) => {
+      ctx.fillStyle = css(c); ctx.beginPath(); ctx.arc(px, yf(d[k]), 4, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+
+  function updateSim() {
+    const d = data[idx];
+    $('t').value = idx;
+    $('t-o').textContent = d.t.toFixed(1) + ' s';
+    $('s-w').innerHTML = `${fmtW(Math.round(d.hw))}<br>tower ${SIM.twr} kt head`;
+    $('s-m').innerHTML = `target ${Math.round(d.tgtM)} · IAS ${Math.round(d.iasM)}<br>GS ${Math.round(d.gsM)} <span class="muted">(min ${P.gsm})</span>`;
+    $('s-f').innerHTML = `target ${P.vapp} · IAS ${Math.round(d.iasF)}<br>GS ${Math.round(d.gsF)}`;
+    drawTape($('tape-m'), { ias: d.iasM, target: d.tgtM, vls: SIM.vls });
+    drawTape($('tape-f'), { ias: d.iasF, target: P.vapp, vls: SIM.vls });
+    drawChart();
+  }
+
+  function verdict() {
+    let mM = Infinity, mF = Infinity, sM = 0, sF = 0;
+    data.forEach(d => { mM = Math.min(mM, d.iasM); mF = Math.min(mF, d.iasF); if (d.iasM < SIM.vls) sM += SIM.dt; if (d.iasF < SIM.vls) sF += SIM.dt; });
+    mM = Math.round(mM); mF = Math.round(mF);
+    const below = (m, s) => m < SIM.vls ? `<b class="amb">${m} kt</b>, below V<sub>LS</sub> for ${s.toFixed(1)} s` : `<b>${m} kt</b>, ${m - SIM.vls} kt above V<sub>LS</sub>`;
+    const txt = {
+      shear: `Before the shear, managed speed carries 10 kt above V<sub>APP</sub> because the headwind is 10 kt stronger than forecast. Lowest IAS with GS mini: ${below(mM, sM)}. Lowest with fixed V<sub>APP</sub>: ${below(mF, sF)}. The first 10 kt of headwind loss cost the managed aircraft nothing, because that energy was already in hand.`,
+      gust: `In gusts the magenta target rises with each gust and falls back as it passes, so ground speed stays near ${P.gsm} kt and autothrust works less hard on the decreasing side. Lowest IAS with GS mini: ${below(mM, sM)}. With fixed V<sub>APP</sub>: ${below(mF, sF)}.`,
+      steady: `When the wind matches the tower value, GS mini + headwind equals V<sub>APP</sub>, so both traces sit on top of each other. GS mini only adds speed when the aircraft meets more headwind than it will find at the runway.`,
+    };
+    $('verdict').innerHTML = txt[sc];
+  }
+
+  function setScenario(s) {
+    sc = s; data = simulate(sc);
+    try { localStorage.setItem('gsmini-sc', s); } catch (e) {}
+    document.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sc === s)));
+    verdict(); updateSim();
+  }
+  document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { stop(); setScenario(b.dataset.sc); }));
+  $('t').addEventListener('input', e => { stop(); idx = +e.target.value; updateSim(); });
+
+  let raf = null, last = 0;
+  function stop() { if (raf) cancelAnimationFrame(raf); raf = null; $('play').textContent = idx >= 600 ? 'Replay' : 'Play'; }
+  function tick(now) {
+    const dtReal = (now - last) / 1000; last = now;
+    idx = Math.min(600, idx + Math.max(1, Math.round(dtReal * 40)));
+    updateSim();
+    if (idx >= 600) { stop(); return; }
+    raf = requestAnimationFrame(tick);
+  }
+  $('play').addEventListener('click', () => {
+    if (raf) { stop(); return; }
+    if (idx >= 600) idx = 0;
+    $('play').textContent = 'Pause'; last = performance.now(); raf = requestAnimationFrame(tick);
+  });
+
+  new ResizeObserver(() => drawChart()).observe(canvas);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawChart);
+  new MutationObserver(drawChart).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts) document.fonts.ready.then(drawChart);
+  setScenario(sc);
+})();
+</script>
+</body>
+</html>
