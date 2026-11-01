@@ -1,0 +1,1047 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Unreliable Airspeed — xpdr.aero</title>
+<meta name="description" content="An interactive A320-family walkthrough of the unreliable airspeed procedure: recognise it on the PFD, the memory items, pitch and thrust, the ADR cross-check, and the approach.">
+<meta name="theme-color" content="#14110a">
+<link rel="icon" href="../logo/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="../logo/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../logo/apple-touch-icon.png">
+<style>
+@font-face{font-family:"Familjen Grotesk";font-weight:500 700;font-style:normal;font-display:swap;src:url(../fonts/familjen-grotesk-latin.woff2) format("woff2")}
+@font-face{font-family:"Familjen Fallback";src:local("Arial"),local("Liberation Sans");size-adjust:102%;ascent-override:100%;descent-override:22%;line-gap-override:0%}
+/* Layout: a single column walkthrough; each step opens with a colour block, the lab (instrument + controls) is the widest element. Dark-first, like xpdr.aero. */
+:root{
+  --bg:#14110a; --surface:#1e1910; --surface2:#2a2317; --line:#3d3426; --fg:#f3ecdc; --muted:#b3a78d;
+  --s1:#e9a62b; --s2:#e5593d; --s3:#3eab9f; --s4:#8d95ff; --on-tile:#14110a;
+  --ok:#52c98f; --bad:#ff6d58; --focus:#ffd75e;
+  --display:"Familjen Grotesk","Familjen Fallback", "Helvetica Neue", Arial, sans-serif;
+  --mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 17px/1.55 var(--display);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-weight:700;line-height:1.1;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.4rem,7vw,4.4rem);letter-spacing:-.02em}
+h2{font-size:clamp(1.7rem,4.2vw,2.5rem);letter-spacing:-.01em}
+h3{font-size:1.2rem}
+p{margin:0}
+.eyebrow{font:600 .78rem/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+header.top{padding-block:40px 18px;display:grid;gap:14px}
+header.top .lede{max-width:62ch;font-size:1.1rem;color:var(--muted)}
+
+/* progress */
+.progress{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.progress .wrap{display:flex;gap:10px;align-items:center;padding-block:10px}
+.segs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:1;min-width:0}
+.seg{border:0;background:transparent;padding:0;text-align:left;cursor:pointer;display:grid;gap:5px;min-width:0}
+.seg .bar{height:6px;border-radius:3px;background:var(--surface2)}
+.seg .lab{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg .lab b{font-family:var(--mono);margin-right:4px}
+.seg[aria-current="step"] .lab{color:var(--fg);font-weight:600}
+.seg.done .bar,.seg[aria-current="step"] .bar{background:var(--c)}
+.navbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:600;white-space:nowrap}
+.navbtn:disabled{opacity:.35;cursor:default}
+@media (max-width:620px){.seg:not([aria-current="step"]) .lab span{display:none}.navbtn{padding:6px 11px}}
+
+main{padding-block:26px 30px}
+.step{display:grid;gap:26px}
+.tile{background:var(--c);color:var(--on-tile);border-radius:6px;padding:22px 22px 24px;display:grid;gap:10px}
+.tile .eyebrow{color:var(--on-tile);opacity:.8}
+.tile p{max-width:64ch;font-size:1.08rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:22px}
+.cols > *{min-width:0}
+.block{display:grid;gap:10px;align-content:start}
+.block p,.prose p{max-width:66ch}
+ul.list{margin:0;padding-left:1.1em;display:grid;gap:6px}
+ul.list li::marker{color:var(--c)}
+.note{border-left:3px solid var(--c);padding:4px 0 4px 14px;color:var(--muted);max-width:70ch}
+
+/* lab */
+.lab-box{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;gap:16px}
+.lab-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
+.lab-head h3{font-size:1.3rem}
+.ctrls{display:flex;flex-wrap:wrap;gap:12px 22px}
+.ctrl{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-width:0;max-width:100%}
+.ctrl > span{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.segbtns{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden;width:fit-content;max-width:100%}
+.segbtns button{border:0;background:transparent;padding:8px 12px;cursor:pointer;font-size:.95rem;border-right:1px solid var(--line)}
+.segbtns button:last-child{border-right:0}
+.segbtns button[aria-pressed="true"]{background:var(--c);color:var(--on-tile);font-weight:600}
+.btn{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:600}
+.btn.primary{background:var(--c);color:var(--on-tile);border-color:transparent}
+.labgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:780px){.labgrid{grid-template-columns:minmax(0,1fr)}}
+.pfdwrap{background:#070707;border-radius:8px;padding:6px;display:flex;gap:6px;align-items:stretch}
+.pfdwrap svg.pfd{flex:1;min-width:0;width:100%;height:auto;display:block}
+svg.pfd text{font-family:var(--mono)}
+.timeline{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.timeline input[type=range]{flex:1;min-width:0;accent-color:var(--c)}
+.timeline .clock{font-variant-numeric:tabular-nums;font-weight:600;min-width:6.5ch;text-align:right}
+.warnrow{display:flex;flex-wrap:wrap;gap:8px;min-height:32px;align-items:center}
+.warn{font:700 .85rem/1 var(--mono);letter-spacing:.06em;padding:7px 10px;border-radius:4px;background:#ff3b30;color:#fff}
+.warn.amber{background:#ffae00;color:#140d00}
+.warnrow .none{color:var(--muted);font-size:.9rem}
+
+table.cmp{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.cmp th,table.cmp td{padding:7px 6px;text-align:right;border-bottom:1px solid var(--line)}
+table.cmp th:first-child,table.cmp td:first-child{text-align:left}
+table.cmp thead th{font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+table.cmp td{font-size:1.05rem;font-weight:600;white-space:nowrap}
+@media (max-width:520px){.lab-box{padding:12px}.pfdwrap{padding:4px;gap:4px}.levercol{width:54px;flex-basis:54px}table.cmp td{font-size:.95rem}table.cmp th,table.cmp td{padding:6px 3px}}
+table.cmp td:first-child{font-family:var(--display);font-size:.95rem}
+td.bad{color:var(--bad);font-weight:700}
+.explain{background:var(--surface2);border-radius:6px;padding:12px 14px;display:grid;gap:6px}
+.legend{font-size:.85rem;color:var(--muted)}
+
+/* memory items */
+.mem{display:grid;gap:0;border:2px solid var(--c);border-radius:8px;overflow:hidden}
+.mem .cond{background:var(--c);color:var(--on-tile);padding:10px 14px;font-weight:600}
+.mem .row{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;border-top:1px solid var(--line);align-items:baseline;flex-wrap:wrap}
+.mem .row b{font-size:1.15rem}
+.mem .row .act{font-family:var(--mono);font-weight:700;font-size:1.1rem}
+.mem table{width:100%;border-collapse:collapse}
+.mem td{padding:9px 14px;border-top:1px solid var(--line);vertical-align:top}
+.mem td.pt{font-family:var(--mono);font-weight:700;font-size:1.25rem;white-space:nowrap;text-align:right}
+.badge{display:inline-block;font:700 .68rem/1 var(--display);letter-spacing:.1em;text-transform:uppercase;padding:4px 6px;border-radius:3px;vertical-align:middle;margin-right:6px}
+.badge.memb{background:var(--s2);color:var(--on-tile)}
+.badge.qrh{background:var(--s3);color:var(--on-tile)}
+
+/* exercise */
+.fcu{display:flex;gap:10px;flex-wrap:wrap}
+.pb{border:1px solid #555;background:#26282c;color:#e8e8e8;border-radius:5px;padding:7px 12px 8px;cursor:pointer;display:grid;justify-items:center;gap:5px;font:700 .9rem/1 var(--mono);min-width:76px}
+.pb i{display:block;width:34px;height:4px;border-radius:2px;background:#3a3d42}
+.pb[aria-pressed="true"] i{background:#38e07e;box-shadow:0 0 6px #38e07e}
+.levercol{width:74px;flex:0 0 74px;position:relative;color:#ddd;text-align:center}
+@media (max-width:520px){.levercol{width:60px;flex-basis:60px;position:static;display:grid;align-content:start;gap:4px}.levercol svg.lever{position:static;height:250px}.pfdwrap{align-items:flex-start}}
+.levercol .n1{font:700 .95rem/1.2 var(--display);color:#38e07e;padding-top:4px}
+.levercol .n1 small{display:block;color:#aaa;font-weight:400;font-size:.7rem}
+svg.lever{position:absolute;left:0;right:0;top:44px;bottom:0;width:100%;height:calc(100% - 44px);display:block;touch-action:none;cursor:ns-resize}
+.drag{touch-action:none;cursor:grab}
+.drag:active{cursor:grabbing}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checks li{display:flex;gap:10px;align-items:flex-start}
+.checks li::before{content:"";flex:0 0 18px;height:18px;border-radius:50%;border:2px solid var(--line);margin-top:3px}
+.checks li.ok::before{background:var(--ok);border-color:var(--ok)}
+.checks li.ok{color:var(--muted)}
+.banner{border-radius:6px;padding:10px 14px;font-weight:600}
+.banner.good{background:var(--ok);color:var(--bg)}
+.banner.info{background:var(--surface2)}
+.startover{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);border-radius:8px}
+.rel{position:relative}
+
+/* ADR */
+.adrs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.adr{background:var(--surface2);border-radius:6px;padding:10px 12px;display:grid;gap:2px}
+.adr .nm{font-weight:700}
+.adr .src{font-size:.78rem;color:var(--muted)}
+.adr .v{font:700 1.6rem/1.2 var(--display);font-variant-numeric:tabular-nums}
+.adr .s{font:400 .92rem/1.3 var(--display);font-variant-numeric:tabular-nums;color:var(--muted)}
+.adr.isoff{opacity:.45}
+.ctx{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.95rem}
+.ctx b{font-family:var(--mono)}
+.overhead{background:#2b3138;border-radius:8px;padding:14px;display:grid;gap:10px;color:#e6e6e6}
+.overhead .cap{font:600 .72rem/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:#aab3bd}
+.ohrow{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.ohpb{display:grid;gap:5px;justify-items:center}
+.ohpb label{font:700 .8rem/1 var(--mono);color:#e6e6e6}
+.ohpb button{width:64px;height:58px;border-radius:5px;border:1px solid #111;background:#1a1d21;cursor:pointer;display:grid;grid-template-rows:1fr 1fr;padding:4px;gap:3px}
+.ohpb button span{display:grid;place-items:center;font:700 .7rem/1 var(--mono);border-radius:2px;color:#3a3f45}
+.ohpb button[aria-pressed="true"] span.off{color:#fff;text-shadow:0 0 5px #fff}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.fb{border-radius:6px;padding:12px 14px;display:grid;gap:6px}
+.fb.good{background:color-mix(in srgb,var(--ok) 22%,var(--surface))}
+.fb.badf{background:color-mix(in srgb,var(--bad) 20%,var(--surface))}
+.chk{display:flex;gap:8px;align-items:center;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--c)}
+
+/* BUSS figure */
+.buss{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.buss svg{width:220px;max-width:100%;height:auto;flex:0 0 auto}
+.buss .prose{flex:1;min-width:min(100%,260px);display:grid;gap:8px}
+
+/* GS widget */
+.gsgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:720px){.gsgrid{grid-template-columns:minmax(0,1fr)}}
+svg.dial{width:100%;max-width:380px;height:auto;display:block;margin:0 auto}
+svg.dial text{font-family:var(--mono)}
+.inputs{display:flex;flex-wrap:wrap;gap:12px}
+.inputs label{display:grid;gap:4px;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.inputs input{width:8ch;font:700 1.35rem/1 var(--display);font-variant-numeric:tabular-nums;padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface2);text-transform:none;letter-spacing:0}
+.big{display:grid;gap:4px}
+.big .k{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.big .val{font:700 2.4rem/1 var(--display);font-variant-numeric:tabular-nums}
+.outs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.outs .val{font-size:1.5rem}
+
+.stepfoot{display:flex;justify-content:space-between;gap:12px;padding-top:6px}
+footer{border-top:1px solid var(--line);padding-block:22px 40px;color:var(--muted);font-size:.92rem}
+footer .wrap{display:grid;gap:8px}
+footer strong{color:var(--fg)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+.sitebar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-top:16px}
+.sitebar img{height:34px;width:auto;display:block}
+.sitebar .back{color:#f3ecd6;font-size:.9375rem;font-weight:500;text-decoration:none}.sitebar .back:hover{color:#f2b705}
+footer .site a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+</style>
+<noscript><style>.step[hidden]{display:block!important}.progress{display:none}</style></noscript>
+</head>
+<body>
+<div class="wrap sitebar"><a href="../"><img src="../logo/xpdr-lockup-A2.svg" alt="xpdr.aero" width="98" height="34"></a><a class="back" href="../">All projects</a></div>
+
+<header class="top wrap">
+  <span class="eyebrow">A320 family · walkthrough for pilots</span>
+  <h1>Unreliable airspeed</h1>
+  <p class="lede">Four steps through the procedure, from the first odd number on the PFD to the landing. Each step has an instrument you can fly or break.</p>
+</header>
+
+<nav class="progress" aria-label="Walkthrough progress">
+  <div class="wrap">
+    <button class="navbtn" id="back" type="button" aria-label="Previous step">‹ Back</button>
+    <div class="segs" id="segs"></div>
+    <button class="navbtn" id="next" type="button" aria-label="Next step">Next ›</button>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<!-- STEP 1 -->
+<section class="step" data-step="recognise" style="--c:var(--s1)">
+  <div class="tile">
+    <span class="eyebrow">Step 1 of 4</span>
+    <h2>Recognise it</h2>
+    <p>Unreliable speed rarely arrives with a clean warning. The first job is to notice that the indications no longer match what the aircraft is doing with the pitch and thrust you have set.</p>
+  </div>
+
+  <div class="cols">
+    <div class="block">
+      <h3>Typical cues</h3>
+      <ul class="list">
+        <li>Speed disagreement between the captain PFD, the F/O PFD and the standby instrument.</li>
+        <li>Speed that fluctuates, freezes, or changes in a way that does not match pitch and thrust.</li>
+        <li>Indicated speed rising in a climb and falling in a descent, like an altimeter.</li>
+        <li>Altitude disagreement, or altitude and vertical speed frozen.</li>
+        <li>STALL or OVERSPEED warnings that contradict at least one speed indication.</li>
+        <li>Odd AP, FD or A/THR behaviour, or an unexpected AP disconnection.</li>
+        <li>Aerodynamic noise that does not fit the indicated speed.</li>
+        <li>ECAM alerts such as NAV ADR DISAGREE, NAV IAS DISCREPANCY or NAV ALTI DISCREPANCY. Not always: if two ADRs are wrong in the same way, the system can reject the good one.</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3>Common causes</h3>
+      <ul class="list">
+        <li>Pitot probes blocked by ice: ice crystals at high altitude, or severe icing.</li>
+        <li>Heavy rain overwhelming the pitot drain holes.</li>
+        <li>Insects or nests in the probes after time on the ground.</li>
+        <li>Pitot covers or static-port tape left on after maintenance or washing.</li>
+        <li>Static ports blocked or damaged, for example by a bird strike or a radome problem.</li>
+      </ul>
+      <p class="note">Speed comes from the difference between total pressure (pitot) and static pressure. Altitude comes from static pressure alone. Block one side and you can predict which numbers go wrong, and in which direction.</p>
+    </div>
+  </div>
+
+  <div class="lab-box" id="lab1">
+    <div class="lab-head">
+      <h3>See the symptom</h3>
+      <span class="muted">Pick a failure. It happens at T+0:06.</span>
+    </div>
+    <div class="ctrls">
+      <div class="ctrl"><span>Failure</span>
+        <div class="segbtns" data-group="fail">
+          <button type="button" data-v="drain">Pitot blocked, drain open</button>
+          <button type="button" data-v="pitot" aria-pressed="true">Pitot and drain blocked</button>
+          <button type="button" data-v="static">Static ports blocked</button>
+        </div>
+      </div>
+      <div class="ctrl"><span>Phase</span>
+        <div class="segbtns" data-group="phase">
+          <button type="button" data-v="climb" aria-pressed="true">Climb from FL100</button>
+          <button type="button" data-v="descent">Descent from FL240</button>
+        </div>
+      </div>
+      <div class="ctrl"><span>Who is flying</span>
+        <div class="segbtns" data-group="mode">
+          <button type="button" data-v="hold" aria-pressed="true">Pitch and thrust held</button>
+          <button type="button" data-v="ap">AP holds indicated speed</button>
+        </div>
+      </div>
+    </div>
+    <div class="labgrid">
+      <div class="block">
+        <div class="pfdwrap"><svg class="pfd" id="pfd1" role="img" aria-label="Primary flight display showing the failure"></svg></div>
+        <div class="timeline">
+          <button class="btn primary" type="button" id="play1">Play</button>
+          <input type="range" id="scrub1" min="0" max="600" value="200" aria-label="Scenario time">
+          <span class="clock" id="clock1">T+0:50</span>
+        </div>
+        <p class="legend">White dashed pointer on the speed tape: the aircraft's real speed. You would not see this in the cockpit.</p>
+      </div>
+      <div class="block">
+        <table class="cmp" id="cmp1">
+          <thead><tr><th></th><th>PFD shows</th><th>Actually</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="warnrow" id="warn1"></div>
+        <div class="explain" id="explain1"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 2 -->
+<section class="step" data-step="memory" style="--c:var(--s2)" hidden>
+  <div class="tile">
+    <span class="eyebrow">Step 2 of 4</span>
+    <h2>Memory items, if you need them</h2>
+    <p>The memory items exist for one case: the safe conduct of the flight is affected, for example just after takeoff, close to terrain, or with a stall warning. If it is not, skip them and go to the QRH procedure in step 3. There is no prize for speed.</p>
+  </div>
+
+  <div class="cols">
+    <div class="mem" aria-label="Memory items">
+      <div class="cond">If the safe conduct of the flight is impacted</div>
+      <div class="row"><b><span class="badge memb">Memory</span>AP / FD</b><span class="act">OFF</span></div>
+      <div class="row"><b><span class="badge memb">Memory</span>A/THR</b><span class="act">OFF</span></div>
+      <table>
+        <tr><td><b><span class="badge memb">Memory</span>Pitch / thrust</b><br><span class="muted">Below THR RED ALT</span></td><td class="pt">15° / TOGA</td></tr>
+        <tr><td><span class="muted">Above THR RED ALT and below FL100</span></td><td class="pt">10° / CLB</td></tr>
+        <tr><td><span class="muted">Above THR RED ALT and above FL100</span></td><td class="pt">5° / CLB</td></tr>
+      </table>
+      <div class="row"><b><span class="badge memb">Memory</span>Flaps</b><span class="act">MAINTAIN CURRENT CONF</span></div>
+      <div class="row"><b><span class="badge memb">Memory</span>Speedbrakes</b><span class="act">CHECK RETRACTED</span></div>
+      <div class="row"><b><span class="badge memb">Memory</span>Landing gear</b><span class="act">UP</span></div>
+    </div>
+    <div class="block prose">
+      <h3>What the items are for</h3>
+      <p>AP, FD and A/THR are all fed by the air data that has just gone wrong. Turning them off stops them chasing a false speed. Both FDs go off, so no bars are left commanding the wrong pitch.</p>
+      <p>The pitch and thrust pairs keep the aircraft safely away from both stall and overspeed across normal weights, without any speed indication at all. THR RED ALT is the thrust reduction altitude from the takeoff.</p>
+      <p>Hold them only for a short time. Once at or above the MSA or circuit altitude, level off and troubleshoot (step 3).</p>
+      <p class="note">The configuration lines (flaps, speedbrakes, gear) and their exact wording differ between FCOM revisions and operators. Some standards treat them as memory items, others as read-and-do. Learn the version in your own QRH.</p>
+    </div>
+  </div>
+
+  <div class="lab-box" id="lab2">
+    <div class="lab-head">
+      <h3>Fly the pitch and thrust</h3>
+      <span class="muted">Sim runs at 3× real time</span>
+    </div>
+    <p>Climbing out of FL120, the pitot probes and their drains iced over. Indicated speed began rising with altitude, and the autopilot pitched up to slow down. The real speed is now decaying while the PFD shows a speed that is too high and still rising. Fly it out.</p>
+    <div class="labgrid">
+      <div class="block">
+        <div class="fcu" aria-label="Glareshield pushbuttons">
+          <button class="pb" type="button" id="pbAP" aria-pressed="true"><i></i>AP1</button>
+          <button class="pb" type="button" id="pbFD" aria-pressed="true"><i></i>FD</button>
+          <button class="pb" type="button" id="pbAT" aria-pressed="true"><i></i>A/THR</button>
+        </div>
+        <div class="rel">
+          <div class="pfdwrap">
+            <svg class="pfd drag" id="pfd2" role="slider" tabindex="0" aria-label="Pitch attitude. Drag the horizon, or use the up and down arrow keys" aria-valuemin="-10" aria-valuemax="25"></svg>
+            <div class="levercol">
+              <div class="n1"><small>N1 ≈</small><span id="n1">—</span></div>
+              <svg class="lever" id="lever" viewBox="0 0 74 300" role="slider" tabindex="0" aria-label="Thrust levers. Drag, or use the up and down arrow keys" aria-valuemin="0" aria-valuemax="100"></svg>
+            </div>
+          </div>
+          <div class="startover" id="start2"><button class="btn primary" type="button" id="go2">Start the exercise</button></div>
+        </div>
+        <p class="legend">Drag the horizon to set pitch: down for nose up, like pulling the sidestick. Drag the thrust levers beside it. Arrow keys work on both once focused (Shift for bigger steps).</p>
+        <div class="timeline">
+          <button class="btn" type="button" id="pause2">Pause</button>
+          <button class="btn" type="button" id="reset2">Restart</button>
+          <label class="chk"><input type="checkbox" id="truth2" checked> Show actual values</label>
+        </div>
+      </div>
+      <div class="block">
+        <div class="warnrow" id="warn2"></div>
+        <table class="cmp" id="cmp2">
+          <thead><tr><th></th><th>PFD shows</th><th>Actually</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <ul class="checks" id="checks2">
+          <li data-k="apfd">AP and FD off</li>
+          <li data-k="athr">A/THR off</li>
+          <li data-k="pt">Above FL100: set 5° and CLB</li>
+          <li data-k="lvl">Level off with the table below and hold it for 20 seconds (sim time)</li>
+        </ul>
+        <div id="banner2"></div>
+        <div>
+          <p class="eyebrow" style="margin-bottom:6px">Level flight, this model only: 64 t, clean, 260 kt</p>
+          <table class="cmp" id="lvltab"><thead><tr><th>Altitude</th><th>Pitch</th><th>N1 ≈</th></tr></thead><tbody></tbody></table>
+          <p class="legend" style="margin-top:6px">The real QRH “flight with unreliable speed” tables give pitch and N1 by weight and altitude for climb, cruise, descent, holding and approach. Use those numbers, not these.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 3 -->
+<section class="step" data-step="troubleshoot" style="--c:var(--s3)" hidden>
+  <div class="tile">
+    <span class="eyebrow">Step 3 of 4</span>
+    <h2>Stabilise, then troubleshoot</h2>
+    <p>With the aircraft level and on table values, you have time. Now find out which air data you can trust, and get rid of the rest.</p>
+  </div>
+
+  <div class="cols">
+    <div class="block">
+      <h3><span class="badge qrh">QRH</span>The sequence</h3>
+      <ul class="list">
+        <li><b>Level off</b> at or above the MSA or circuit altitude. Set the pitch and N1 from the QRH level-flight table for your weight and altitude, keep the configuration.</li>
+        <li><b>Cross-check the three ADRs.</b> ADR 1 drives the captain PFD, ADR 2 the F/O PFD. Use the AIR DATA selector to put ADR 3 on one side and compare it.</li>
+        <li><b>Compare each one with the table speed</b> for the pitch and N1 you are flying, with GPS ground speed, and with the stall warning.</li>
+        <li><b>Switch off the faulty ADR(s)</b> on the overhead ADIRS panel, and use the AIR DATA selector to give a PFD back its speed from ADR 3.</li>
+        <li><b>If no ADR can be trusted</b>, fly the BUSS where fitted, or the pitch and thrust tables.</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3>What stays trustworthy</h3>
+      <ul class="list">
+        <li><b>GPS ground speed</b> on the ND. Compare it with the TAS you expect plus or minus a known wind. Do not use the ND wind: it is computed from ADR true airspeed, so it is wrong too.</li>
+        <li><b>Attitude and thrust.</b> The IRs and engine indications do not depend on the pitot-static system.</li>
+        <li><b>Angle of attack.</b> The stall warning is AoA-based and should be respected. VLS, VαPROT, VMAX and the overspeed warning are computed from the faulty speed.</li>
+        <li><b>Majority is not proof.</b> Two ADRs agreeing with each other can both be wrong when the same icing hits both probes.</li>
+      </ul>
+      <p class="note">Switching off two or more ADRs puts the flight controls into alternate law and removes the protections. AP and A/THR may not be available afterwards.</p>
+    </div>
+  </div>
+
+  <div class="lab-box" id="lab3">
+    <div class="lab-head">
+      <h3>ADR cross-check</h3>
+      <div class="tabs segbtns" data-group="adrcase">
+        <button type="button" data-v="0" aria-pressed="true">Case A</button>
+        <button type="button" data-v="1">Case B</button>
+        <button type="button" data-v="2">Case C</button>
+      </div>
+    </div>
+    <p id="adrIntro"></p>
+    <div class="ctx" id="adrCtx"></div>
+    <div class="adrs" id="adrCards"></div>
+    <div class="overhead">
+      <span class="cap">Overhead · ADIRS panel · switch off the ADRs you do not trust</span>
+      <div class="ohrow" id="ohrow"></div>
+      <label class="chk" id="bussWrap" style="color:#e6e6e6"><input type="checkbox" id="bussChk" checked> This aircraft has BUSS</label>
+    </div>
+    <div class="timeline"><button class="btn primary" type="button" id="adrCheck">Check my choice</button><button class="btn" type="button" id="adrReset">Reset buttons</button></div>
+    <div id="adrFb"></div>
+  </div>
+
+  <div class="buss">
+    <svg viewBox="0 0 220 260" role="img" aria-label="Back-up speed scale: red, amber, green, amber, red bands with the aircraft reference line in the green band">
+      <rect x="0" y="0" width="220" height="260" rx="8" fill="#070707"/>
+      <rect x="20" y="20" width="56" height="34" fill="#ff3b30"/>
+      <rect x="20" y="54" width="56" height="50" fill="#ffae00"/>
+      <rect x="20" y="104" width="56" height="52" fill="#38e07e"/>
+      <rect x="20" y="156" width="56" height="50" fill="#ffae00"/>
+      <rect x="20" y="206" width="56" height="34" fill="#ff3b30"/>
+      <line x1="12" x2="88" y1="130" y2="130" stroke="#ffe14d" stroke-width="4"/>
+      <text x="96" y="42" fill="#f4f4f4" font-size="12">too fast</text>
+      <text x="96" y="134" fill="#38e07e" font-size="13" font-weight="700">fly here</text>
+      <text x="96" y="227" fill="#f4f4f4" font-size="12">too slow</text>
+      <rect x="150" y="116" width="62" height="28" fill="#000" stroke="#ffe14d"/>
+      <text x="181" y="135" fill="#38e07e" font-size="13" text-anchor="middle">15200</text>
+      <text x="181" y="108" fill="#f4f4f4" font-size="10" text-anchor="middle">GPS ALT</text>
+    </svg>
+    <div class="prose">
+      <h3>BUSS: speed from angle of attack</h3>
+      <p>On aircraft fitted with the back-up speed scale, switching all three ADRs off replaces the PFD speed tape with the BUSS. It is driven by angle of attack, not pressure, and shows bands instead of knots: keep the yellow reference line in the green. GPS altitude replaces barometric altitude.</p>
+      <p>Without BUSS, the QRH has you keep one ADR on when none can be identified as reliable, and fly the pitch and thrust tables. Keeping one ADR keeps the stall warning available.</p>
+      <p class="legend">Band shapes and colours are simplified here. Whether BUSS is fitted, and the exact switching steps, depend on the aircraft standard.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 4 -->
+<section class="step" data-step="approach" style="--c:var(--s4)" hidden>
+  <div class="tile">
+    <span class="eyebrow">Step 4 of 4</span>
+    <h2>Approach and landing</h2>
+    <p>Plan a long, unhurried approach. Each configuration change in level flight, each one followed by the table's pitch and N1, then a stabilised descent you check against ground speed.</p>
+  </div>
+
+  <div class="cols">
+    <div class="block">
+      <h3>Configuration and pitch / thrust</h3>
+      <ul class="list">
+        <li>Use the QRH approach table: for each configuration it gives pitch and N1 for level flight and for a 3° descent, by weight.</li>
+        <li>Extend flaps and gear in level flight, one stage at a time. Set the new pitch and N1 and let it settle before the next stage.</li>
+        <li>Be fully configured early, then start down on the glide path. Use ILS where available, and the FPV (bird) at −3°. Rate of descent for 3° is about 5 × ground speed.</li>
+        <li>In alternate law, extending the gear gives direct law: trim manually (USE MAN PITCH TRIM on the PFD).</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3>Speed cross-checks</h3>
+      <ul class="list">
+        <li>Compare GPS ground speed with what you expect: VAPP converted to true airspeed, minus the headwind. Use the tower or ATIS wind, not the ND wind.</li>
+        <li>The stall warning stays a valid warning. VLS, VαPROT and the overspeed warning on the PFD come from bad air data.</li>
+        <li>Landing distance increases. Apply the QRH factor or margin for unreliable speed and check the runway is long enough before you commit.</li>
+        <li>Go-around: TOGA and about 15° pitch, then back to the tables.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="lab-box" id="lab4">
+    <div class="lab-head">
+      <h3>Expected ground speed on final</h3>
+      <span class="muted">Drag the wind marker around the compass</span>
+    </div>
+    <div class="gsgrid">
+      <svg class="dial drag" id="dial" viewBox="0 0 360 360" role="slider" tabindex="0" aria-label="Wind. Drag the marker: direction around the dial, strength by distance from the centre. Left and right arrows change direction, up and down change strength."></svg>
+      <div class="block" style="gap:18px">
+        <div class="inputs">
+          <label for="rwy">Runway hdg °<input id="rwy" type="number" inputmode="numeric" min="0" max="360" value="263"></label>
+          <label for="vapp">VAPP kt<input id="vapp" type="number" inputmode="numeric" min="100" max="200" value="138"></label>
+          <label for="elev">Elevation ft<input id="elev" type="number" inputmode="numeric" min="-1000" max="14000" value="1500"></label>
+        </div>
+        <div class="big"><span class="k">Expected GPS ground speed</span><span class="val" id="gsOut">—</span></div>
+        <div class="outs">
+          <div class="big"><span class="k">Wind</span><span class="val" id="wOut">—</span></div>
+          <div class="big"><span class="k" id="hwLab">Headwind</span><span class="val" id="hwOut">—</span></div>
+          <div class="big"><span class="k">TAS at VAPP</span><span class="val" id="tasOut">—</span></div>
+          <div class="big"><span class="k">3° descent</span><span class="val" id="vsOut">—</span></div>
+        </div>
+        <p class="legend">Dashed rings on the dial: 10, 20 and 30 kt. TAS from the ISA density at field elevation. If your ND shows a ground speed well above this, you are fast; well below, slow. Compare trends, not single knots.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="stepfoot">
+  <button class="navbtn" id="back2" type="button">‹ Back</button>
+  <button class="navbtn" id="next2" type="button">Next ›</button>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>Training illustration only.</strong> The flight model is simplified: one weight (64 t), clean configuration, ISA, no flight envelope protection, no ADR voting logic. Its numbers are not QRH data and must not be used in flight.</p>
+    <p>The FCOM and QRH for your aircraft are the authority. Procedure wording, memory items, BUSS availability and table values vary with MSN, standard, engine type and operator.</p>
+    <p>Not affiliated with or endorsed by Airbus.</p>
+    <p class="site">Part of <a href="../">xpdr.aero</a> · <a href="mailto:support@xpdr.aero">support@xpdr.aero</a></p>
+  </div>
+</footer>
+
+<script>
+(()=>{
+"use strict";
+/* ---------- units, atmosphere ---------- */
+const G=9.80665, MASS=64000, S=122.6, P0=101325, RHO0=1.225, A0=340.294;
+const FT=0.3048, KT=0.514444, D2R=Math.PI/180, R2D=180/Math.PI;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function atm(h){
+  let T,p;
+  if(h<11000){T=288.15-0.0065*h;p=P0*Math.pow(T/288.15,5.25588);}
+  else{T=216.65;p=22632*Math.exp(-(h-11000)/6341.6);}
+  return {T,p,rho:p/(287.053*T),a:Math.sqrt(1.4*287.053*T)};
+}
+function altFromP(p){
+  if(p>22632) return (1-Math.pow(p/P0,1/5.25588))*288.15/0.0065;
+  return 11000-6341.6*Math.log(p/22632);
+}
+const qcFromCas=v=>P0*(Math.pow(1+0.2*(v/A0)**2,3.5)-1);
+const casFromQc=qc=>qc<=0?0:A0*Math.sqrt(5*(Math.pow(qc/P0+1,2/7)-1));
+const machFromQc=(qc,p)=>qc<=0?0:Math.sqrt(5*(Math.pow(qc/p+1,2/7)-1));
+function casToMach(caskt,altft){return machFromQc(qcFromCas(caskt*KT),atm(altft*FT).p);}
+function vmaxAt(altft){
+  const p=atm(Math.max(0,altft)*FT).p;
+  return Math.min(350,casFromQc(p*(Math.pow(1+0.2*0.82*0.82,3.5)-1))/KT);
+}
+
+/* ---------- aircraft model ---------- */
+// Lever travel: IDLE 0, CL 0.72, MCT 0.88, TOGA 1. Returns fraction of the TOGA rating.
+const LEV=[[0,0.04],[0.72,0.9],[0.88,0.95],[1,1]];
+const LEVER_CL=0.72;
+function leverFrac(l){
+  for(let i=1;i<LEV.length;i++){ if(l<=LEV[i][0]){const [x0,y0]=LEV[i-1],[x1,y1]=LEV[i];return y0+(y1-y0)*(l-x0)/(x1-x0);} }
+  return 1;
+}
+function fracLever(f){
+  for(let i=1;i<LEV.length;i++){ if(f<=LEV[i][1]){const [x0,y0]=LEV[i-1],[x1,y1]=LEV[i];return x0+(x1-x0)*(f-y0)/(y1-y0);} }
+  return 1;
+}
+const lapse=(a,M)=>240000*Math.pow(a.rho/RHO0,0.75)*Math.max(0.25,1-1.3*M+0.9*M*M);
+const n1Of=f=>25+68*Math.pow(clamp(f,0,1),0.6);
+const AST=15*D2R, STALL_WARN=12;
+function clOf(alpha){return alpha<=AST?0.2+5*alpha:Math.max(0.6,0.2+5*AST-2.5*(alpha-AST));}
+function cdOf(CL,M,alpha){return 0.022+0.045*CL*CL+(M>0.76?2*(M-0.76)**2:0)+(alpha>AST?0.6*(alpha-AST):0);}
+function aero(s){
+  const a=atm(s.h), q=0.5*a.rho*s.V*s.V, M=s.V/a.a, alpha=s.theta-s.gam;
+  const CL=clOf(alpha), CD=cdOf(CL,M,alpha);
+  return {a,q,M,alpha,L:q*S*CL,D:q*S*CD,T:lapse(a,M)*leverFrac(s.lever)};
+}
+function phys(s,dt){
+  const r=aero(s);
+  const dV=(r.T-r.D)/MASS-G*Math.sin(s.gam);
+  const dg=(r.L-MASS*G*Math.cos(s.gam))/(MASS*s.V);
+  s.V=Math.max(40,s.V+dV*dt); s.gam=clamp(s.gam+dg*dt,-1.2,1.2); s.h=Math.max(0,s.h+s.V*Math.sin(s.gam)*dt);
+  return r;
+}
+function trim(hft,caskt,lever){
+  const h=hft*FT, a=atm(h), M=machFromQc(qcFromCas(caskt*KT),a.p), V=M*a.a, q=0.5*a.rho*V*V, W=MASS*G, T=lapse(a,M)*leverFrac(lever);
+  let gam=0,alpha=0;
+  for(let i=0;i<40;i++){const CL=W*Math.cos(gam)/(q*S);alpha=(CL-0.2)/5;const D=q*S*cdOf(CL,M,alpha);gam=Math.asin(clamp((T-D)/W,-0.5,0.5));}
+  return {h,V,gam,theta:alpha+gam,lever};
+}
+function levelTrim(hft,caskt){
+  const a=atm(hft*FT), M=machFromQc(qcFromCas(caskt*KT),a.p), V=M*a.a, q=0.5*a.rho*V*V;
+  const CL=MASS*G/(q*S), alpha=(CL-0.2)/5, D=q*S*cdOf(CL,M,alpha), f=D/lapse(a,M);
+  return {theta:alpha*R2D, frac:f, n1:n1Of(f)};
+}
+const trueCas=(s,a)=>{a=a||atm(s.h);const M=s.V/a.a;return casFromQc(a.p*(Math.pow(1+0.2*M*M,3.5)-1))/KT;};
+
+/* ---------- pitot-static sensor ---------- */
+function sense(sen,s,mode,dt){
+  const a=atm(s.h), M=s.V/a.a, qc=a.p*(Math.pow(1+0.2*M*M,3.5)-1);
+  if(mode==='ok'){sen.ps=a.p;sen.pt=a.p+qc;}
+  else if(mode==='drain'){sen.ps=a.p;sen.pt+=(sen.ps-sen.pt)*Math.min(1,dt/12);}
+  else if(mode==='pitot'){sen.ps=a.p;}
+  else if(mode==='static'){sen.pt=a.p+qc;}
+}
+const indicated=sen=>({cas:casFromQc(sen.pt-sen.ps)/KT, alt:altFromP(sen.ps)/FT});
+
+/* Sim: aircraft + one air data source + optional AP that chases indicated speed */
+class Sim{
+  constructor(s,fail){
+    this.s=s;this.fail=fail;this.sen={};sense(this.sen,s,'ok',0);
+    const i=indicated(this.sen);this.ias=i.cas;this.alt=i.alt;this.iasRate=0;this.vs=0;
+    this.ap=false;this.apTarget=290;this.t=0;this.failAt=0;this.r=aero(s);
+  }
+  tick(dt){
+    sense(this.sen,this.s,this.t>=this.failAt?this.fail:'ok',dt);
+    const i=indicated(this.sen), k=Math.min(1,dt/1.5);
+    this.iasRate+=((i.cas-this.ias)/dt-this.iasRate)*k;
+    this.vs+=((i.alt-this.alt)/dt*60-this.vs)*k;
+    this.ias=i.cas;this.alt=i.alt;
+    if(this.ap){
+      const rate=clamp(0.06*(this.ias-this.apTarget)+0.5*this.iasRate,-1.5,1.5);
+      this.s.theta=clamp(this.s.theta+rate*D2R*dt,-10*D2R,22*D2R);
+    }
+    this.r=phys(this.s,dt);this.t+=dt;
+  }
+  frame(){
+    const s=this.s,a=atm(s.h);
+    return {t:this.t,theta:s.theta*R2D,ias:this.ias,trend:this.iasRate*10,alt:this.alt,vs:this.vs,
+      cas:trueCas(s,a),altT:s.h/FT,vsT:s.V*Math.sin(s.gam)/FT*60,alpha:this.r.alpha*R2D,mach:s.V/a.a,
+      vmax:vmaxAt(this.alt),gs:s.V/KT};
+  }
+}
+
+/* ---------- PFD drawing ---------- */
+const C={sky:'#2c7fd0',gnd:'#7d532b',tape:'#43464c',g:'#38e07e',amb:'#ffae00',cy:'#40d4ff',red:'#ff3b30',yel:'#ffe14d',w:'#f5f5f5'};
+function makePFD(svg,u){
+  svg.setAttribute('viewBox','0 0 420 320');
+  svg.innerHTML=`<defs>
+    <clipPath id="${u}a"><rect x="92" y="40" width="216" height="250" rx="8"/></clipPath>
+    <clipPath id="${u}s"><rect x="8" y="40" width="72" height="250"/></clipPath>
+    <clipPath id="${u}h"><rect x="318" y="40" width="64" height="250"/></clipPath>
+    <pattern id="${u}p" width="7" height="12" patternUnits="userSpaceOnUse"><rect width="7" height="6" fill="${C.red}"/><rect y="6" width="7" height="6" fill="#000"/></pattern>
+  </defs><rect width="420" height="320" fill="#070707"/><g class="dyn"></g>`;
+  const g=svg.querySelector('.dyn');
+  return d=>{g.innerHTML=buildPFD(d,u);};
+}
+function vsOff(vs){const a=Math.abs(vs);const o=a<=1000?a/1000*45:a<=2000?45+(a-1000)/1000*30:75+Math.min(a-2000,4000)/4000*40;return Math.sign(vs)*o;}
+function buildPFD(d,u){
+  const o=[],cx=200,cy=165,PX=5;
+  // attitude
+  const hy=cy+d.theta*PX;
+  o.push(`<g clip-path="url(#${u}a)"><rect x="80" y="${hy-900}" width="240" height="900" fill="${C.sky}"/><rect x="80" y="${hy}" width="240" height="900" fill="${C.gnd}"/>`);
+  o.push(`<line x1="80" x2="320" y1="${hy}" y2="${hy}" stroke="${C.w}" stroke-width="2"/>`);
+  for(let p=-90;p<=90;p+=2.5){
+    if(!p) continue; const y=hy-p*PX; if(y<36||y>294) continue;
+    const big=p%10===0, mid=p%5===0, w=big?60:mid?34:14;
+    o.push(`<line x1="${cx-w/2}" x2="${cx+w/2}" y1="${y}" y2="${y}" stroke="${C.w}" stroke-width="${big?2:1.5}"/>`);
+    if(big){const t=Math.abs(p);o.push(`<text x="${cx-w/2-6}" y="${y+5}" text-anchor="end" fill="${C.w}" font-size="14">${t}</text><text x="${cx+w/2+6}" y="${y+5}" fill="${C.w}" font-size="14">${t}</text>`);}
+  }
+  o.push('</g>');
+  if(d.fd!=null){const y=cy-clamp(d.fd,-9,9)*PX;o.push(`<line x1="${cx-50}" x2="${cx+50}" y1="${y}" y2="${y}" stroke="${C.g}" stroke-width="3.5"/>`);}
+  // aircraft symbol
+  o.push(`<path d="M${cx-74} ${cy-4}H${cx-30}V${cy+14}H${cx-39}V${cy+4}H${cx-74}Z" fill="#000" stroke="${C.yel}" stroke-width="2.5"/>`);
+  o.push(`<path d="M${cx+74} ${cy-4}H${cx+30}V${cy+14}H${cx+39}V${cy+4}H${cx+74}Z" fill="#000" stroke="${C.yel}" stroke-width="2.5"/>`);
+  o.push(`<rect x="${cx-5}" y="${cy-5}" width="10" height="10" fill="#000" stroke="${C.yel}" stroke-width="2.5"/>`);
+  if(d.pitchTag){o.push(`<rect x="98" y="46" width="78" height="24" rx="4" fill="#000" fill-opacity=".75"/><text x="137" y="63" text-anchor="middle" fill="${C.cy}" font-size="14">θ ${d.theta.toFixed(1)}°</text>`);}
+  // speed tape
+  const sx=8,sw=72,SPX=2.8,v0=Math.max(30,d.ias);
+  o.push(`<rect x="${sx}" y="40" width="${sw}" height="250" fill="${C.tape}"/><g clip-path="url(#${u}s)">`);
+  for(let v=Math.floor((v0-50)/10)*10;v<=v0+50;v+=10){
+    if(v<30) continue; const y=cy-(v-v0)*SPX;
+    o.push(`<line x1="${sx+sw-12}" x2="${sx+sw}" y1="${y}" y2="${y}" stroke="${C.w}" stroke-width="1.5"/>`);
+    if(v%20===0) o.push(`<text x="${sx+sw-16}" y="${y+5}" text-anchor="end" fill="${C.w}" font-size="16">${v}</text>`);
+  }
+  const yv=cy-(d.vmax-v0)*SPX;
+  if(yv>40) o.push(`<rect x="${sx+sw-7}" y="30" width="7" height="${Math.min(270,yv-30)}" fill="url(#${u}p)"/>`);
+  if(d.truth!=null){
+    const yt=clamp(cy-(d.truth-v0)*SPX,44,286);
+    o.push(`<line x1="${sx}" x2="${sx+sw}" y1="${yt}" y2="${yt}" stroke="#fff" stroke-width="1.5" stroke-dasharray="5 4"/><path d="M${sx+2} ${yt-8}L${sx+16} ${yt}L${sx+2} ${yt+8}Z" fill="#fff" stroke="#000"/>`);
+  }
+  o.push('</g>');
+  if(Math.abs(d.trend)>2){
+    const ty=clamp(cy-d.trend*SPX,44,286),x=sx+sw-4,dir=ty<cy?1:-1;
+    o.push(`<line x1="${x}" x2="${x}" y1="${cy}" y2="${ty}" stroke="${C.yel}" stroke-width="2.5"/><path d="M${x-5} ${ty+dir*8}L${x} ${ty}L${x+5} ${ty+dir*8}" fill="none" stroke="${C.yel}" stroke-width="2.5"/>`);
+  }
+  o.push(`<line x1="${sx}" x2="${sx+sw+4}" y1="${cy}" y2="${cy}" stroke="${C.yel}" stroke-width="3"/><path d="M${sx+sw+16} ${cy-8}L${sx+sw+4} ${cy}L${sx+sw+16} ${cy+8}Z" fill="${C.yel}"/>`);
+  if(d.ias<30) o.push(`<text x="${sx+sw/2}" y="305" text-anchor="middle" fill="${C.amb}" font-size="13">&lt;30</text>`);
+  // altitude tape
+  const ax=318,aw=64,APX=0.2,a0=d.alt;
+  o.push(`<rect x="${ax}" y="40" width="${aw}" height="250" fill="${C.tape}"/><g clip-path="url(#${u}h)">`);
+  for(let v=Math.floor((a0-700)/100)*100;v<=a0+700;v+=100){
+    const y=cy-(v-a0)*APX;
+    o.push(`<line x1="${ax}" x2="${ax+(v%500===0?12:7)}" y1="${y}" y2="${y}" stroke="${C.w}" stroke-width="1.5"/>`);
+    if(v%500===0&&v>=0) o.push(`<text x="${ax+16}" y="${y+5}" fill="${C.w}" font-size="14">${String(Math.round(v/100)).padStart(3,'0')}</text>`);
+  }
+  o.push('</g>');
+  const altR=Math.round(a0/20)*20;
+  o.push(`<rect x="${ax-6}" y="${cy-15}" width="${aw+6}" height="30" fill="#000" stroke="${C.yel}" stroke-width="1.5"/><text x="${ax+aw-4}" y="${cy+6}" text-anchor="end" fill="${C.g}" font-size="16">${altR}</text>`);
+  // VS
+  const vx=388;
+  o.push(`<path d="M${vx} 70L${vx+22} 88V242L${vx} 260Z" fill="${C.tape}"/>`);
+  for(const m of [1000,2000,6000]) for(const sg of [1,-1]){const y=cy-vsOff(m*sg);o.push(`<line x1="${vx}" x2="${vx+6}" y1="${y}" y2="${y}" stroke="${C.w}" stroke-width="1.5"/><text x="${vx+8}" y="${y+4}" fill="${C.w}" font-size="10">${m/1000}</text>`);}
+  const off=vsOff(d.vs), vcol=Math.abs(d.vs)>6000?C.amb:C.g;
+  o.push(`<line x1="${vx+40}" y1="${cy}" x2="${vx+2}" y2="${cy-off}" stroke="${vcol}" stroke-width="3"/>`);
+  if(Math.abs(d.vs)>=200){const ty=cy-off+(off>0?-6:16);o.push(`<rect x="${vx-2}" y="${ty-13}" width="26" height="17" fill="#000"/><text x="${vx+11}" y="${ty}" text-anchor="middle" fill="${vcol}" font-size="13">${Math.min(99,Math.round(Math.abs(d.vs)/100))}</text>`);}
+  // FMA column 5
+  if(d.fma){
+    const items=[d.fma.ap?'AP1':'',d.fma.fd?'1 FD 2':'',d.fma.athr?'A/THR':''];
+    items.forEach((t,i)=>{if(t)o.push(`<text x="${150+i*88}" y="24" text-anchor="middle" fill="${C.w}" font-size="14">${t}</text>`);});
+  }
+  return o.join('');
+}
+
+/* ---------- table rows ---------- */
+const fmt=(v,d=0)=>(Math.round(v*10**d)/10**d).toFixed(d);
+const sgn=v=>(v>0?'+':v<0?'−':'')+Math.abs(Math.round(v));
+function cmpRows(tb,f,truth){
+  const rows=[
+    ['Speed',`${fmt(Math.max(30,f.ias))} kt`,`${fmt(f.cas)} kt`,Math.abs(f.ias-f.cas)>10],
+    ['Altitude',`${fmt(Math.round(f.alt/10)*10)} ft`,`${fmt(Math.round(f.altT/10)*10)} ft`,Math.abs(f.alt-f.altT)>200],
+    ['Vert. speed',`${sgn(Math.round(f.vs/50)*50)} fpm`,`${sgn(Math.round(f.vsT/50)*50)} fpm`,Math.abs(f.vs-f.vsT)>400],
+    ['Mach','—',`${fmt(f.mach,2)}`,false],
+    ['Angle of attack','—',`${fmt(f.alpha,1)}°`,false],
+  ];
+  tb.innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td class="${r[3]?'bad':''}">${r[1]}</td><td>${truth?r[2]:'?'}</td></tr>`).join('');
+}
+function warnings(el,f,extra){
+  const w=[];
+  if(f.alpha>STALL_WARN) w.push('<span class="warn">STALL</span>');
+  if(f.ias>f.vmax+4) w.push('<span class="warn">OVERSPEED</span>');
+  if(extra) w.push(extra);
+  el.innerHTML=w.length?w.join(''):'<span class="none">No warnings</span>';
+}
+
+/* ---------- step 1: symptom lab ---------- */
+const lab1={fail:'pitot',phase:'climb',mode:'hold',frames:[],idx:200,playing:false};
+const pfd1=makePFD(document.getElementById('pfd1'),'p1');
+const scrub1=document.getElementById('scrub1');
+const EXPLAIN={
+  drain:'<b>Pitot blocked, drain open.</b> Total pressure leaks out through the drain, so indicated speed falls towards zero while the real speed hardly changes. Altitude is unaffected.',
+  pitot:'<b>Pitot and drain blocked.</b> The trapped total pressure stays fixed. As static pressure falls in a climb, indicated speed increases: the airspeed indicator behaves like an altimeter. In a descent it falls.',
+  static:'<b>Static ports blocked.</b> Altitude freezes and vertical speed shows zero. Indicated speed reads low in a climb and high in a descent, because the trapped static pressure no longer matches the outside air.'
+};
+const MODEX={
+  hold:'Pitch and thrust are held constant, so the real speed barely moves. Only the indications drift.',
+  ap:'The autopilot follows the indicated speed. It is being fed bad data, so it flies the real aircraft towards a stall or an overspeed.'
+};
+function runScenario(){
+  const climb=lab1.phase==='climb';
+  const s=trim(climb?10000:24000,290,climb?LEVER_CL:0);
+  lab1.end='';const sim=new Sim(s,lab1.fail);sim.failAt=6;sim.ap=lab1.mode==='ap';sim.apTarget=290;
+  const frames=[];let rec=0;const dt=0.02;
+  while(sim.t<=150){
+    sim.tick(dt);
+    if(sim.t>=rec){frames.push(sim.frame());rec+=0.25;}
+    const f=frames[frames.length-1];
+    if(f&&f.alpha>16){lab1.end='The aircraft has stalled. The scenario stops here.';break;}
+    if(f&&f.cas>380){lab1.end='The real speed is far beyond VMO, yet there is no overspeed warning: it is triggered by the indicated speed, which reads low. The scenario stops here.';break;}
+    if(sim.s.h<600) break;
+  }
+  lab1.frames=frames;scrub1.max=frames.length-1;
+  lab1.idx=Math.min(lab1.idx,frames.length-1);scrub1.value=lab1.idx;
+  draw1();
+}
+function draw1(){
+  const f=lab1.frames[Math.round(lab1.idx)];if(!f) return;
+  pfd1({...f,truth:f.cas,fd:null,fma:lab1.mode==='ap'?{ap:1,fd:1,athr:1}:null});
+  const t=Math.floor(f.t);document.getElementById('clock1').textContent=`T+${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
+  cmpRows(document.querySelector('#cmp1 tbody'),f,true);
+  warnings(document.getElementById('warn1'),f,f.t<6?'<span class="warn amber" style="background:var(--surface2);color:var(--fg)">Before failure</span>':'');
+  document.getElementById('explain1').innerHTML=`<p>${EXPLAIN[lab1.fail]}</p><p class="muted">${MODEX[lab1.mode]}</p>${lab1.end&&lab1.idx>=lab1.frames.length-1?`<p><b>${lab1.end}</b></p>`:''}`;
+}
+scrub1.addEventListener('input',()=>{lab1.idx=+scrub1.value;lab1.playing=false;setPlay1();draw1();});
+const play1=document.getElementById('play1');
+function setPlay1(){play1.textContent=lab1.playing?'Pause':'Play';}
+play1.addEventListener('click',()=>{if(!lab1.playing&&lab1.idx>=lab1.frames.length-1)lab1.idx=0;lab1.playing=!lab1.playing;setPlay1();});
+
+/* segmented buttons */
+function segGroup(name,cb){
+  const g=document.querySelector(`[data-group="${name}"]`);
+  g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));cb(b.dataset.v);});
+  g.querySelectorAll('button').forEach(b=>{if(!b.hasAttribute('aria-pressed'))b.setAttribute('aria-pressed','false');});
+}
+segGroup('fail',v=>{lab1.fail=v;runScenario();});
+segGroup('phase',v=>{lab1.phase=v;runScenario();});
+segGroup('mode',v=>{lab1.mode=v;runScenario();});
+
+/* ---------- step 2: fly the pitch / thrust ---------- */
+const pfd2svg=document.getElementById('pfd2'), pfd2=makePFD(pfd2svg,'p2');
+const leverSvg=document.getElementById('lever');
+let ex=null, exStart=null;
+function buildStart(){
+  // pre-history: frozen pitot from FL120 in the climb, AP chasing indicated speed
+  const s=trim(12000,290,LEVER_CL);const sim=new Sim(s,'pitot');sim.failAt=0;sim.ap=true;
+  let n=0;while(trueCas(sim.s)>238&&n<20000){sim.tick(0.02);n++;}
+  return JSON.stringify({s:sim.s,sen:sim.sen,ias:sim.ias,alt:sim.alt,iasRate:sim.iasRate,vs:sim.vs});
+}
+function resetEx(){
+  if(!exStart) exStart=buildStart();
+  const st=JSON.parse(exStart);
+  const sim=new Sim(st.s,'pitot');Object.assign(sim,{sen:st.sen,ias:st.ias,alt:st.alt,iasRate:st.iasRate,vs:st.vs,failAt:-1,ap:true,apTarget:290});
+  sim.r=aero(sim.s);
+  ex={sim,fd:true,athr:true,running:false,done:{},stable:0,msg:'',finished:false};
+  document.getElementById('start2').hidden=false;
+  setPB();draw2();
+}
+function setPB(){
+  document.getElementById('pbAP').setAttribute('aria-pressed',ex.sim.ap?'true':'false');
+  document.getElementById('pbFD').setAttribute('aria-pressed',ex.fd?'true':'false');
+  document.getElementById('pbAT').setAttribute('aria-pressed',ex.athr?'true':'false');
+}
+document.getElementById('pbAP').addEventListener('click',()=>{ex.sim.ap=!ex.sim.ap;if(ex.sim.ap)ex.sim.apTarget=290;ex.msg='';setPB();draw2();});
+document.getElementById('pbFD').addEventListener('click',()=>{ex.fd=!ex.fd;setPB();draw2();});
+document.getElementById('pbAT').addEventListener('click',()=>{ex.athr=!ex.athr;setPB();draw2();});
+document.getElementById('go2').addEventListener('click',()=>{ex.running=true;document.getElementById('start2').hidden=true;pfd2svg.focus({preventScroll:true});});
+document.getElementById('reset2').addEventListener('click',resetEx);
+const pause2=document.getElementById('pause2');
+pause2.addEventListener('click',()=>{if(!document.getElementById('start2').hidden)return;ex.running=!ex.running;pause2.textContent=ex.running?'Pause':'Resume';});
+document.getElementById('truth2').addEventListener('change',()=>draw2());
+
+function setPitch(deg){
+  if(ex.sim.ap){ex.sim.ap=false;ex.msg='AP disconnected by sidestick input.';setPB();}
+  ex.sim.s.theta=clamp(deg,-10,25)*D2R;draw2();
+}
+function setLever(l){ex.sim.s.lever=clamp(l,0,1);draw2();}
+function svgScale(svg,vbH){return vbH/svg.getBoundingClientRect().height;}
+function vDrag(el,onDy){
+  el.addEventListener('pointerdown',e=>{
+    if(e.button!==0)return;
+    el.setPointerCapture(e.pointerId);let last=e.clientY;
+    const mv=ev=>{onDy(ev.clientY-last);last=ev.clientY;};
+    const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);};
+    el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);e.preventDefault();
+  });
+}
+vDrag(pfd2svg,dy=>setPitch(ex.sim.s.theta*R2D+dy*svgScale(pfd2svg,320)/5));
+pfd2svg.addEventListener('keydown',e=>{
+  const st=e.shiftKey?1:0.1;
+  if(e.key==='ArrowUp'){setPitch(ex.sim.s.theta*R2D+st);e.preventDefault();}
+  if(e.key==='ArrowDown'){setPitch(ex.sim.s.theta*R2D-st);e.preventDefault();}
+});
+vDrag(leverSvg,dy=>setLever(ex.sim.s.lever-dy*svgScale(leverSvg,300)/230));
+leverSvg.addEventListener('keydown',e=>{
+  const st=e.shiftKey?0.05:0.01;
+  if(e.key==='ArrowUp'){setLever(ex.sim.s.lever+st);e.preventDefault();}
+  if(e.key==='ArrowDown'){setLever(ex.sim.s.lever-st);e.preventDefault();}
+});
+function drawLever(l){
+  const y0=275,span=230,y=y0-l*span;
+  const marks=[[1,'TOGA'],[0.88,'MCT'],[LEVER_CL,'CL'],[0,'IDLE']];
+  let o=`<rect x="16" y="${y0-span-4}" width="8" height="${span+8}" rx="4" fill="#33363b"/>`;
+  for(const [p,t] of marks){const my=y0-p*span;o+=`<line x1="10" x2="30" y1="${my}" y2="${my}" stroke="#888" stroke-width="2"/><text x="36" y="${my+4}" fill="#ddd" font-size="12" font-family="ui-monospace, SF Mono, Menlo, monospace">${t}</text>`;}
+  o+=`<rect x="2" y="${y-12}" width="36" height="24" rx="5" fill="#d8d8d8" stroke="#000"/><line x1="8" x2="32" y1="${y}" y2="${y}" stroke="#555" stroke-width="2"/>`;
+  leverSvg.innerHTML=o;
+}
+function lvlTable(){
+  const tb=document.querySelector('#lvltab tbody');const cur=ex?ex.sim.s.h/FT:15000;
+  const fls=[10000,15000,20000,25000];let best=fls.reduce((a,b)=>Math.abs(b-cur)<Math.abs(a-cur)?b:a);
+  tb.innerHTML=fls.map(fl=>{const r=levelTrim(fl,260);return `<tr${fl===best?' style="background:var(--surface2)"':''}><td>FL${fl/100}</td><td>${fmt(r.theta,1)}°</td><td>${fmt(r.n1)}%</td></tr>`;}).join('');
+}
+function draw2(){
+  const sim=ex.sim,f=sim.frame(),truth=document.getElementById('truth2').checked;
+  const fd=ex.fd?clamp((f.ias-290)*0.15,-9,9):null;
+  pfd2({...f,truth:truth?f.cas:null,fd,fma:{ap:sim.ap,fd:ex.fd,athr:ex.athr},pitchTag:true});
+  drawLever(sim.s.lever);
+  const frac=leverFrac(sim.s.lever);
+  const det=Math.abs(sim.s.lever-LEVER_CL)<0.025?' CL':Math.abs(sim.s.lever-1)<0.02?' TOGA':sim.s.lever<0.02?' IDLE':'';
+  document.getElementById('n1').textContent=fmt(n1Of(frac))+'%'+det;
+  pfd2svg.setAttribute('aria-valuenow',fmt(f.theta,1));leverSvg.setAttribute('aria-valuenow',fmt(sim.s.lever*100));
+  const tb=document.querySelector('#cmp2 tbody');cmpRows(tb,f,truth);
+  tb.insertAdjacentHTML('beforeend',`<tr><td>GPS ground speed</td><td>${fmt(f.gs-20)} kt</td><td class="muted" style="font-family:var(--display);font-size:.85rem">20 kt headwind</td></tr>`);
+  warnings(document.getElementById('warn2'),f,ex.msg?`<span class="warn amber">${ex.msg}</span>`:'');
+  // checklist
+  const d=ex.done;
+  if(!sim.ap&&!ex.fd) d.apfd=1;
+  if(!ex.athr) d.athr=1;
+  if(Math.abs(f.theta-5)<0.6&&Math.abs(sim.s.lever-LEVER_CL)<0.025) d.pt=1;
+  if(ex.stable>=20) d.lvl=1;
+  document.querySelectorAll('#checks2 li').forEach(li=>li.classList.toggle('ok',!!d[li.dataset.k]));
+  const all=d.apfd&&d.athr&&d.pt&&d.lvl;
+  document.getElementById('banner2').innerHTML=all?`<div class="banner good">Stabilised. Level near FL${Math.round(f.altT/1000)*10}, actual ${fmt(f.cas)} kt, while the PFD still shows ${fmt(f.ias)} kt. Now troubleshoot (step 3).</div>`
+    :ex.stable>0?`<div class="banner info">Holding level: ${Math.floor(ex.stable)} of 20 s</div>`:'';
+  lvlTable();
+}
+function step2(dtReal){
+  if(!ex.running) return;
+  const sim=ex.sim;let simDt=Math.min(0.1,dtReal)*3;
+  while(simDt>1e-6){const h=Math.min(0.02,simDt);sim.tick(h);simDt-=h;
+    if(sim.ap&&sim.r.alpha*R2D>STALL_WARN){sim.ap=false;ex.msg='AP disconnected at high angle of attack';setPB();}
+  }
+  const f=sim.frame();
+  if(Math.abs(f.vsT)<300&&f.cas>240&&f.cas<300&&!sim.ap) ex.stable+=Math.min(0.1,dtReal)*3; else ex.stable=0;
+  draw2();
+}
+
+/* ---------- step 3: ADR cross-check ---------- */
+const CASES=[
+  {intro:'Case A. Level at FL200 on table values. One PFD has started to drift.',
+   ctx:[['Pitch','3.0°'],['N1','from level table'],['Table speed','≈ 265 kt'],['GPS GS','397 kt'],['Forecast wind','30 kt tailwind']],
+   adr:t=>[{cas:268+Math.sin(t*1.7)*0.6,alt:20000},{cas:Math.max(120,232-0.9*t),alt:20000},{cas:269+Math.sin(t*1.3)*0.6,alt:20000}],
+   check:(off,buss)=>{const k=key(off);
+     if(k==='2') return [true,'Right. ADR 2 disagrees with the other two and with pitch, thrust and ground speed: TAS for 268 kt at FL200 is about 367 kt, plus 30 kt tailwind gives the 397 kt you see. Switch ADR 2 off and turn the AIR DATA selector to F/O ON 3 to give the F/O PFD its speed back. With two good ADRs left, normal law is kept.'];
+     if(k==='') return [false,'Nothing is off yet. One ADR is clearly falling while pitch and thrust are unchanged.'];
+     if(off.includes(1)||off.includes(3)) return [false,'ADR 1 and ADR 3 agree with each other and with the ground speed check. The falling one is ADR 2: its speed drops with no change in pitch or thrust, the signature of a blocked pitot with an open drain.'];
+     return [false,'Not quite. Look for the ADR that disagrees with the table speed and with GPS ground speed.'];}},
+  {intro:'Case B. Climbing at 5° and CLB through FL180 after flying through ice crystals. Two PFDs agree with each other.',
+   ctx:[['Pitch','5.0°'],['Thrust','CLB'],['Table speed','≈ 270 kt'],['GPS GS','352 kt'],['Forecast wind','10 kt headwind']],
+   adr:t=>{const alt=18000+25*t;return [{cas:Math.min(380,318+0.25*t),alt},{cas:Math.min(380,319+0.25*t),alt},{cas:271+Math.sin(t)*0.5,alt}];},
+   check:(off)=>{const k=key(off);
+     if(k==='12') return [true,'Right. ADR 1 and ADR 2 agree, but both are rising with altitude at constant pitch and thrust, the signature of blocked pitots and drains. ADR 3 matches the table speed and the ground speed (TAS for 271 kt at FL180 is about 361 kt, minus 10 kt headwind). Switch ADR 1 and 2 off and set AIR DATA to CAPT ON 3; the F/O PFD loses its speed. Two ADRs off means alternate law.'];
+     if(off.includes(3)) return [false,'ADR 3 is the one that matches pitch, thrust and ground speed. Two ADRs agreeing with each other is not proof: here they share the same icing.'];
+     if(k==='1'||k==='2') return [false,'Halfway. The other one of the pair is just as wrong: both read high and keep climbing with altitude.'];
+     return [false,'Nothing is off yet. Compare all three with the table speed and the ground speed, not with each other.'];}},
+  {intro:'Case C. Heavy icing. All three speeds are jumping around and none matches the table speed for long.',
+   ctx:[['Pitch','3.5°'],['N1','from level table'],['Table speed','≈ 270 kt'],['GPS GS','consistent with ≈ 270 kt'],['Stall warning','none']],
+   adr:t=>[{cas:270+30*Math.sin(t*1.3)+8*Math.sin(t*5.1),alt:15000+120*Math.sin(t*0.9)},{cas:250+45*Math.sin(t*0.7+1)+6*Math.sin(t*4.3),alt:15000+150*Math.sin(t*1.1+2)},{cas:230+35*Math.sin(t*1.1+2)+9*Math.sin(t*3.7),alt:15000+90*Math.sin(t*1.4+1)}],
+   check:(off,buss)=>{const k=key(off);
+     if(buss){
+       if(k==='123') return [true,'Right. No ADR can be trusted, so all three go off. The speed tape becomes the BUSS, driven by angle of attack, and altitude comes from GPS. Keep the reference line in the green band and fly the pitch and thrust tables.'];
+       return [false,'None of the three can be trusted. With BUSS fitted, switching all three ADRs off brings up the angle-of-attack speed scale and GPS altitude.'];
+     }
+     if(off.length===2) return [true,'Right. Without BUSS, keep one ADR on and switch the other two off. Fly the pitch and thrust tables, and treat the remaining speed indication as unreliable. Keeping one ADR keeps the stall warning available.'];
+     if(off.length===3) return [false,'Without BUSS, switching all three off leaves no air data at all, and the stall warning goes with it. Keep one ADR on.'];
+     return [false,'None of the three can be trusted. Without BUSS, the QRH has you switch two off and keep one on.'];}}
+];
+function key(off){return [...off].sort().join('');}
+const adr={c:0,off:new Set(),t0:performance.now(),fb:null};
+const ohrow=document.getElementById('ohrow');
+ohrow.innerHTML=[1,3,2].map(n=>`<div class="ohpb"><label for="adrpb${n}">ADR ${n}</label><button type="button" id="adrpb${n}" data-n="${n}" aria-pressed="false" aria-label="ADR ${n} pushbutton"><span>FAULT</span><span class="off">OFF</span></button></div>`).join('')+'<span class="cap" style="align-self:center">Panel order 1 · 3 · 2</span>';
+ohrow.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const n=+b.dataset.n;adr.off.has(n)?adr.off.delete(n):adr.off.add(n);b.setAttribute('aria-pressed',adr.off.has(n)?'true':'false');adr.fb=null;draw3();});
+segGroup('adrcase',v=>{adr.c=+v;resetAdr();});
+function resetAdr(){adr.off.clear();adr.fb=null;adr.t0=performance.now();ohrow.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'));setup3();draw3();}
+document.getElementById('adrReset').addEventListener('click',resetAdr);
+document.getElementById('bussChk').addEventListener('change',()=>{adr.fb=null;draw3();});
+document.getElementById('adrCheck').addEventListener('click',()=>{const c=CASES[adr.c];adr.fb=c.check([...adr.off],document.getElementById('bussChk').checked);draw3();});
+function setup3(){
+  const c=CASES[adr.c];
+  document.getElementById('adrIntro').textContent=c.intro;
+  document.getElementById('adrCtx').innerHTML=c.ctx.map(([k,v])=>`<span>${k}: <b>${v}</b></span>`).join('');
+  document.getElementById('bussWrap').hidden=adr.c!==2;
+}
+const SRC=['captain PFD','F/O PFD','via AIR DATA selector'];
+function draw3(){
+  const c=CASES[adr.c],t=(performance.now()-adr.t0)/1000,v=c.adr(t);
+  document.getElementById('adrCards').innerHTML=v.map((r,i)=>{const n=i+1,off=adr.off.has(n);
+    return `<div class="adr${off?' isoff':''}"><span class="nm">ADR ${n}</span><span class="src">${SRC[i]}</span>${off?'<span class="v">OFF</span><span class="s">&nbsp;</span>':`<span class="v">${fmt(r.cas)} kt</span><span class="s">M ${fmt(casToMach(r.cas,r.alt),2)} · ${fmt(Math.round(r.alt/10)*10)} ft</span>`}</div>`;}).join('');
+  const fb=document.getElementById('adrFb');
+  fb.innerHTML=adr.fb?`<div class="fb ${adr.fb[0]?'good':'badf'}"><b>${adr.fb[0]?'Correct':'Not yet'}</b><p>${adr.fb[1]}</p></div>`:'';
+}
+let last3=0;
+function step3(now){if(now-last3>250){last3=now;draw3();}}
+
+/* ---------- step 4: ground speed on final ---------- */
+const dial=document.getElementById('dial');
+const wind={dir:220,spd:18};
+const DC=180,DR=150,WMAX=40;
+function bxy(b,r){return [DC+r*Math.sin(b*D2R),DC-r*Math.cos(b*D2R)];}
+function draw4(){
+  const rwy=((+document.getElementById('rwy').value||0)%360+360)%360;
+  const vapp=+document.getElementById('vapp').value||0, elev=+document.getElementById('elev').value||0;
+  const o=[];
+  o.push(`<circle cx="${DC}" cy="${DC}" r="${DR}" fill="var(--surface2)" stroke="var(--line)" stroke-width="2"/>`);
+  for(const r of [10,20,30]) o.push(`<circle cx="${DC}" cy="${DC}" r="${r/WMAX*DR}" fill="none" stroke="var(--line)" stroke-dasharray="3 5"/>`);
+  for(let b=0;b<360;b+=10){const big=b%30===0;const [x1,y1]=bxy(b,DR),[x2,y2]=bxy(b,DR-(big?14:7));o.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--muted)" stroke-width="${big?2:1}"/>`);}
+  for(const [b,t] of [[0,'N'],[90,'E'],[180,'S'],[270,'W']]){const [x,y]=bxy(b,DR+16);o.push(`<text x="${x}" y="${y+5}" text-anchor="middle" fill="var(--fg)" font-size="15" font-weight="700">${t}</text>`);}
+  // runway on its real heading; landing direction = rwy heading, threshold on the approach side
+  const L=170,Wd=20;
+  const num=String(Math.round(rwy/10)||36).padStart(2,'0'), recip=String((Math.round(rwy/10)+18-1)%36+1).padStart(2,'0');
+  o.push(`<g transform="rotate(${rwy} ${DC} ${DC})"><rect x="${DC-Wd/2}" y="${DC-L/2}" width="${Wd}" height="${L}" fill="#3a3a3a" stroke="#888"/>`);
+  o.push(`<line x1="${DC}" y1="${DC-L/2+26}" x2="${DC}" y2="${DC+L/2-26}" stroke="#eee" stroke-width="2" stroke-dasharray="8 8"/>`);
+  o.push(`<text x="${DC}" y="${DC+L/2-8}" text-anchor="middle" fill="#fff" font-size="12">${num}</text>`);
+  o.push(`<text x="${DC}" y="${DC-L/2+18}" text-anchor="middle" fill="#fff" font-size="12" transform="rotate(180 ${DC} ${DC-L/2+14})">${recip}</text>`);
+  o.push(`<path d="M${DC} ${DC+L/2+40}L${DC-9} ${DC+L/2+58}H${DC+9}Z" fill="var(--c)"/><line x1="${DC}" y1="${DC+L/2+58}" x2="${DC}" y2="${DC+L/2+70}" stroke="var(--c)" stroke-width="3"/></g>`);
+  // wind
+  const r=wind.spd/WMAX*DR,[wx,wy]=bxy(wind.dir,r);
+  if(wind.spd>0.5){const [ax,ay]=bxy(wind.dir,Math.max(0,r-26));o.push(`<line x1="${wx}" y1="${wy}" x2="${DC+(wx-DC)*0.12}" y2="${DC+(wy-DC)*0.12}" stroke="var(--c)" stroke-width="4"/>`);}
+  o.push(`<circle cx="${wx}" cy="${wy}" r="13" fill="var(--c)" stroke="var(--bg)" stroke-width="3"/><circle cx="${wx}" cy="${wy}" r="24" fill="transparent"/>`);
+  dial.innerHTML=o.join('');
+  dial.setAttribute('aria-valuetext',`${Math.round(wind.dir)} degrees, ${Math.round(wind.spd)} knots`);
+  const rel=(wind.dir-rwy)*D2R, hw=wind.spd*Math.cos(rel), xw=wind.spd*Math.sin(rel);
+  const sig=atm(elev*FT).rho/RHO0, tas=vapp/Math.sqrt(sig), gs=tas-hw;
+  document.getElementById('wOut').textContent=`${String(Math.round(wind.dir)%360||360).padStart(3,'0')}/${Math.round(wind.spd)}`;
+  document.getElementById('hwLab').textContent=hw>=0?'Headwind':'Tailwind';
+  document.getElementById('hwOut').textContent=`${fmt(Math.abs(hw))} kt`;
+  document.getElementById('tasOut').textContent=`${fmt(tas)} kt`;
+  document.getElementById('gsOut').textContent=`${fmt(gs)} kt`;
+  document.getElementById('vsOut').textContent=`${fmt(Math.round(gs*101.27*Math.tan(3*D2R)/10)*10)} fpm`;
+  dial.setAttribute('aria-description',`Crosswind ${fmt(Math.abs(xw))} kt`);
+}
+function dialPoint(e){
+  const rc=dial.getBoundingClientRect(),k=360/rc.width;
+  const x=(e.clientX-rc.left)*k-DC,y=(e.clientY-rc.top)*k-DC;
+  wind.dir=((Math.atan2(x,-y)*R2D)+360)%360;wind.spd=clamp(Math.hypot(x,y)/DR*WMAX,0,WMAX);draw4();
+}
+dial.addEventListener('pointerdown',e=>{if(e.button!==0)return;dial.setPointerCapture(e.pointerId);dialPoint(e);
+  const mv=ev=>dialPoint(ev);const up=()=>{dial.removeEventListener('pointermove',mv);dial.removeEventListener('pointerup',up);dial.removeEventListener('pointercancel',up);};
+  dial.addEventListener('pointermove',mv);dial.addEventListener('pointerup',up);dial.addEventListener('pointercancel',up);e.preventDefault();});
+dial.addEventListener('keydown',e=>{const m=e.shiftKey?10:1;
+  if(e.key==='ArrowLeft')wind.dir=(wind.dir-m+360)%360;else if(e.key==='ArrowRight')wind.dir=(wind.dir+m)%360;
+  else if(e.key==='ArrowUp')wind.spd=clamp(wind.spd+m,0,WMAX);else if(e.key==='ArrowDown')wind.spd=clamp(wind.spd-m,0,WMAX);else return;
+  e.preventDefault();draw4();});
+['rwy','vapp','elev'].forEach(id=>document.getElementById(id).addEventListener('input',draw4));
+
+/* ---------- walkthrough navigation ---------- */
+const sections=[...document.querySelectorAll('.step')];
+const NAMES=['Recognise','Memory items','Troubleshoot','Approach'];
+const COLS=['--s1','--s2','--s3','--s4'];
+const segs=document.getElementById('segs');
+segs.innerHTML=NAMES.map((n,i)=>`<button class="seg" type="button" data-i="${i}" style="--c:var(${COLS[i]})"><span class="bar"></span><span class="lab"><b>${i+1}</b><span>${n}</span></span></button>`).join('');
+let cur=0;
+function go(i,scroll){
+  cur=clamp(i,0,3);
+  sections.forEach((s,k)=>s.hidden=k!==cur);
+  segs.querySelectorAll('.seg').forEach((b,k)=>{b.classList.toggle('done',k<cur);if(k===cur)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');});
+  for(const id of ['back','back2']) document.getElementById(id).disabled=cur===0;
+  for(const id of ['next','next2']) document.getElementById(id).disabled=cur===3;
+  try{history.replaceState(null,'','#'+sections[cur].dataset.step);}catch(e){}
+  if(cur!==1&&ex&&ex.running){ex.running=false;pause2.textContent='Resume';}
+  if(cur!==0) {lab1.playing=false;setPlay1();}
+  if(scroll) document.querySelector('.progress').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+segs.addEventListener('click',e=>{const b=e.target.closest('.seg');if(b)go(+b.dataset.i,true);});
+document.getElementById('back').addEventListener('click',()=>go(cur-1,false));
+document.getElementById('next').addEventListener('click',()=>go(cur+1,false));
+document.getElementById('back2').addEventListener('click',()=>go(cur-1,true));
+document.getElementById('next2').addEventListener('click',()=>go(cur+1,true));
+
+/* ---------- boot ---------- */
+runScenario();resetEx();setup3();draw3();draw4();
+const h=(location.hash||'').slice(1);const hi=sections.findIndex(s=>s.dataset.step===h);
+go(hi>=0?hi:0,false);
+let lastT=performance.now();
+function loop(now){
+  const dt=(now-lastT)/1000;lastT=now;
+  if(cur===0&&lab1.playing){lab1.idx=Math.min(lab1.frames.length-1,lab1.idx+dt*4*6);scrub1.value=Math.round(lab1.idx);if(lab1.idx>=lab1.frames.length-1){lab1.playing=false;setPlay1();}draw1();}
+  if(cur===1) step2(dt);
+  if(cur===2) step3(now);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
