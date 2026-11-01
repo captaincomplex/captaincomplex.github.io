@@ -34,7 +34,7 @@ Projects on the site: Spotipi Photo (64×64 LED panel for photos and album cover
 
 - Each project's status wording must match its repository's own state; do not claim more than a repository says.
 - Ident's roster privacy claim belongs to Ident's own site. Do not restate it here beyond what that site says.
-- Static hosting only. The site must work without JavaScript. The exceptions are the calculator and simulation on /gs-mini/ and the instruments on /unreliable-airspeed/; without JavaScript both pages still show all their text, with every walkthrough step laid out in order.
+- Static hosting only, no build step. The text of every page must read without JavaScript. Interactive tools may need it (the calculator and simulation on /gs-mini/, the instruments on /unreliable-airspeed/), as long as their explanations, steps and references still show when it is off.
 - Open undecided facts: licences of the small tools are per repository and not confirmed here; Ident pricing is not shown on this site.
 
 ## Brand Commitments
