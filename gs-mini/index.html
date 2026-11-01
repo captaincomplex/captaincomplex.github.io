@@ -211,6 +211,11 @@ canvas { width: 100%; height: 340px; display: block; }
     <div class="lab">
       <div class="area-inputs">
         <div class="fg">
+          <span class="fl" id="type-l">Aircraft</span>
+          <div class="chips" role="group" aria-labelledby="type-l"><button class="chip typeb" type="button" data-k="1">A320ceo</button><button class="chip typeb" type="button" data-k="0.33">A320neo</button></div>
+          <p class="hint typeh"></p>
+        </div>
+        <div class="fg">
           <label class="fl" for="rwy">Landing runway</label>
           <div class="entry"><span class="pre">RWY</span><input id="rwy" type="text" value="27" maxlength="3" autocomplete="off" spellcheck="false" autocapitalize="characters" aria-describedby="rwy-h"></div>
           <p class="hint" id="rwy-h">A runway number such as 09 or 27L, or a three-digit heading. The wind dial turns to match.</p>
@@ -281,6 +286,7 @@ canvas { width: 100%; height: 340px; display: block; }
           <button class="chip" type="button" data-sc="gust" id="sc-gust">Gusty</button>
           <button class="chip" type="button" data-sc="steady" id="sc-steady">Wind as forecast</button>
         </div>
+        <div class="chips" role="group" aria-label="Aircraft"><button class="chip typeb" type="button" data-k="1">A320ceo</button><button class="chip typeb" type="button" data-k="0.33">A320neo</button></div>
         <button class="play" type="button" id="play">Play</button>
       </div>
       <div class="sim-body">
@@ -319,7 +325,7 @@ canvas { width: 100%; height: 340px; display: block; }
       <li><b>Headwind components only</b><span>Tailwind is treated as zero headwind, both for the tower wind and the current wind. With a tower tailwind, GS mini equals V<sub>APP</sub>.</span></li>
       <li><b>Capped by flap limits</b><span>The target stays below V<sub>FE</sub> of the current configuration, so a strong wind aloft cannot drive it into a flap overspeed.</span></li>
       <li><b>Garbage in, garbage out</b><span>The tower wind on PERF APPR sets GS mini. Enter the latest ATIS or tower wind; an exaggerated headwind lowers GS mini and removes the protection.</span></li>
-      <li><b>A320ceo and A320neo differ</b><span>The extra headwind is added with a factor k: 1 on the A320ceo, 0.33 on the A320neo and the other Airbus types, whose lower deceleration capability could otherwise leave too much speed at the flare. This page models the A320ceo.</span></li>
+      <li><b>A320ceo and A320neo differ</b><span>The extra headwind is added with a factor k: 1 on the A320ceo, 0.33 on the A320neo and the other Airbus types, whose lower deceleration capability could otherwise leave too much speed at the flare. Switch between them with the Aircraft control.</span></li>
       <li><b>Watch it move</b><span>In gusty conditions the magenta triangle walks up and down the speed tape. That is normal and is the function working.</span></li>
     </ul>
   </section>
@@ -334,7 +340,7 @@ canvas { width: 100%; height: 340px; display: block; }
   </section>
 
   </main>
-  <footer><p>Training illustration only. The numbers use a simplified A320ceo model (GS mini factor k = 1): IAS and TAS treated as equal, autothrust as a first-order response with thrust and drag limits, and a V<sub>FE</sub> CONF FULL of 177 kt. The PERF APPR page is simplified. Exact rounding, limits and V<sub>APP</sub> increments vary by type and standard; your FCOM and FCTM are the authority.</p><p>Part of <a href="../">xpdr.aero</a> · <a href="mailto:support@xpdr.aero">support@xpdr.aero</a></p></footer>
+  <footer><p>Training illustration only. The numbers use a simplified A320-family model (GS mini factor k = 1 on the A320ceo, 0.33 on the A320neo): IAS and TAS treated as equal, autothrust as a first-order response with thrust and drag limits, and a V<sub>FE</sub> CONF FULL of 177 kt. The PERF APPR page is simplified. Exact rounding, limits and V<sub>APP</sub> increments vary by type and standard; your FCOM and FCTM are the authority.</p><p>Part of <a href="../">xpdr.aero</a> · <a href="mailto:support@xpdr.aero">support@xpdr.aero</a></p></footer>
 </div>
 
 <script>
@@ -353,7 +359,10 @@ canvas { width: 100%; height: 340px; display: block; }
     const gsm = vapp - pos(towerHW);
     return { corr, vapp, gsm };
   }
-  const targetOf = (vapp, gsm, hw) => Math.min(VFE - 5, Math.max(vapp, gsm + pos(hw)));
+  // GS mini factor: the headwind above the tower value is added in full on the A320ceo, a third of it on the A320neo
+  let gsK = 1;
+  try { if (localStorage.getItem('gsmini-k') === '0.33') gsK = 0.33; } catch (e) {}
+  const targetOf = (vapp, gsm, hw) => Math.min(VFE - 5, Math.max(vapp, vapp + gsK * (pos(hw) - (vapp - gsm))));
 
   // PFD speed tape: labels left, ticks right, amber VLS strip, magenta target triangle, yellow reference at current IAS
   const TAPE_K = 3.2;
@@ -390,20 +399,22 @@ canvas { width: 100%; height: 340px; display: block; }
   function updateCalc() {
     const twr = Math.round(comp(S.t).hw), cur = Math.round(comp(S.c).hw);
     const { corr, vapp, gsm } = appr(S.vls, twr);
-    const raw = Math.max(vapp, gsm + pos(cur));
-    const tgt = targetOf(vapp, gsm, cur);
+    const excess = pos(cur) - pos(twr);
+    const raw = Math.round(Math.max(vapp, vapp + gsK * excess));
+    const tgt = Math.round(targetOf(vapp, gsm, cur));
     const gs = tgt - cur;
     $('r-corr').textContent = `+${corr} kt`;
     $('r-vapp').textContent = `${vapp} kt`;
     $('r-gsm').textContent = `${gsm} kt`;
     $('r-tgt').textContent = `${tgt} kt`;
     $('r-gs').textContent = `${gs} kt`;
-    let calc = `max(${vapp}, ${gsm} + ${pos(cur)}) = ${raw} kt`;
+    let calc = gsK === 1 ? `max(${vapp}, ${gsm} + ${pos(cur)}) = ${raw} kt` : `max(${vapp}, ${vapp} + 0.33 × (${pos(cur)} − ${pos(twr)})) = ${raw} kt`;
     if (raw > tgt) calc += `, capped at VFE − 5 = ${tgt} kt`;
     $('r-calc').textContent = calc;
     const fixedGS = vapp - cur, extra = tgt - vapp;
     let msg;
-    if (extra > 0) msg = `Current headwind is ${pos(cur) - pos(twr)} kt stronger than at the runway, so the target sits <b>${extra} kt above V<sub>APP</sub></b>. Flying plain V<sub>APP</sub> here would give a ground speed of ${fixedGS} kt, ${gsm - fixedGS} kt below GS mini. If this wind drops to the tower value, the extra ${extra} kt bleeds off and leaves you at V<sub>APP</sub>.`;
+    if (extra > 0 && gsK < 1) msg = `Current headwind is ${excess} kt stronger than at the runway. The A320neo adds only a third of that, so the target sits <b>${extra} kt above V<sub>APP</sub></b> and ground speed is ${gs} kt, ${gsm - gs} kt below GS mini. If this wind drops to the tower value, speed dips about ${excess - extra} kt below V<sub>APP</sub> until autothrust recovers it. Airbus accepts that to avoid too much speed at the flare.`;
+    else if (extra > 0) msg = `Current headwind is ${pos(cur) - pos(twr)} kt stronger than at the runway, so the target sits <b>${extra} kt above V<sub>APP</sub></b>. Flying plain V<sub>APP</sub> here would give a ground speed of ${fixedGS} kt, ${gsm - fixedGS} kt below GS mini. If this wind drops to the tower value, the extra ${extra} kt bleeds off and leaves you at V<sub>APP</sub>.`;
     else if (cur < 0 || pos(cur) < pos(twr)) msg = `Current headwind is weaker than the tower value${cur < 0 ? ' (a tailwind counts as zero)' : ''}, so ground speed is already above GS mini. The target stays on its floor, V<sub>APP</sub>.`;
     else msg = `The wind is exactly as forecast. GS mini adds nothing and the target is V<sub>APP</sub>.`;
     $('r-compare').innerHTML = msg;
@@ -747,8 +758,8 @@ canvas { width: 100%; height: 340px; display: block; }
     mM = Math.round(mM); mF = Math.round(mF);
     const below = (m, s) => m < SIM.vls ? `<b class="amb">${m} kt</b>, below V<sub>LS</sub> for ${s.toFixed(1)} s` : `<b>${m} kt</b>, ${m - SIM.vls} kt above V<sub>LS</sub>`;
     const txt = {
-      shear: `Before the shear, managed speed carries 10 kt above V<sub>APP</sub> because the headwind is 10 kt stronger than forecast. Lowest IAS with GS mini: ${below(mM, sM)}. Lowest with fixed V<sub>APP</sub>: ${below(mF, sF)}. The first 10 kt of headwind loss cost the managed aircraft nothing, because that energy was already in hand.`,
-      gust: `In gusts the magenta target rises with each gust and falls back as it passes, so ground speed stays near ${P.gsm} kt and autothrust works less hard on the decreasing side. Lowest IAS with GS mini: ${below(mM, sM)}. With fixed V<sub>APP</sub>: ${below(mF, sF)}.`,
+      shear: gsK < 1 ? `The headwind is 10 kt stronger than forecast, but the A320neo carries only a third of it, about ${Math.round(gsK * 10)} kt above V<sub>APP</sub>, into the shear. Lowest IAS with GS mini: ${below(mM, sM)}. Lowest with fixed V<sub>APP</sub>: ${below(mF, sF)}. The managed aircraft still meets the loss with more energy in hand, but less than an A320ceo would.` : `Before the shear, managed speed carries 10 kt above V<sub>APP</sub> because the headwind is 10 kt stronger than forecast. Lowest IAS with GS mini: ${below(mM, sM)}. Lowest with fixed V<sub>APP</sub>: ${below(mF, sF)}. The first 10 kt of headwind loss cost the managed aircraft nothing, because that energy was already in hand.`,
+      gust: `In gusts the magenta target rises with each gust and falls back as it passes${gsK < 1 ? ', by a third of each gust on the A320neo, so autothrust moves the thrust levers more than on the A320ceo' : `, so ground speed stays near ${P.gsm} kt and autothrust works less hard on the decreasing side`}. Lowest IAS with GS mini: ${below(mM, sM)}. With fixed V<sub>APP</sub>: ${below(mF, sF)}.`,
       steady: `When the wind matches the tower value, GS mini + headwind equals V<sub>APP</sub>, so both traces sit on top of each other. GS mini only adds speed when the aircraft meets more headwind than it will find at the runway.`,
     };
     $('verdict').innerHTML = txt[sc];
@@ -757,10 +768,10 @@ canvas { width: 100%; height: 340px; display: block; }
   function setScenario(s) {
     sc = s; data = simulate(sc);
     try { localStorage.setItem('gsmini-sc', s); } catch (e) {}
-    document.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sc === s)));
+    document.querySelectorAll('.chip[data-sc]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sc === s)));
     verdict(); updateSim();
   }
-  document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => { stop(); setScenario(b.dataset.sc); }));
+  document.querySelectorAll('.chip[data-sc]').forEach(b => b.addEventListener('click', () => { stop(); setScenario(b.dataset.sc); }));
   $('t').addEventListener('input', e => { stop(); idx = +e.target.value; updateSim(); });
 
   let raf = null, last = 0;
@@ -783,6 +794,18 @@ canvas { width: 100%; height: 340px; display: block; }
   new MutationObserver(drawChart).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   if (document.fonts) document.fonts.ready.then(drawChart);
   setScenario(sc);
+
+  // Aircraft switch: both copies stay in step and drive the calculator and the simulation
+  function setType(k) {
+    gsK = k;
+    try { localStorage.setItem('gsmini-k', String(k)); } catch (e) {}
+    document.querySelectorAll('.typeb').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.k === k)));
+    document.querySelectorAll('.typeh').forEach(h => { h.textContent = k === 1 ? 'GS mini factor k = 1: all the extra headwind is added.' : 'GS mini factor k = 0.33: a third of the extra headwind is added.'; });
+    updateCalc();
+    stop(); setScenario(sc);
+  }
+  document.querySelectorAll('.typeb').forEach(b => b.addEventListener('click', () => setType(+b.dataset.k)));
+  setType(gsK);
 })();
 </script>
 </body>
