@@ -193,6 +193,7 @@ footer strong{color:var(--fg)}
 .sitebar img{height:34px;width:auto;display:block}
 .sitebar .back{color:#f3ecd6;font-size:.9375rem;font-weight:500;text-decoration:none}.sitebar .back:hover{color:#f2b705}
 footer .site a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.refs{padding-block:40px 8px;display:grid;gap:16px}.refs ul{list-style:none;margin:0;padding:0;display:grid;gap:14px;max-width:80ch}.refs li{display:grid;gap:2px}.refs a{color:var(--fg);text-decoration:underline;text-underline-offset:3px}.refs .src{color:var(--muted);font-size:.9rem}
 </style>
 <noscript><style>.step[hidden]{display:block!important}.progress{display:none}</style></noscript>
 </head>
@@ -271,8 +272,8 @@ footer .site a{color:inherit;text-decoration:underline;text-underline-offset:3px
       </div>
       <div class="ctrl"><span>Who is flying</span>
         <div class="segbtns" data-group="mode">
-          <button type="button" data-v="hold" aria-pressed="true">Pitch and thrust held</button>
-          <button type="button" data-v="ap">AP holds indicated speed</button>
+          <button type="button" data-v="ap" aria-pressed="true">AP holds indicated speed</button>
+          <button type="button" data-v="hold">Pitch and thrust held</button>
         </div>
       </div>
     </div>
@@ -520,6 +521,17 @@ footer .site a{color:inherit;text-decoration:underline;text-underline-offset:3px
 </div>
 </main>
 
+<section class="refs wrap" aria-labelledby="h-refs">
+  <h2 id="h-refs">References</h2>
+  <ul>
+    <li>Your aircraft's QRH and FCOM: UNRELIABLE SPEED INDIC procedure and the pitch and thrust tables<span class="src">Airbus, operator revision. The authority for the memory items, the table values and BUSS availability on your MSN.</span></li>
+    <li>Your aircraft's FCTM: abnormal operations, unreliable speed indication<span class="src">Airbus, operator revision. Recognition and handling technique.</span></li>
+    <li><a href="https://safetyfirst.airbus.com/unreliable-airspeed-at-takeoff/" target="_blank" rel="noopener">Unreliable airspeed at takeoff</a><span class="src">Airbus, Safety First. Case studies of pitot obstruction found during the takeoff roll, and why the speed cross-check matters.</span></li>
+    <li><a href="https://skybrary.aero/articles/unreliable-airspeed-indications" target="_blank" rel="noopener">Unreliable airspeed indications</a><span class="src">SKYbrary. Causes, recognition, and flying known pitch and power until the faulty source is found.</span></li>
+    <li><a href="https://bea.aero/fileadmin/documents/docspa/2009/f-cp090601.en/pdf/f-cp090601.en.pdf" target="_blank" rel="noopener">Final report on the accident of 1 June 2009, Airbus A330-203 F-GZCP, flight AF 447</a><span class="src">BEA, July 2012 (English translation; the French text is the reference). Pitot icing at cruise level and the crew response.</span></li>
+  </ul>
+</section>
+
 <footer>
   <div class="wrap">
     <p><strong>Training illustration only.</strong> The flight model is simplified: one weight (64 t), clean configuration, ISA, no flight envelope protection, no ADR voting logic. Its numbers are not QRH data and must not be used in flight.</p>
@@ -736,7 +748,7 @@ function warnings(el,f,extra){
 }
 
 /* ---------- step 1: symptom lab ---------- */
-const lab1={fail:'pitot',phase:'climb',mode:'hold',frames:[],idx:200,playing:false};
+const lab1={fail:'pitot',phase:'climb',mode:'ap',frames:[],idx:200,playing:false};
 const pfd1=makePFD(document.getElementById('pfd1'),'p1');
 const scrub1=document.getElementById('scrub1');
 const EXPLAIN={

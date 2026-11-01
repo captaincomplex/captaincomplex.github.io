@@ -52,8 +52,8 @@ a:focus-visible{outline:3px solid var(--saf);outline-offset:3px}
 /* Calculator */
 .lab {
   display: grid; gap: 28px; align-items: start;
-  grid-template-columns: minmax(200px, 250px) minmax(0, 1fr) 172px;
-  grid-template-areas: "inputs wind tape" "ro ro ro";
+  grid-template-columns: 172px minmax(0, 1fr) minmax(200px, 250px);
+  grid-template-areas: "tape wind inputs" "ro ro ro";
   
 }
 .area-inputs { grid-area: inputs; display: flex; flex-direction: column; gap: 26px; min-width: 0; }
@@ -150,6 +150,12 @@ canvas { width: 100%; height: 340px; display: block; }
 .stat .v { font-family: var(--font-data); font-size: 14px; font-variant-numeric: tabular-nums; line-height: 1.7; }
 .verdict { font-size: 15px; max-width: 72ch; }
 
+/* References */
+.refs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; max-width: 80ch; }
+.refs li { display: flex; flex-direction: column; gap: 2px; }
+.refs a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.refs .src { font-size: 14px; color: var(--muted); }
+
 /* Rules */
 .rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; margin: 0; padding: 0; list-style: none; }
 .rules li { padding: 14px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -157,13 +163,13 @@ canvas { width: 100%; height: 340px; display: block; }
 .rules li span { color: var(--muted); font-size: 15px; }
 
 @media (max-width: 940px) {
-  .lab { grid-template-columns: minmax(0, 1fr) 172px; grid-template-areas: "inputs inputs" "wind tape" "ro ro"; }
+  .lab { grid-template-columns: 172px minmax(0, 1fr); grid-template-areas: "inputs inputs" "tape wind" "ro ro"; }
   .area-inputs { flex-direction: row; flex-wrap: wrap; gap: 20px 40px; }
   .sim-body { grid-template-columns: minmax(0, 1fr); }
   .twin { justify-content: center; }
 }
 @media (max-width: 600px) {
-  .lab { grid-template-columns: minmax(0, 1fr) 112px; gap: 20px 12px; }
+  .lab { grid-template-columns: 112px minmax(0, 1fr); gap: 20px 12px; }
   #tape-svg { width: 100%; }
   .readouts { grid-template-columns: minmax(0, 1fr); }
 }
@@ -193,13 +199,14 @@ canvas { width: 100%; height: 340px; display: block; }
       APPR COR&nbsp;&nbsp;= ⅓ × tower headwind, min 5, max 15 kt<br>
       V<sub>APP</sub>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= V<sub>LS</sub> + APPR COR<br>
       GS mini&nbsp;&nbsp;&nbsp;= V<sub>APP</sub> − tower headwind<br>
-      <span class="mag">IAS target = max( V<sub>APP</sub> , GS mini + current headwind )</span>
+      <span class="mag">IAS target = max( V<sub>APP</sub> , GS mini + current headwind )</span>&nbsp;&nbsp;<span class="muted">A320ceo, k = 1</span><br>
+      <span class="muted">A320neo, k = 0.33: IAS target = max( V<sub>APP</sub> , V<sub>APP</sub> + 0.33 × (current headwind − tower headwind) )</span>
     </div>
   </section>
 
   <section class="t c-w" aria-labelledby="h-calc">
     <h2 id="h-calc">Try it: where does the magenta triangle go?</h2>
-    <p class="muted">Set the runway and tower wind, drag the current wind around the runway, and drag V<sub>LS</sub> on the speed scale. The speed scale assumes the aircraft settles at its target speed.</p>
+    <p class="muted">Drag V<sub>LS</sub> on the speed scale, drag the current wind around the runway, and set the runway and tower wind. The speed scale assumes the aircraft settles at its target speed.</p>
     <noscript><p class="muted">The calculator needs JavaScript. The formulas and rules on this page read without it.</p></noscript>
     <div class="lab">
       <div class="area-inputs">
@@ -312,12 +319,22 @@ canvas { width: 100%; height: 340px; display: block; }
       <li><b>Headwind components only</b><span>Tailwind is treated as zero headwind, both for the tower wind and the current wind. With a tower tailwind, GS mini equals V<sub>APP</sub>.</span></li>
       <li><b>Capped by flap limits</b><span>The target stays below V<sub>FE</sub> of the current configuration, so a strong wind aloft cannot drive it into a flap overspeed.</span></li>
       <li><b>Garbage in, garbage out</b><span>The tower wind on PERF APPR sets GS mini. Enter the latest ATIS or tower wind; an exaggerated headwind lowers GS mini and removes the protection.</span></li>
+      <li><b>A320ceo and A320neo differ</b><span>The extra headwind is added with a factor k: 1 on the A320ceo, 0.33 on the A320neo and the other Airbus types, whose lower deceleration capability could otherwise leave too much speed at the flare. This page models the A320ceo.</span></li>
       <li><b>Watch it move</b><span>In gusty conditions the magenta triangle walks up and down the speed tape. That is normal and is the function working.</span></li>
     </ul>
   </section>
 
+  <section class="t c-w" aria-labelledby="h-refs">
+    <h2 id="h-refs">References</h2>
+    <ul class="refs">
+      <li><a href="https://safetyfirst.airbus.com/control-your-speed-during-descent-approach-and-landing/" target="_blank" rel="noopener">Control your speed… during descent, approach and landing</a><span class="src">Airbus, Safety First #24, August 2017. Explains the GS mini function, why the tower wind must be entered on PERF APPR, and the A320ceo/A320neo k factor.</span></li>
+      <li>Your aircraft's FCOM: auto flight, managed speed and ground speed mini<span class="src">Airbus, operator revision. The authority for the exact computation, limits and V<sub>APP</sub> increments on your MSN.</span></li>
+      <li>Your aircraft's FCTM: normal operations, approach<span class="src">Airbus, operator revision. Technique for managed speed and autothrust on final.</span></li>
+    </ul>
+  </section>
+
   </main>
-  <footer><p>Training illustration only. The numbers use a simplified A320-family model: IAS and TAS treated as equal, autothrust as a first-order response with thrust and drag limits, and a V<sub>FE</sub> CONF FULL of 177 kt. The PERF APPR page is simplified. Exact rounding, limits and V<sub>APP</sub> increments vary by type and standard; your FCOM and FCTM are the authority.</p><p>Part of <a href="../">xpdr.aero</a> · <a href="mailto:support@xpdr.aero">support@xpdr.aero</a></p></footer>
+  <footer><p>Training illustration only. The numbers use a simplified A320ceo model (GS mini factor k = 1): IAS and TAS treated as equal, autothrust as a first-order response with thrust and drag limits, and a V<sub>FE</sub> CONF FULL of 177 kt. The PERF APPR page is simplified. Exact rounding, limits and V<sub>APP</sub> increments vary by type and standard; your FCOM and FCTM are the authority.</p><p>Part of <a href="../">xpdr.aero</a> · <a href="mailto:support@xpdr.aero">support@xpdr.aero</a></p></footer>
 </div>
 
 <script>
