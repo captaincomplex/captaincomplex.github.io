@@ -79,14 +79,52 @@ p{margin:0;text-wrap:pretty}
 footer{padding:22px 4px 8px;color:var(--mut);font-size:.875rem}
 footer a,.refs a{text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--saf)}
 a:focus-visible,button:focus-visible{outline:3px solid var(--saf);outline-offset:3px}
+.marks{display:flex;flex-direction:column;gap:8px}
+.marks .lab{font-size:var(--t-meta);color:var(--mut);font-weight:500}
+.btn.mk{justify-content:space-between}
+.btn.mk:disabled{opacity:.35;cursor:default;border-color:var(--line)}
+.btn.k1:not(:disabled){border-color:#1f9d55}.btn.k1:not(:disabled):hover{background:#1f9d55;color:#fff}
+.btn.k2:not(:disabled){border-color:var(--saf)}.btn.k2:not(:disabled):hover{background:var(--saf);color:var(--ink)}
+.btn.k3:not(:disabled){border-color:var(--red)}.btn.k3:not(:disabled):hover{background:var(--red);color:#fff}
+.chips .pc{margin-left:6px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--saf)}
+.chips button[aria-pressed="true"] .pc{color:var(--ink)}
+.banner{display:none;align-items:center;gap:12px;flex-wrap:wrap;background:#2a2112;border:1.5px solid var(--saf);color:var(--cream);border-radius:14px;padding:10px 14px;font-size:.9375rem}
+.banner.on{display:flex}
+.banner button{font:600 .875rem/1 var(--f);background:none;border:0;color:var(--saf);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px 0}
+.prog{display:none;margin-top:14px;background:var(--white)}
+.js .prog{display:flex}
+.prog h2{font-size:var(--t-sm)}
+.prog .sum{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.prog .big{font-size:clamp(2.5rem,5vw,4rem);font-weight:700;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.prog .sub{font-size:.9375rem;opacity:.75;max-width:60ch}
+.rows{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 56px auto;gap:14px;align-items:center;padding:10px 0;border-top:1.5px solid rgba(20,17,10,.12)}
+.row .nm{font-weight:700;line-height:1.2}.row .nm small{display:block;font-weight:500;font-size:.8125rem;opacity:.65;margin-top:2px}
+.bar{height:10px;border-radius:99px;background:rgba(20,17,10,.1);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}.bar .g{background:#1f9d55}.bar .y{background:var(--saf)}.bar .r{background:var(--red)}
+.row .pct{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.row button,.prog .act{font:600 .875rem/1 var(--f);border:1.5px solid var(--ink);background:none;color:var(--ink);border-radius:99px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.row button:hover,.prog .act:hover{background:var(--ink);color:var(--white)}
+.row button:disabled{opacity:.3;cursor:default;background:none;color:var(--ink)}
+.prog .acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.prog .act.pri{background:var(--saf);border-color:var(--saf)}.prog .act.pri:hover{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.prog .act.quiet{border-color:transparent;text-decoration:underline;text-underline-offset:3px}
+.missed h3{font-size:1.25rem;letter-spacing:-.02em;margin-bottom:8px}
+.missed details{border-top:1.5px solid rgba(20,17,10,.12);padding:8px 0}
+.missed summary{cursor:pointer;font-weight:700}
+.missed ul{margin:8px 0 4px;padding-left:1.2em;display:flex;flex-direction:column;gap:4px;font-size:.9375rem}
+.missed .tag{font-size:.6875rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-left:8px;opacity:.7}
+.prog .note{font-size:.8125rem;opacity:.7;max-width:72ch}
+@media(max-width:760px){.side .btn.pri{grid-column:1/-1}.marks{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr)}.marks .lab{grid-column:1/-1}.row{grid-template-columns:minmax(0,1fr) 48px;row-gap:6px}.row .bar{grid-column:1/-1;grid-row:2}.row button{grid-column:1/-1;justify-self:start}}
 @media(prefers-reduced-motion:reduce){.flip.turn{animation:none}}
 </style></head><body><div class="wrap">
 <div class="top"><a href="../"><img src="../logo/xpdr-lockup-A2.svg" alt="xpdr.aero" width="98" height="34"></a><a class="back" href="../explained/">Explained</a></div>
 
-<section class="t hero"><p class="meta">179 cards · 11 topics · Airbus A320 family</p><h1>A320 Flashcards</h1><p>Question on the front, answer on the back. Pick a topic, tap the card to flip it, and work through the deck. The cards are a pilot's own revision notes. Where a figure depends on the operator, type or MSN, the card says so.</p></section>
+<section class="t hero"><p class="meta">179 cards · 11 topics · Airbus A320 family</p><h1>A320 Flashcards</h1><p>Question on the front, answer on the back. Pick a topic, tap the card to flip it, then mark how you did. Your score for each topic, and the cards to go over again, are kept below. The cards are a pilot's own revision notes. Where a figure depends on the operator, type or MSN, the card says so.</p></section>
 
 <section class="t study" aria-label="Study mode">
 <div class="chips" role="group" aria-label="Topic"></div>
+<div class="banner" role="status"><span class="msg"></span><button type="button" data-act="full">Back to the full deck</button></div>
 <div class="stage">
 <div class="card" tabindex="0" role="button" aria-label="Flashcard: press to flip"><div class="flip">
 <div class="face fr"><span class="kicker"></span><p class="q"></p><span class="hint">Tap or press space to see the answer</span></div>
@@ -95,6 +133,12 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--saf);outline-offset
 <div class="side">
 <p class="count" aria-live="polite"></p>
 <button class="btn pri" type="button" data-act="flip">Flip <kbd>Space</kbd></button>
+<div class="marks" role="group" aria-label="How did you do?">
+<span class="lab">Flip, then mark yourself</span>
+<button class="btn mk k1" type="button" data-mark="1" disabled>Knew it <kbd>1</kbd></button>
+<button class="btn mk k2" type="button" data-mark="0.5" disabled>Unsure <kbd>2</kbd></button>
+<button class="btn mk k3" type="button" data-mark="0" disabled>Didn't know <kbd>3</kbd></button>
+</div>
 <button class="btn" type="button" data-act="prev">Previous <kbd>←</kbd></button>
 <button class="btn" type="button" data-act="next">Next <kbd>→</kbd></button>
 <span class="sp"></span>
@@ -102,6 +146,16 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--saf);outline-offset
 </div>
 </div>
 <button class="toggle" type="button" aria-expanded="false">Show every card as a list</button>
+</section>
+
+<section class="t prog" id="progress" aria-label="Your progress">
+<div class="sum"><h2>Your progress</h2><span class="big" data-p="overall">0%</span><span class="sub" data-p="overall-sub"></span></div>
+<p class="sub">Each topic's score counts your latest mark on every card in it: Knew it scores 1, Unsure ½, Didn't know and untried cards 0. Topics you've started are listed weakest first, then the ones you haven't started.</p>
+<ol class="rows" data-p="rows"></ol>
+<div class="acts"><button class="act pri" type="button" data-act="practise-all">Practise all missed cards</button></div>
+<div class="missed" data-p="missed"></div>
+<div class="acts"><button class="act quiet" type="button" data-act="reset">Reset progress</button></div>
+<p class="note">Progress is saved only in this browser, on this device. Nothing is sent anywhere. It survives closing and reopening the browser, but not private browsing or clearing website data. Safari also deletes saved data from sites you haven't opened for seven days of browsing, so study at least weekly to keep it.</p>
 </section>
 
 <div class="decks hidden" id="all">
@@ -132,43 +186,106 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--saf);outline-offset
 (function(){
   var root=document.documentElement; root.classList.add('js');
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function hash(s){var h=5381;for(var k=0;k<s.length;k++)h=((h<<5)+h+s.charCodeAt(k))>>>0;return h.toString(36);}
   var decks=[].map.call(document.querySelectorAll('.deck'),function(s){
-    return {slug:s.id,title:s.getAttribute('data-title'),cards:[].map.call(s.querySelectorAll('.fc'),function(f){
+    var title=s.getAttribute('data-title');
+    return {slug:s.id,title:title,cards:[].map.call(s.querySelectorAll('.fc'),function(f){
       var dt=f.querySelector('dt').cloneNode(true),l=dt.querySelector('.lbl'),lbl=l?l.textContent:'';if(l)l.remove();
-      return {q:dt.textContent,l:lbl,a:f.querySelector('dd').innerHTML,t:s.getAttribute('data-title')};})};});
+      var q=dt.textContent;
+      return {id:s.id+'-'+hash(q),q:q,l:lbl,a:f.querySelector('dd').innerHTML,t:title,d:s.id};})};});
+  var all={slug:'all',title:'All topics',cards:[].concat.apply([],decks.map(function(d){return d.cards;}))};
+
+  /* Progress: latest mark per card, kept in this browser only */
+  var KEY='xpdr.flashcards.v1',marks={};
+  try{marks=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){marks={};}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(marks));}catch(e){}}
+  function stats(cards){var s=0,tried=0,g=0,y=0,r=0,miss=[];
+    cards.forEach(function(c){var m=marks[c.id];if(!m)return;tried++;s+=m.m;
+      if(m.m===1)g++;else if(m.m===0.5){y++;miss.push(c);}else{r++;miss.push(c);}});
+    return {pct:cards.length?Math.round(100*s/cards.length):0,tried:tried,n:cards.length,g:g,y:y,r:r,miss:miss};}
+
   var chips=document.querySelector('.chips'),card=document.querySelector('.card'),
       fq=card.querySelector('.fr .q'),fk=card.querySelector('.fr .kicker'),bq=card.querySelector('.bk .q'),ba=card.querySelector('.bk .a'),
       count=document.querySelector('.count'),shuf=document.querySelector('[data-act=shuffle]'),
-      list=document.getElementById('all'),tog=document.querySelector('.toggle');
-  var all={slug:'all',title:'All topics',cards:[].concat.apply([],decks.map(function(d){return d.cards;}))};
-  var current=all,order=[],i=0,shuffled=false;
+      list=document.getElementById('all'),tog=document.querySelector('.toggle'),
+      banner=document.querySelector('.banner'),bmsg=banner.querySelector('.msg'),
+      mkBtns=[].slice.call(document.querySelectorAll('[data-mark]')),mkLab=document.querySelector('.marks .lab'),
+      P=function(n){return document.querySelector('[data-p="'+n+'"]');};
+  var current=all,base=all,order=[],i=0,shuffled=false,chipBtns=[];
   function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
   function build(){order=current.cards.map(function(_,k){return k;});
     if(shuffled){for(var k=order.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1)),t=order[k];order[k]=order[j];order[j]=t;}}
     i=0;show();}
-  function show(){var c=current.cards[order[i]];card.classList.remove('on');
-    fk.innerHTML=esc(c.t)+(c.l?' <span class="lbl">'+esc(c.l)+'</span>':'');
+  function setMarks(on){mkBtns.forEach(function(b){b.disabled=!on;});mkLab.textContent=on?'How did you do?':'Flip, then mark yourself';}
+  function show(){var c=current.cards[order[i]];card.classList.remove('on');setMarks(false);
+    var m=marks[c.id],last=m?(m.m===1?'Last time: knew it':m.m===0.5?'Last time: unsure':'Last time: didn’t know'):'';
+    fk.innerHTML=esc(c.t)+(c.l?' <span class="lbl">'+esc(c.l)+'</span>':'')+(last?' <span class="lbl">'+last+'</span>':'');
     fq.textContent=c.q;bq.textContent=c.q;ba.innerHTML=c.a;
     count.innerHTML=(i+1)+' <small>of '+order.length+'</small>';}
   var fl=card.querySelector('.flip'),busy=false;
-  function flip(){if(busy)return;if(reduce){card.classList.toggle('on');return;}busy=true;fl.classList.add('turn');
-    setTimeout(function(){card.classList.toggle('on');},160);setTimeout(function(){fl.classList.remove('turn');busy=false;},330);}
+  function flip(){if(busy)return;var to=!card.classList.contains('on');
+    if(reduce){card.classList.toggle('on');setMarks(to);return;}busy=true;fl.classList.add('turn');
+    setTimeout(function(){card.classList.toggle('on');setMarks(to);},160);setTimeout(function(){fl.classList.remove('turn');busy=false;},330);}
   function step(d){i=(i+d+order.length)%order.length;show();}
+  function mark(v){if(!card.classList.contains('on'))return;var c=current.cards[order[i]];
+    marks[c.id]={m:v,t:Date.now()};save();render();
+    if(i<order.length-1)step(1);else{show();bmsg.textContent='End of the deck. '+(current.practise?'Practise again to go over what is still missed.':'Pick another topic or practise your missed cards below.');banner.classList.add('on');}}
+  function pick(d){current=d;base=d;banner.classList.remove('on');
+    chipBtns.forEach(function(x){x.b.setAttribute('aria-pressed',x.d===d?'true':'false');});build();}
+  function practise(d){var st=stats(d.cards);if(!st.miss.length)return;
+    current={title:d.title,cards:st.miss,practise:true};base=d;
+    chipBtns.forEach(function(x){x.b.setAttribute('aria-pressed',x.d===d?'true':'false');});
+    bmsg.textContent='Practising '+st.miss.length+' card'+(st.miss.length>1?'s':'')+' you marked Unsure or Didn’t know'+(d===all?'':' in '+d.title)+'.';
+    banner.classList.add('on');build();document.querySelector('.study').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}
+
   [all].concat(decks).forEach(function(d){var b=document.createElement('button');b.type='button';
-    b.innerHTML=esc(d.title)+'<span class="n">'+d.cards.length+'</span>';b.setAttribute('aria-pressed',d===current?'true':'false');
-    b.addEventListener('click',function(){current=d;[].forEach.call(chips.children,function(x){x.setAttribute('aria-pressed','false');});b.setAttribute('aria-pressed','true');build();});
-    chips.appendChild(b);});
+    b.addEventListener('click',function(){pick(d);});chips.appendChild(b);chipBtns.push({b:b,d:d});});
+
+  function render(){
+    chipBtns.forEach(function(x){var st=stats(x.d.cards);
+      x.b.innerHTML=esc(x.d.title)+'<span class="n">'+x.d.cards.length+'</span>'+(st.tried?'<span class="pc">'+st.pct+'%</span>':'');
+      x.b.setAttribute('aria-pressed',x.d===base?'true':'false');});
+    var o=stats(all.cards);P('overall').textContent=o.pct+'%';
+    P('overall-sub').textContent=o.tried?(o.tried+' of '+o.n+' cards tried · '+o.g+' known · '+o.y+' unsure · '+o.r+' not known'):'Flip a card and mark yourself to start.';
+    var rows=decks.map(function(d){return {d:d,s:stats(d.cards)};}).sort(function(a,b){return (!a.s.tried)-(!b.s.tried)||a.s.pct-b.s.pct;});
+    var ol=P('rows');ol.innerHTML='';
+    rows.forEach(function(r){var li=document.createElement('li');li.className='row';var s=r.s,w=function(n){return (100*n/s.n).toFixed(1)+'%';};
+      li.innerHTML='<span class="nm">'+esc(r.d.title)+'<small>'+(s.tried?s.tried+' of '+s.n+' tried':'Not started')+(s.miss.length?' · '+s.miss.length+' to practise':'')+'</small></span>'+
+        '<span class="bar" role="img" aria-label="'+s.g+' known, '+s.y+' unsure, '+s.r+' not known, '+(s.n-s.tried)+' untried"><i class="g" style="width:'+w(s.g)+'"></i><i class="y" style="width:'+w(s.y)+'"></i><i class="r" style="width:'+w(s.r)+'"></i></span>'+
+        '<span class="pct">'+s.pct+'%</span>';
+      var b=document.createElement('button');b.type='button';b.textContent=s.miss.length?'Practise '+s.miss.length:'Study';
+      b.addEventListener('click',function(){if(s.miss.length)practise(r.d);else{pick(r.d);document.querySelector('.study').scrollIntoView({behavior:reduce?'auto':'smooth'});}});
+      li.appendChild(b);ol.appendChild(li);});
+    var pa=document.querySelector('[data-act="practise-all"]');pa.disabled=!o.miss.length;pa.style.display=o.miss.length?'':'none';
+    pa.textContent='Practise all missed cards ('+o.miss.length+')';
+    var mz=P('missed');mz.innerHTML='';
+    var withMiss=rows.filter(function(r){return r.s.miss.length;});
+    if(withMiss.length){var h=document.createElement('h3');h.textContent='Cards to practise';mz.appendChild(h);
+      withMiss.forEach(function(r){var dd=document.createElement('details'),sm=document.createElement('summary'),ul=document.createElement('ul');
+        sm.textContent=r.d.title+' · '+r.s.miss.length;dd.appendChild(sm);
+        r.s.miss.forEach(function(c){var li=document.createElement('li');
+          li.innerHTML=esc(c.q)+'<span class="tag">'+(marks[c.id].m===0.5?'Unsure':'Didn’t know')+'</span>';ul.appendChild(li);});
+        dd.appendChild(ul);mz.appendChild(dd);});}
+  }
+
   card.addEventListener('click',flip);
   document.querySelector('[data-act=flip]').addEventListener('click',flip);
   document.querySelector('[data-act=prev]').addEventListener('click',function(){step(-1);});
   document.querySelector('[data-act=next]').addEventListener('click',function(){step(1);});
+  document.querySelector('[data-act=full]').addEventListener('click',function(){pick(base);});
+  document.querySelector('[data-act="practise-all"]').addEventListener('click',function(){practise(all);});
+  document.querySelector('[data-act=reset]').addEventListener('click',function(){
+    if(window.confirm('Reset your progress on every card? This cannot be undone.')){marks={};save();render();show();}});
+  mkBtns.forEach(function(b){b.addEventListener('click',function(){mark(parseFloat(b.getAttribute('data-mark')));});});
   shuf.addEventListener('click',function(){shuffled=!shuffled;shuf.setAttribute('aria-pressed',shuffled);build();});
   document.addEventListener('keydown',function(e){
     if(e.altKey||e.ctrlKey||e.metaKey)return;
+    if(e.target.closest&&e.target.closest('summary'))return;
     if(e.key===' '||e.key==='Enter'){if(e.target===card||e.target===document.body){e.preventDefault();flip();}}
-    else if(e.key==='ArrowRight'){step(1);}else if(e.key==='ArrowLeft'){step(-1);}});
+    else if(e.key==='ArrowRight'){step(1);}else if(e.key==='ArrowLeft'){step(-1);}
+    else if(e.key==='1'){mark(1);}else if(e.key==='2'){mark(0.5);}else if(e.key==='3'){mark(0);}});
   tog.addEventListener('click',function(){var h=list.classList.toggle('hidden');tog.setAttribute('aria-expanded',!h);tog.textContent=h?'Show every card as a list':'Hide the list';});
-  build();
+  render();build();
 })();
 </script>
 </body></html>
