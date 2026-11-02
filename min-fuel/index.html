@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minimum Fuel — xpdr.aero</title>
+<meta name="description" content="An interactive explainer of MINIMUM FUEL and MAYDAY FUEL under ICAO, EASA and UK CAA rules: the fuel they protect, when each call is due, a holding scenario you can run, and a quiz.">
+<meta name="theme-color" content="#14110a">
+<link rel="icon" href="../logo/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="../logo/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../logo/apple-touch-icon.png">
+<style>
+@font-face{font-family:"Familjen Grotesk";font-weight:500 700;font-style:normal;font-display:swap;src:url(../fonts/familjen-grotesk-latin.woff2) format("woff2")}
+@font-face{font-family:"Familjen Fallback";src:local("Arial"),local("Liberation Sans");size-adjust:102%;ascent-override:100%;descent-override:22%;line-gap-override:0%}
+:root{--f:"Familjen Grotesk","Familjen Fallback",system-ui,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+ --t-display:clamp(2.75rem,7vw,6rem);--t-md:clamp(1.5rem,2.6vw,2.125rem);--t-meta:.8125rem;
+ --page:#14110a;--saf:#f2b705;--white:#fbf8ef;--cream:#f3ecd6;--mut:#a79d82;
+ --ink:#14110a;--muted:#5f5747;--line:#d8ceb2;--field:#f3ecd6;
+ --red:#c0321a;--amber:#a35a00;--green:#12804a;--cyan:#0a7096;
+ --taxi:#8a8170;--trip:#3d6b8c;--cont:#6f9fbf;--altn:#d29a2a;--frf:#c0321a;--addl:#7a5aa6;--extra:#5a8f5a;--disc:#9fbf8f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--f);font-size:1rem;line-height:1.55;padding:0 14px 14px;text-rendering:optimizeLegibility}
+a{color:inherit}
+::selection{background:#f2b705;color:#14110a}
+h1,h2,h3{font-family:var(--f);font-weight:700;text-wrap:balance;margin:0;line-height:1}
+p{margin:0;text-wrap:pretty}
+.wrap{max-width:1300px;margin:0 auto}
+.top{padding:16px 4px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.top img{height:34px;width:auto;display:block}
+.top a.back{color:var(--cream);font-size:.9375rem;font-weight:500;text-decoration:none}.top a.back:hover{color:var(--saf)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.t{border-radius:26px;padding:clamp(20px,3vw,36px);display:flex;flex-direction:column;gap:20px;min-width:0}
+.c-w{background:var(--white)}.c-c{background:var(--cream)}.c-y{background:var(--saf)}
+.hero{gap:16px}
+.eyebrow{font-weight:600;font-size:var(--t-meta);letter-spacing:.07em;text-transform:uppercase}
+.hero h1{font-size:var(--t-display);letter-spacing:-.04em;line-height:.94}
+.lede{font-size:clamp(1.0625rem,1.5vw,1.1875rem);line-height:1.55;max-width:62ch;font-weight:500}
+h2{font-size:var(--t-md);letter-spacing:-.03em}
+h3{font-size:1.25rem;letter-spacing:-.02em;line-height:1.15}
+.prose{display:flex;flex-direction:column;gap:12px;max-width:68ch}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono)}
+.call{font-family:var(--mono);font-weight:700;letter-spacing:.02em;white-space:nowrap}
+footer{margin-top:22px;padding:0 4px 8px;display:flex;justify-content:space-between;gap:12px 28px;flex-wrap:wrap;color:var(--mut);font-size:.875rem;line-height:1.5}
+footer p{max-width:80ch}
+footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--saf)}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+
+/* Two calls side by side */
+.calls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.callcard{background:var(--white);border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;border-top:6px solid var(--amber)}
+.callcard.may{border-top-color:var(--red)}
+.callcard .say{font-family:var(--mono);font-weight:700;font-size:clamp(1.125rem,2vw,1.375rem)}
+.callcard dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px;font-size:.9375rem}
+.callcard dt{font-weight:700}
+.callcard dd{margin:0}
+.myths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.myth{background:var(--white);border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:10px}
+.myth .m{font-size:var(--t-meta);font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--red)}
+.myth .f{font-size:var(--t-meta);font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--green)}
+.myth h3 s{text-decoration-thickness:2px}
+
+/* Fuel components bar */
+.stack{display:flex;height:46px;border-radius:10px;overflow:hidden;font-family:var(--mono);font-size:12px;color:#fff}
+.stack span{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;white-space:nowrap}
+.comp{margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:14px 22px}
+.comp div{border-left:6px solid;padding:2px 0 2px 12px;display:flex;flex-direction:column;gap:3px}
+.comp dt{font-weight:700}
+.comp dt .kg{font-family:var(--mono);font-weight:500;color:var(--muted);margin-left:6px;font-size:.875rem}
+.comp dd{margin:0;font-size:.9375rem}
+.note{font-size:.875rem;color:var(--muted);max-width:80ch}
+table.sch{border-collapse:collapse;width:100%;font-size:.9375rem}
+table.sch th,table.sch td{text-align:left;vertical-align:top;padding:10px 12px 10px 0;border-top:1px solid var(--line)}
+table.sch th{font-weight:700;white-space:nowrap}
+.tablewrap{overflow-x:auto}
+
+/* Holding scenario */
+.sim{display:none}
+.js .sim{display:grid}
+.sim{grid-template-columns:150px minmax(0,1fr) minmax(220px,270px);gap:26px;align-items:start}
+.gauge svg{width:150px;height:auto;display:block}
+.mid{display:flex;flex-direction:column;gap:16px;min-width:0}
+.status{border-radius:16px;padding:18px 20px;background:var(--cream);display:flex;flex-direction:column;gap:8px;border-left:8px solid var(--green)}
+.status.min{border-left-color:var(--amber)}.status.may{border-left-color:var(--red)}.status.plan{border-left-color:var(--cyan)}
+.status .k{font-size:var(--t-meta);font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.status .big{font-family:var(--mono);font-weight:700;font-size:clamp(1.25rem,2.4vw,1.75rem);line-height:1.15}
+.status.min .big{color:var(--amber)}.status.may .big{color:var(--red)}.status.plan .big{color:var(--cyan)}
+.status p{font-size:.9375rem;max-width:62ch}
+.tl svg{width:100%;height:auto;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+.tl .knob{cursor:grab}.tl .knob:active{cursor:grabbing}
+dl.ro{margin:0;display:grid;grid-template-columns:1fr auto;font-size:.9375rem}
+dl.ro>div{display:contents}
+dl.ro dt,dl.ro dd{padding:7px 0;border-bottom:1px solid var(--line);margin:0}
+dl.ro dt{color:var(--muted)}
+dl.ro dd{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.ctl{display:flex;flex-direction:column;gap:18px;min-width:0}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label,.fg .fl{font-weight:600;font-size:.875rem;display:flex;justify-content:space-between;gap:8px}
+.fg output{font-family:var(--mono);font-weight:700;font-variant-numeric:tabular-nums}
+.fg input[type=range]{width:100%;accent-color:var(--ink)}
+.fg .hint{font-size:.8125rem;color:var(--muted);line-height:1.4}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--ink);border-radius:12px;overflow:hidden}
+.seg button{font:600 .875rem/1.2 var(--f);background:none;border:0;padding:10px 8px;cursor:pointer;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--white)}
+.btn{font:600 .9375rem/1 var(--f);border:1.5px solid var(--ink);background:none;color:var(--ink);border-radius:12px;padding:11px 14px;cursor:pointer;text-align:left}
+.btn:hover{background:var(--ink);color:var(--white)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.nojs{font-size:.9375rem;max-width:68ch}
+.js .nojs{display:none}
+@media(max-width:980px){.sim{grid-template-columns:130px minmax(0,1fr)}.ctl{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 22px}.gauge svg{width:130px}}
+@media(max-width:640px){.calls,.myths{grid-template-columns:1fr}.sim{grid-template-columns:92px minmax(0,1fr);gap:16px}.gauge svg{width:92px}.mid{display:contents}.tl,dl.ro{grid-column:1/-1}.ctl{grid-template-columns:1fr}.stack span:not(:nth-child(2)){font-size:0}.status{padding:14px 14px}}
+
+/* Quiz */
+.quiz{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:14px;margin:0;padding:0;list-style:none}
+.qz{background:var(--white);border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.qz .n{font-size:var(--t-meta);font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.qz .opts{display:none;gap:8px;flex-wrap:wrap}
+.js .qz .opts{display:flex}
+.qz .opts button{font:700 .8125rem/1 var(--mono);border:1.5px solid var(--ink);background:none;color:var(--ink);border-radius:99px;padding:9px 12px;cursor:pointer}
+.qz .opts button:hover{background:var(--ink);color:var(--white)}
+.qz .opts button.right{background:var(--green);border-color:var(--green);color:#fff}
+.qz .opts button.wrong{background:var(--red);border-color:var(--red);color:#fff}
+.qz details summary{cursor:pointer;font-weight:600;font-size:.9375rem}
+.js .qz details summary{display:none}
+.js .qz details:not([open]){display:none}
+.qz .ans{font-size:.9375rem;display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.qz .ans b.call{font-size:.875rem}
+.score{font-weight:700}
+.js .score{display:block}.score{display:none}
+
+.refs{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px;max-width:80ch}
+.refs li{display:flex;flex-direction:column;gap:2px}
+.refs a{text-decoration:underline;text-underline-offset:3px}
+.refs .src{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../"><img src="../logo/xpdr-lockup-A2.svg" alt="xpdr.aero" width="98" height="34"></a><a class="back" href="../explained/">Explained</a></div>
+<main class="grid">
+
+<section class="t c-y hero">
+  <p class="eyebrow">Interactive explainer · Airbus A320 family · ICAO, EASA and UK CAA rules</p>
+  <h1>Minimum Fuel</h1>
+  <p class="lede">Two radio calls, MINIMUM FUEL and MAYDAY FUEL, both protect one number: the final reserve fuel planned on your flight plan. Neither is about what the gauges read now. Both are about what you predict you will land with. Here's where that fuel comes from, when each call is due, and a holding scenario you can run until the calls make sense.</p>
+</section>
+
+<section class="t c-c" aria-labelledby="h-calls">
+  <h2 id="h-calls">Two calls, one number</h2>
+  <div class="calls">
+    <div class="callcard">
+      <p class="say">MINIMUM FUEL</p>
+      <dl>
+        <dt>When</dt><dd>You are committed to land at a specific aerodrome, and any change to your existing clearance to it may result in landing with less than the planned final reserve fuel.</dd>
+        <dt>Means</dt><dd>All your planned aerodrome options are down to one. Not an emergency yet, but one is possible if there is any more delay.</dd>
+        <dt>Priority</dt><dd>None. ATC acknowledges, tells you of any expected delay, and passes the information on when it hands you over.</dd>
+        <dt>ATC says</dt><dd><span class="call">ROGER</span>, with any delay information (for example <span class="call">NO DELAY EXPECTED</span>).</dd>
+      </dl>
+    </div>
+    <div class="callcard may">
+      <p class="say">MAYDAY, MAYDAY, MAYDAY, FUEL</p>
+      <dl>
+        <dt>When</dt><dd>The usable fuel you calculate you will have on landing at the nearest aerodrome where a safe landing can be made is less than the planned final reserve fuel.</dd>
+        <dt>Means</dt><dd>A distress call. Final reserve is no longer protected.</dd>
+        <dt>Priority</dt><dd>Yes, as for any emergency.</dd>
+        <dt>Then</dt><dd>Land at the nearest suitable aerodrome. Final reserve is a reserve, not a floor: it is there to be used to land safely.</dd>
+      </dl>
+    </div>
+  </div>
+  <p class="note">The wording above follows ICAO Annex 6 Part I (4.3.7.2), EU Air Ops CAT.OP.MPA.185 as amended by Regulation (EU) 2021/1296 (applied from 30 October 2022), and the UK version of the same rule (Aviation Safety (Amendment) Regulations 2024, in force from 30 October 2025). The UK CAA's guidance adds that "the pilot should not expect any form of priority handling" after a MINIMUM FUEL call.</p>
+</section>
+
+<section class="t c-w" aria-labelledby="h-myths">
+  <h2 id="h-myths">Two things people get wrong</h2>
+  <div class="myths">
+    <div class="myth">
+      <p class="m">Myth</p>
+      <h3>“Calling MINIMUM FUEL gets me priority.”</h3>
+      <p class="f">What the rules say</p>
+      <p>It doesn't. MINIMUM FUEL is information: it tells ATC that your options have narrowed to one aerodrome and that more delay could turn this into an emergency. ATC acknowledges and keeps you informed of delays. If you need priority, the call is MAYDAY FUEL (or PAN, if that fits the situation better).</p>
+    </div>
+    <div class="myth">
+      <p class="m">Myth</p>
+      <h3>“I'll call when the gauges get down to final reserve.”</h3>
+      <p class="f">What the rules say</p>
+      <p>Both calls compare a <em>prediction</em> with a <em>planned figure</em>. The prediction is the fuel you calculate you will land with. The planned figure is the final reserve on your flight plan, worked out before departure. With 1,500 kg on the gauges and 15 minutes to run at 40 kg a minute, you land with about 900 kg. If the planned final reserve is 1,100 kg, MAYDAY FUEL is due now, while the gauges still read well above it.</p>
+    </div>
+  </div>
+</section>
+
+<section class="t c-c" aria-labelledby="h-comp">
+  <h2 id="h-comp">Where the fuel comes from</h2>
+  <div class="prose">
+    <p>Under the EU and UK rules, the usable fuel you start with must cover a list of components. The flight plan works them out; your job in flight is to keep checking that what's left still covers what's ahead. Here is an illustrative A320 flight plan.</p>
+  </div>
+  <div class="stack" role="img" aria-label="Illustrative A320 flight plan fuel: taxi 200 kg, trip 5,000 kg, contingency 250 kg, alternate 1,200 kg, final reserve 1,100 kg, extra 300 kg, discretionary 200 kg; 8,250 kg in total">
+    <span style="flex:200;background:var(--taxi)">T</span><span style="flex:5000;background:var(--trip)">Trip 5,000</span><span style="flex:250;background:var(--cont)">C</span><span style="flex:1200;background:var(--altn)">Altn 1,200</span><span style="flex:1100;background:var(--frf)">Final 1,100</span><span style="flex:300;background:var(--extra)">E</span><span style="flex:200;background:var(--disc)">D</span>
+  </div>
+  <dl class="comp">
+    <div style="border-color:var(--taxi)"><dt>Taxi<span class="kg">200 kg</span></dt><dd>Not less than what you expect to use before take-off, with local conditions and APU use.</dd></div>
+    <div style="border-color:var(--trip)"><dt>Trip<span class="kg">5,000 kg</span></dt><dd>Take-off (or the in-flight replanning point) to landing at destination.</dd></div>
+    <div style="border-color:var(--cont)"><dt>Contingency<span class="kg">250 kg</span></dt><dd>For the unforeseen. In the basic scheme, 5% of trip fuel, and never less than 5 minutes' holding at 1,500 ft above the destination. Approved variations allow 3% with an en-route alternate, 20 minutes' flying time, or a statistical figure.</dd></div>
+    <div style="border-color:var(--altn)"><dt>Destination alternate<span class="kg">1,200 kg</span></dt><dd>Destination to alternate, including the missed approach. With no alternate required, at least 15 minutes' holding at 1,500 ft above the destination instead.</dd></div>
+    <div style="border-color:var(--frf)"><dt>Final reserve<span class="kg">1,100 kg</span></dt><dd>30 minutes at holding speed at 1,500 ft above the aerodrome, in standard conditions, at the expected landing mass (45 minutes for piston aeroplanes). This is the planned figure both calls protect.</dd></div>
+    <div style="border-color:var(--addl)"><dt>Additional<span class="kg">0 kg here</span></dt><dd>Only when the operation needs it: for example an engine or pressurisation failure at the critical point, or reaching an en-route alternate, when the fuel above isn't enough.</dd></div>
+    <div style="border-color:var(--extra)"><dt>Extra<span class="kg">300 kg</span></dt><dd>For anticipated delays or specific operational constraints, added at planning.</dd></div>
+    <div style="border-color:var(--disc)"><dt>Discretionary<span class="kg">200 kg</span></dt><dd>Whatever more the commander decides to carry.</dd></div>
+  </dl>
+  <p class="note">The kilograms are illustrative, for a short A320 sector. Final reserve depends on landing mass and on the type: an A320neo burns less in the hold than an A320ceo. Your flight plan gives the real figures. Component names and amounts follow CAT.OP.MPA.181 and its AMC; your operator's fuel scheme may use approved variations.</p>
+  <div class="tablewrap">
+  <table class="sch">
+    <caption class="muted" style="text-align:left;padding-bottom:8px;font-size:.875rem">The three fuel schemes an operator can use under the EU and UK rules</caption>
+    <tr><th>Basic</th><td>The default amounts above, with no special approval.</td></tr>
+    <tr><th>Basic with variations</th><td>Reduced contingency or alternate fuel, or other variations, backed by the operator's own data and approved by the authority.</td></tr>
+    <tr><th>Individual</th><td>An operator-specific scheme built on fuel consumption monitoring and a safety risk assessment, with prior approval.</td></tr>
+  </table>
+  </div>
+</section>
+
+<section class="t c-w" aria-labelledby="h-sim">
+  <h2 id="h-sim">Try it: holding at destination</h2>
+  <div class="prose">
+    <p>You arrive at the hold and ATC gives you a delay. Set the fuel you have, the delay, and what a diversion would cost, then run the clock. Watch three lines on the gauge: what you have now, what you would land with at destination, and what you would land with at the alternate if you left now.</p>
+  </div>
+  <p class="nojs">This simulation needs JavaScript. The rule it shows: diversion is possible while the fuel you would land with at the alternate is at least the planned final reserve. Once it isn't, you are committed to the destination and MINIMUM FUEL is due. If the fuel you would land with at the destination then falls below the planned final reserve, MAYDAY FUEL is due.</p>
+  <div class="sim" id="sim">
+    <div class="gauge">
+      <svg id="gauge" viewBox="0 0 150 380" role="img" aria-label="Fuel gauge"></svg>
+    </div>
+    <div class="mid">
+      <div class="status" id="status" aria-live="polite"><span class="k">Call</span><span class="big" id="st-big"></span><p id="st-text"></p></div>
+      <div class="tl"><svg id="tl" viewBox="0 0 640 96" aria-label="Holding timeline: drag the marker to move the clock"></svg></div>
+      <dl class="ro">
+        <div><dt>Fuel on board now</dt><dd id="r-fob"></dd></div>
+        <div><dt>Landing at destination after the delay</dt><dd id="r-dest"></dd></div>
+        <div><dt>Landing at the alternate if you leave now</dt><dd id="r-altn"></dd></div>
+        <div><dt>Latest time to leave for the alternate</dt><dd id="r-dp"></dd></div>
+        <div><dt>Planned final reserve (flight plan)</dt><dd id="r-frf"></dd></div>
+      </dl>
+    </div>
+    <div class="ctl">
+      <div class="fg"><span class="fl">Plan</span>
+        <div class="seg" role="group" aria-label="Plan"><button type="button" data-plan="wait" aria-pressed="true">Hold for destination</button><button type="button" data-plan="divert" aria-pressed="false">Divert now</button></div>
+      </div>
+      <div class="fg"><label for="i-time">Time in the hold <output id="o-time"></output></label><input id="i-time" type="range" min="0" max="40" step="any" value="0"><div class="btnrow"><button class="btn" type="button" id="play">Run the clock</button></div></div>
+      <div class="fg"><label for="i-delay">Delay ATC gives <output id="o-delay"></output></label><input id="i-delay" type="range" min="0" max="60" step="any" value="25"><div class="btnrow"><button class="btn" type="button" id="rwy">Runway change: +12 min</button></div></div>
+      <div class="fg"><label for="i-fob">Fuel on arrival at the hold <output id="o-fob"></output></label><input id="i-fob" type="range" min="2400" max="4800" step="any" value="3100"></div>
+      <div class="fg"><label for="i-div">Fuel to divert from the hold <output id="o-div"></output></label><input id="i-div" type="range" min="600" max="2000" step="any" value="1200"><span class="hint">Hold to landing at the alternate, including the approach.</span></div>
+    </div>
+  </div>
+  <p class="note">Model: holding at 38 kg/min (about 2,300 kg/h, typical of an A320ceo at low level), 200 kg from leaving the hold to landing at destination, planned final reserve 1,100 kg. All illustrative. When diverting, "close to final reserve" is taken as within 300 kg, about 8 minutes' holding; the rules don't give a number. Your fuel figures come from your flight plan and FMS, and your operator's procedures say how to apply the calls.</p>
+</section>
+
+<section class="t c-c" aria-labelledby="h-quiz">
+  <h2 id="h-quiz">Is it MINIMUM FUEL, MAYDAY FUEL, or neither?</h2>
+  <p class="score" id="score" aria-live="polite"></p>
+  <ol class="quiz">
+    <li class="qz" data-a="neither"><span class="n">Situation 1</span><p>You're holding at destination, EAT in 15 minutes. If you divert now, you land at the alternate with final reserve plus 400 kg. If you wait, you land at destination with final reserve plus 700 kg.</p>
+      <div class="opts"></div>
+      <details><summary>Answer</summary><div class="ans"><p><b class="call">Neither.</b> You still have two options and both protect final reserve. Keep the delay information coming from a reliable source and keep checking the latest time you can leave for the alternate.</p></div></details></li>
+    <li class="qz" data-a="min"><span class="n">Situation 2</span><p>Ten minutes later, still in the hold. Diverting now would land you at the alternate below final reserve. Waiting for the EAT still lands you at destination with final reserve plus 300 kg.</p>
+      <div class="opts"></div>
+      <details><summary>Answer</summary><div class="ans"><p><b class="call">MINIMUM FUEL.</b> The alternate has gone; you are committed to the destination, and any change to your clearance may put you below planned final reserve. This is the UK CAA's own example: declare it once your fuel no longer allows a diversion from the hold.</p></div></details></li>
+    <li class="qz" data-a="may"><span class="n">Situation 3</span><p>You've declared MINIMUM FUEL. ATC: runway change, expect 12 more minutes. You now predict landing at destination, the nearest aerodrome where you can land safely, with 150 kg less than the planned final reserve.</p>
+      <div class="opts"></div>
+      <details><summary>Answer</summary><div class="ans"><p><b class="call">MAYDAY FUEL.</b> The calculated landing fuel at the nearest suitable aerodrome is below planned final reserve. That is the trigger, even though you are still airborne with fuel above that figure.</p></div></details></li>
+    <li class="qz" data-a="min"><span class="n">Situation 4</span><p>The runway is blocked; you go around and divert. ATC clears you direct to the alternate. You calculate landing there with final reserve plus 100 kg.</p>
+      <div class="opts"></div>
+      <details><summary>Answer</summary><div class="ans"><p><b class="call">MINIMUM FUEL.</b> You are committed to the alternate and close to final reserve, so any change to your clearance may put you below it. The UK CAA's guidance uses this case as an example.</p></div></details></li>
+    <li class="qz" data-a="neither"><span class="n">Situation 5</span><p>In the cruise, headwinds are stronger than forecast. The FMS still predicts landing at destination with more than alternate fuel plus final reserve.</p>
+      <div class="opts"></div>
+      <details><summary>Answer</summary><div class="ans"><p><b class="call">Neither.</b> You've used some contingency fuel, which is what it's for. Keep checking actual against planned burn.</p></div></details></li>
+    <li class="qz" data-a="may"><span class="n">Situation 6</span><p>The gauges read 1,500 kg. The planned final reserve is 1,100 kg. The nearest suitable aerodrome is 15 minutes away and you're burning about 40 kg a minute.</p>
+      <div class="opts"></div>
+      <details><summary>Answer</summary><div class="ans"><p><b class="call">MAYDAY FUEL.</b> You'll land with about 900 kg, below the planned 1,100. The gauges reading above final reserve doesn't matter: the calls are about predicted landing fuel.</p></div></details></li>
+    <li class="qz" data-a="neither"><span class="n">Situation 7</span><p>You declared MINIMUM FUEL a few minutes ago. ATC: “Roger, expect 10 minutes delay.” After that delay you still predict landing with final reserve plus 500 kg, and you're committed to this aerodrome.</p>
+      <div class="opts"></div>
+      <details><summary>Answer</summary><div class="ans"><p><b class="call">Neither: no new call.</b> MINIMUM FUEL stands, and it doesn't buy priority, so the delay is normal. Keep recalculating; if the prediction drops below planned final reserve, call MAYDAY FUEL.</p></div></details></li>
+    <li class="qz" data-a="min"><span class="n">Situation 8</span><p>You're committed to a destination with one runway, no alternate within reach, and you predict landing with final reserve plus 50 kg. ATC says no delay expected.</p>
+      <div class="opts"></div>
+      <details><summary>Answer</summary><div class="ans"><p><b class="call">MINIMUM FUEL.</b> Committed to one aerodrome, and any change to the clearance, even a short one, may put you below planned final reserve. “No delay expected” today doesn't change that.</p></div></details></li>
+  </ol>
+</section>
+
+<section class="t c-w" aria-labelledby="h-inflight">
+  <h2 id="h-inflight">Managing fuel in flight</h2>
+  <div class="prose">
+    <p><b>Keep checking.</b> The rules require continual reanalysis of the planning assumptions in flight: actual burn against plan, and the fuel you will land with at destination and alternate. On the A320 the FMS predicts fuel on board at each waypoint and at destination; most FMS standards also warn when the destination prediction drops below the minimum you set, normally alternate plus final reserve. Your FCOM has the details for your standard.</p>
+    <p><b>Get delay information from a reliable source.</b> When something unforeseen means you might land with less than final reserve plus what you need to reach an alternate, you must get delay information from a reliable source; ICAO's wording is to request it from ATC. The UK CAA's guidance asks for delay data you can trust, ideally with a margin (“delay 15 ± 2 minutes”).</p>
+    <p><b>Decide where you're going.</b> Committing to a single aerodrome, and so giving up the alternate, is a decision to make with good information: reliable delay figures, weather, runway options. Once you've committed and any change could put you below planned final reserve, declare MINIMUM FUEL.</p>
+    <p><b>If final reserve can't be protected, declare and land.</b> MAYDAY FUEL is due as soon as the prediction at the nearest suitable aerodrome is below planned final reserve. Then use whatever landing option is safest; final reserve fuel is usable fuel.</p>
+    <p><b>In-flight replanning.</b> If you replan to a different destination or route, the fuel from that point must again cover trip, contingency, alternate, final reserve, and any additional and extra fuel.</p>
+    <p><b>Record it.</b> Operators must record fuel data, including any MINIMUM FUEL or MAYDAY FUEL declarations.</p>
+    <p class="note">Outside ICAO wording: in the United States, the FAA's Aeronautical Information Manual uses “minimum fuel” as an advisory that you can accept little or no delay, and expects an emergency to be declared explicitly if fuel becomes critical. The idea is similar; the details and the reserves are different.</p>
+  </div>
+</section>
+
+<section class="t c-c" aria-labelledby="h-refs">
+  <h2 id="h-refs">References</h2>
+  <ul class="refs">
+    <li><a href="https://www.legislation.gov.uk/uksi/2024/1290/contents/made" target="_blank" rel="noopener">The Aviation Safety (Amendment) Regulations 2024 (SI 2024/1290)</a><span class="src">UK. Replaces the UK fuel rules (CAT.OP.MPA.181 fuel scheme, CAT.OP.MPA.185 in-flight fuel management) with the fuel-scheme approach. In force from 30 October 2025.</span></li>
+    <li><a href="https://regulatorylibrary.caa.co.uk/965-2012/Content/Document%20Structure/04%20CAT/4%20GM/GM1%20CAT%20OP%20MPA%20185%20Planning.htm" target="_blank" rel="noopener">GM1 CAT.OP.MPA.185 Fuel scheme — in-flight fuel management policy — aeroplanes</a><span class="src">UK CAA guidance: what MINIMUM FUEL means, no priority handling, reliable delay information, and three worked examples.</span></li>
+    <li><a href="https://regulatorylibrary.caa.co.uk/965-2012/Content/Document%20Structure/04%20CAT/2%20Regs/06990_CATOPMPA181_Selection_of_aerodromes_and_operating_sites_helicopters.htm" target="_blank" rel="noopener">CAT.OP.MPA.181 Fuel scheme — fuel or energy planning and in-flight replanning policy — aeroplanes</a><span class="src">UK CAA regulatory library: the fuel components, final reserve and in-flight replanning.</span></li>
+    <li>Commission Implementing Regulation (EU) 2021/1296, amending Regulation (EU) No 965/2012 (Air Ops)<span class="src">EU. Fuel/energy schemes and in-flight fuel management (CAT.OP.MPA.181 and .185 with their AMC and GM), applicable from 30 October 2022. See EASA's Easy Access Rules for Air Operations for the consolidated text.</span></li>
+    <li>ICAO Annex 6, Operation of Aircraft, Part I, 4.3.7 In-flight fuel management<span class="src">The MINIMUM FUEL and MAYDAY FUEL declarations, introduced by Amendment 36 (2012).</span></li>
+    <li>ICAO Doc 4444, PANS-ATM<span class="src">Phraseology for MINIMUM FUEL and MAYDAY FUEL and the controller's responses.</span></li>
+    <li>ICAO Doc 9976, Flight Planning and Fuel Management Manual<span class="src">Guidance and scenarios on in-flight fuel management, cited by the UK CAA and EASA guidance.</span></li>
+    <li><a href="https://skybrary.aero/articles/fuel-emergencies-guidance-controllers" target="_blank" rel="noopener">Fuel Emergencies: Guidance for Controllers</a><span class="src">SKYbrary. How ATC handles MINIMUM FUEL and MAYDAY FUEL.</span></li>
+    <li>FAA Aeronautical Information Manual, 5-5-15 Minimum Fuel Advisory<span class="src">The US usage, for comparison.</span></li>
+    <li>Your operations manual (Part A fuel policy) and FCOM<span class="src">Your operator's fuel scheme, procedures and figures, and your aircraft's FMS fuel predictions. These are the authority for your flying.</span></li>
+  </ul>
+</section>
+
+</main>
+<footer><p>Training illustration only. Fuel figures are illustrative for an A320 and vary with mass, type (ceo/neo), weather and operator. The rule wording is summarised from the sources above; your operations manual, FCOM and QRH are the authority.</p><p>Part of <a href="../">xpdr.aero</a> · <a href="../explained/">Explained</a> · <a href="mailto:support@xpdr.aero">support@xpdr.aero</a></p></footer>
+</div>
+<script>
+(function(){
+  var root=document.documentElement;root.classList.add('js');
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var NS='http://www.w3.org/2000/svg';
+  function el(tag,attrs,parent,text){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;if(parent)parent.appendChild(e);return e;}
+  function kg(n){return Math.round(n).toLocaleString('en-GB')+' kg';}
+  function mins(n){var m=Math.max(0,n);return (Math.round(m*10)/10).toFixed(m<10?1:0).replace(/\.0$/,'')+' min';}
+
+  /* ---- Holding scenario ---- */
+  var BURN=38,APP=200,FRF=1100,CLOSE=300;
+  var s={t:0,delay:25,fob0:3100,div:1200,plan:'wait',divertAt:null};
+  var $=function(id){return document.getElementById(id);};
+  var iT=$('i-time'),iD=$('i-delay'),iF=$('i-fob'),iV=$('i-div'),gauge=$('gauge'),tl=$('tl');
+  var planBtns=[].slice.call(document.querySelectorAll('[data-plan]'));
+
+  function model(){
+    var fob=s.fob0-BURN*s.t;
+    var dest=s.fob0-BURN*s.delay-APP;                 // land at destination at the EAT
+    var altnNow=fob-s.div;                            // land at alternate if leaving now
+    var dp=(s.fob0-s.div-FRF)/BURN;                   // latest time to leave for the alternate
+    return {fob:fob,dest:dest,altnNow:altnNow,dp:dp};
+  }
+  function verdict(m){
+    if(s.plan==='divert'){
+      var land=s.fob0-BURN*s.divertAt-s.div;
+      if(land<FRF)return {c:'may',big:'MAYDAY, MAYDAY, MAYDAY, FUEL',txt:'You left for the alternate too late: you calculate landing there with '+kg(land)+', below the planned final reserve of '+kg(FRF)+'. The alternate is now the nearest suitable aerodrome; declare and land.'};
+      if(land<FRF+CLOSE)return {c:'min',big:'MINIMUM FUEL',txt:'Committed to the alternate, landing with '+kg(land)+', close to the planned final reserve. Any change to your clearance may put you below it, so tell ATC.'};
+      return {c:'ok',big:'No call needed',txt:'Diverting with fuel to spare: you land at the alternate with '+kg(land)+', '+kg(land-FRF)+' above the planned final reserve.'};
+    }
+    var canDivert=m.altnNow>=FRF;
+    if(canDivert){
+      if(m.dest<FRF)return {c:'plan',big:'Plan to divert by '+mins(m.dp),txt:'Waiting for this delay would land you at destination with '+kg(m.dest)+', below the planned final reserve. The alternate is still open: you can leave the hold for another '+mins(m.dp-s.t)+'.'};
+      if(m.dest<FRF+CLOSE)return {c:'plan',big:'No call yet',txt:'Both options still protect final reserve, but waiting leaves only '+kg(m.dest-FRF)+' above it. Decide before '+mins(m.dp)+', when the alternate closes.'};
+      return {c:'ok',big:'No call needed',txt:'Two options, both above final reserve. The alternate stays open until '+mins(m.dp)+' in the hold.'};
+    }
+    if(m.dest<FRF)return {c:'may',big:'MAYDAY, MAYDAY, MAYDAY, FUEL',txt:'The alternate has gone and you calculate landing at destination, the nearest suitable aerodrome, with '+kg(m.dest)+'. That is below the planned final reserve of '+kg(FRF)+', so declare, though the gauges still read '+kg(m.fob)+'.'};
+    return {c:'min',big:'MINIMUM FUEL',txt:'You can no longer reach the alternate with final reserve, so you are committed to the destination. You land there with '+kg(m.dest)+', only '+kg(m.dest-FRF)+' above final reserve, and any change to the clearance may take it below. No priority: it tells ATC that more delay could become an emergency.'};
+  }
+
+  function drawGauge(m){
+    gauge.innerHTML='';var top=20,bot=330,max=5000,y=function(v){return bot-(Math.max(0,Math.min(max,v))/max)*(bot-top);};
+    el('rect',{x:42,y:top,width:40,height:bot-top,rx:6,fill:'#efe7cf',stroke:'#c9bea0'},gauge);
+    el('rect',{x:42,y:y(m.fob),width:40,height:bot-y(m.fob),rx:6,fill:'#3d6b8c'},gauge);
+    for(var v=0;v<=max;v+=1000){el('line',{x1:34,x2:42,y1:y(v),y2:y(v),stroke:'#8a8170'},gauge);el('text',{x:30,y:y(v)+4,'text-anchor':'end','font-size':11,'font-family':'ui-monospace,Menlo,monospace',fill:'#5f5747'},gauge,(v/1000)+'t');}
+    var marks=[{v:FRF,c:'#c0321a',l:'FINAL',d:''}];
+    if(s.plan==='wait'){marks.push({v:m.dest,c:'#12804a',l:'DEST',d:'4 3'});marks.push({v:Math.max(0,m.altnNow),c:'#a35a00',l:'ALTN',d:'2 3'});}
+    else{marks.push({v:Math.max(0,s.fob0-BURN*s.divertAt-s.div),c:'#a35a00',l:'ALTN',d:'4 3'});}
+    marks.forEach(function(k){k.y=y(k.v);k.ly=k.y;});
+    var byY=marks.slice().sort(function(a,b){return a.y-b.y;});
+    for(var i=1;i<byY.length;i++){if(byY[i].ly-byY[i-1].ly<13)byY[i].ly=byY[i-1].ly+13;}
+    marks.forEach(function(k){el('line',{x1:38,x2:96,y1:k.y,y2:k.y,stroke:k.c,'stroke-width':2.5,'stroke-dasharray':k.d},gauge);
+      el('text',{x:100,y:k.ly+4,'font-size':11,'font-family':'Familjen Grotesk,system-ui,sans-serif','font-weight':700,fill:k.c},gauge,k.l);});
+    el('text',{x:62,y:356,'text-anchor':'middle','font-size':12,'font-family':'ui-monospace,Menlo,monospace','font-weight':700,fill:'#14110a'},gauge,kg(m.fob));
+    el('text',{x:62,y:372,'text-anchor':'middle','font-size':10,'font-family':'Familjen Grotesk,system-ui,sans-serif',fill:'#5f5747'},gauge,'on board now');
+  }
+
+  var TLX0=24,TLX1=616,TLMAX=60;
+  function tx(t){return TLX0+(Math.max(0,Math.min(TLMAX,t))/TLMAX)*(TLX1-TLX0);}
+  function drawTL(m){
+    tl.innerHTML='';el('line',{x1:TLX0,x2:TLX1,y1:52,y2:52,stroke:'#c9bea0','stroke-width':6,'stroke-linecap':'round'},tl);
+    for(var t=0;t<=TLMAX;t+=10){el('line',{x1:tx(t),x2:tx(t),y1:58,y2:64,stroke:'#8a8170'},tl);el('text',{x:tx(t),y:78,'text-anchor':'middle','font-size':11,'font-family':'ui-monospace,Menlo,monospace',fill:'#5f5747'},tl,t+' min');}
+    if(m.dp>0){el('line',{x1:tx(0),x2:tx(m.dp),y1:52,y2:52,stroke:'#a35a00','stroke-width':6,'stroke-linecap':'round',opacity:.55},tl);
+      el('text',{x:tx(m.dp),y:24,'text-anchor':'middle','font-size':11,'font-weight':700,'font-family':'Familjen Grotesk,system-ui,sans-serif',fill:'#a35a00'},tl,'last chance to divert');
+      el('line',{x1:tx(m.dp),x2:tx(m.dp),y1:30,y2:58,stroke:'#a35a00','stroke-width':1.5,'stroke-dasharray':'3 2'},tl);}
+    el('text',{x:tx(s.delay),y:94,'text-anchor':'middle','font-size':11,'font-weight':700,'font-family':'Familjen Grotesk,system-ui,sans-serif',fill:'#12804a'},tl,'EAT');
+    el('line',{x1:tx(s.delay),x2:tx(s.delay),y1:44,y2:84,stroke:'#12804a','stroke-width':2},tl);
+    var k=el('g',{class:'knob',tabindex:0,role:'slider','aria-label':'Time in the hold','aria-valuemin':0,'aria-valuemax':TLMAX,'aria-valuenow':Math.round(s.t)},tl);
+    el('circle',{cx:tx(s.t),cy:52,r:11,fill:'#14110a'},k);el('circle',{cx:tx(s.t),cy:52,r:4,fill:'#f2b705'},k);
+    k.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowUp'){setT(s.t+1);e.preventDefault();}if(e.key==='ArrowLeft'||e.key==='ArrowDown'){setT(s.t-1);e.preventDefault();}});
+  }
+  var dragging=false;
+  function tFromEvent(e){var r=tl.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*640;return (x-TLX0)/(TLX1-TLX0)*TLMAX;}
+  tl.addEventListener('pointerdown',function(e){dragging=true;tl.setPointerCapture(e.pointerId);stop();setT(tFromEvent(e));});
+  tl.addEventListener('pointermove',function(e){if(dragging)setT(tFromEvent(e));});
+  tl.addEventListener('pointerup',function(){dragging=false;});
+
+  function setT(t){s.t=Math.max(0,Math.min(TLMAX,t));if(s.plan==='divert')s.divertAt=s.t;iT.value=Math.min(s.t,+iT.max);render();}
+  function render(){
+    if(+iT.max!==TLMAX)iT.max=TLMAX;
+    var m=model(),v=verdict(m);
+    $('o-time').textContent=mins(s.t);$('o-delay').textContent=mins(s.delay);$('o-fob').textContent=kg(s.fob0);$('o-div').textContent=kg(s.div);
+    $('r-fob').textContent=kg(m.fob);
+    $('r-dest').textContent=kg(m.dest)+' ('+(m.dest>=FRF?'+':'−')+kg(Math.abs(m.dest-FRF))+')';
+    $('r-altn').textContent=m.altnNow>=FRF?kg(m.altnNow)+' (+'+kg(m.altnNow-FRF)+')':kg(m.altnNow)+' (below final)';
+    $('r-dp').textContent=m.dp>=0?'at '+mins(m.dp):'already passed on arrival';
+    $('r-frf').textContent=kg(FRF);
+    var st=$('status');st.className='status '+v.c;$('st-big').textContent=v.big;$('st-text').textContent=v.txt;
+    drawGauge(m);drawTL(m);
+  }
+  var timer=null;
+  function stop(){if(timer){clearInterval(timer);timer=null;$('play').textContent='Run the clock';}}
+  $('play').addEventListener('click',function(){if(timer){stop();return;}if(s.t>=TLMAX-0.01)setT(0);$('play').textContent='Pause';
+    timer=setInterval(function(){var end=s.plan==='divert'?s.t:Math.min(TLMAX,Math.max(s.delay,1));if(s.t>=end){stop();return;}setT(s.t+(reduce?1:0.25));},reduce?400:80);});
+  iT.addEventListener('input',function(){stop();setT(+iT.value);});
+  iD.addEventListener('input',function(){s.delay=+iD.value;render();});
+  iF.addEventListener('input',function(){s.fob0=+iF.value;render();});
+  iV.addEventListener('input',function(){s.div=+iV.value;render();});
+  $('rwy').addEventListener('click',function(){s.delay=Math.min(+iD.max,s.delay+12);iD.value=s.delay;render();});
+  planBtns.forEach(function(b){b.addEventListener('click',function(){stop();s.plan=b.getAttribute('data-plan');s.divertAt=s.plan==='divert'?s.t:null;
+    planBtns.forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});render();});});
+  render();
+
+  /* ---- Quiz ---- */
+  var qs=[].slice.call(document.querySelectorAll('.qz')),done=0,right=0,score=$('score');
+  var LABELS=[['min','MINIMUM FUEL'],['may','MAYDAY FUEL'],['neither','Neither']];
+  function upd(){score.textContent=done?right+' of '+done+' right · '+(qs.length-done)+' to go':qs.length+' situations. Pick a call for each.';}
+  qs.forEach(function(q){var box=q.querySelector('.opts'),det=q.querySelector('details'),ans=q.getAttribute('data-a'),answered=false;
+    LABELS.forEach(function(L){var b=document.createElement('button');b.type='button';b.textContent=L[1];
+      b.addEventListener('click',function(){if(answered)return;answered=true;done++;if(L[0]===ans)right++;
+        [].forEach.call(box.children,function(x,i){if(LABELS[i][0]===ans)x.classList.add('right');else if(x===b)x.classList.add('wrong');});
+        det.open=true;upd();});
+      box.appendChild(b);});});
+  upd();
+})();
+</script>
+</body>
+</html>
