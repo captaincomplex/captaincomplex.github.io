@@ -204,7 +204,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     <div class="tablewrap"><table class="res" id="res"></table></div>
   </div>
 
-  <p class="note">How the model works: a simplified A320 at idle descends about 3 NM per 1,000 ft clean, a little steeper when faster, and slows about 10 kt per NM in level flight. In DES, managed speed may vary ±20 kt around its target, capped at VMAX (350 kt / M.82, approximated); below the path DES rejoins at about 1,000 ft/min. Half speedbrake steepens the path by about 25% at 300 kt, less at lower speeds; with the autopilot engaged the A320 gives no more than half, and it is inhibited in CONF FULL. Gear and flaps add drag; VFE 230/200/185/177 kt, VLO 250 kt, VLE 280 kt. EXPED descends at idle at 340 kt / M.80. Once the approach phase is active, managed speed targets green dot 210 kt, then S 195 and F 180 kt. The glideslope is 3°, captured inside 12 NM. All figures are illustrative and vary with weight, type, MSN and FMS standard; on the real aircraft the approach phase also activates on its own at the DECEL point.</p>
+  <p class="note">How the model works: at idle, clean, the aircraft descends about 3 NM per 1,000 ft (a little steeper when faster) and slows about 10 kt per NM in level flight. In DES, managed speed may vary ±20 kt around its target, capped at VMAX (350 kt / M.82), and no more than 5 kt above a 250 kt target below FL100; below the path DES rejoins at about 1,000 ft/min. Half speedbrake steepens the path by about 25% at 300 kt, less when slower; with the autopilot engaged the A320 gives no more than half; it is inhibited in CONF FULL, and once the gear is down the spoilers are armed for landing (operator SOP), so no speedbrake. Gear and flaps add drag; VFE 230/200/185/177 kt, VLO 250 kt, VLE 280 kt. EXPED descends at idle at 340 kt / M.80. Passing the DECEL point (D) activates the approach phase, or activate it earlier yourself: managed speed then targets green dot 210 kt, then S 180, F 150, 145 and 140 kt. The glideslope is 3° and can be captured within 20 NM. Approach speeds depend on weight and drag figures are approximate; your FCOM and FCTM are the authority.</p>
 </section>
 
 <section class="t c-c">
@@ -235,13 +235,13 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
   var $=function(id){return document.getElementById(id);};
 
   /* ---------- draft aircraft model ---------- */
-  var G=32.174,KT=1.68781,NM=6076.1,GATE_ALT=3000,GATE_D=13,GS_FT=318,FAP_D=3000/318,RANGE=20,VMO=350,VLE=280,VLO=250;
+  var G=32.174,KT=1.68781,NM=6076.1,GATE_ALT=3000,GATE_D=13,GS_FT=318,FAP_D=3000/318,DECEL_D=20,GS_RANGE=20,RANGE=20,VMO=350,VLE=280,VLO=250;
   var K0=0.0549,KSB=0.0137,KGEAR=0.019,KFLAP=[0,0.004,0.010,0.016,0.026];
-  var VFE=[999,230,200,185,177],VLSC=[210,185,160,150,140],FTGT=[0,195,180,170,145];
+  var VFE=[999,230,200,185,177],VLSC=[190,160,135,130,125],FTGT=[0,180,150,145,140];
   function vmaxClean(alt){return alt>25000?VMO-(alt-25000)*0.0085:VMO;}           // rough M.82 above the crossover
   function vmax(st){var v=vmaxClean(st.alt);if(st.flaps)v=Math.min(v,VFE[st.flaps]);if(st.gear)v=Math.min(v,VLE);return v;}
   function tas(ias,alt){return ias*(1+0.02*alt/1000);}
-  function kdrag(st){var V=st.ias,sb=st.flaps===4?0:Math.min(st.sb,0.5);
+  function kdrag(st){var V=st.ias,sb=st.flaps===4||st.gear?0:Math.min(st.sb,0.5);
     return K0*(0.85+0.15*Math.pow(V/280,2))+KSB*sb*2*Math.pow(V/300,2)+(st.gear?KGEAR:0)+KFLAP[st.flaps];}
 
   function managedTarget(st){var des=st.alt<11000?250:st.econ;
@@ -262,6 +262,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     var rg=st.spdManaged&&!st.exped?RANGE:2;                          // the speed range applies to managed speed only
     var hi=Math.min(tgt+rg,vm),lo=Math.max(VLSC[st.flaps],tgt-rg);
     if(st.alt<10300)hi=Math.min(hi,Math.max(250,tgt));
+    if(st.alt<10000&&tgt>=250)hi=Math.min(hi,tgt+5);                     // below FL100, 250 kt target: at most +5 kt
     var pa=pathAlt(st.d,st),err=st.alt-pa,dh,dV,thr='THR IDLE',vert;
     var slope=(pa-pathAlt(Math.max(0,st.d-0.5),st))/0.5,pathRate=-slope*gs/NM;
     var hold=function(){return Math.max(-1,Math.min(1,(tgt-V)*0.15))*KT;};
@@ -284,8 +285,9 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     st.alt+=dh*dt;st.ias=Math.max(VLSC[st.flaps]-10,V+dV/KT*dt);st.vs=dh*60;
     st.d-=gs/NM*dt;st.t+=dt;st.thr=thr;st.vert=vert;
     var over=st.ias-vmax(st);if(over>4)st.ovspd=Math.max(st.ovspd,over);
+    if(!st.apprPhase&&st.d<=DECEL_D){st.apprPhase=true;st.apprArm=false;}   // passing DECEL activates the approach phase
     var gsAlt=st.d*GS_FT;
-    if(st.appr&&st.d<12&&Math.abs(st.alt-gsAlt)<40){st.gsCap=true;st.done=true;st.capIas=st.ias;st.result=st.ias<=181?'win':'fast';}
+    if(st.appr&&st.d<GS_RANGE&&Math.abs(st.alt-gsAlt)<40){st.gsCap=true;st.done=true;st.capIas=st.ias;st.result=st.ias<=181?'win':'fast';}
     else if(st.d<FAP_D-0.8){st.done=true;st.result=st.alt>gsAlt+150?'high':!st.appr?'notarmed':'missed';}
   }
 
@@ -298,7 +300,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     spdManaged:true,spdSel:p.ias,vmode:'DES',vsSel:-1500,fcuAlt:GATE_ALT,exped:false,appr:false,apprPhase:false,apprArm:false,gsCap:false,result:null,capIas:0,t:0,done:false,ovspd:0,moreDrag:false,mdTime:0,extra:0};}
 
   function approach(st){if(st.d<30)st.appr=true;                    // every strategy flies the same approach
-    if(st.d<25){st.apprPhase=true;st.spdManaged=true;if(st.ias<=VFE[1]+2&&st.flaps<1)st.flaps=1;}
+    if(st.d<25){st.spdManaged=true;if(st.ias<=VFE[1]+2&&st.flaps<1)st.flaps=1;}
     if(st.d<20&&st.ias<=VFE[2]+2&&st.flaps<2)st.flaps=2;}
   var STRATS=[
     {name:'DES, hands off',col:'#8a8170',run:function(st){}},
@@ -310,7 +312,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
       if(e>500&&!st.gear)st.sb=0.5;
       if(e>1500&&st.alt<16000){st.spdManaged=false;st.spdSel=Math.min(st.spdSel,220);}
       if(e>1500&&st.ias<=VLO+3){st.gear=true;}
-      if(e>1500&&st.gear&&st.ias<=225){st.flaps=Math.max(st.flaps,1);st.sb=0.5;}
+      if(e>1500&&st.gear&&st.ias<=225){st.flaps=Math.max(st.flaps,1);}
       if(e<150)st.sb=0;}},
     {name:'Ask ATC for +15 NM',col:'#12804a',init:function(st){st.d+=15;st.extra=15;},run:function(st){}}
   ];
@@ -335,6 +337,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     el('line',{x1:x(GATE_D),x2:x(FAP_D),y1:y(GATE_ALT),y2:y(GATE_ALT),stroke:'#14110a','stroke-width':1.5,'stroke-dasharray':'2 3'},svg);
     el('circle',{cx:x(FAP_D),cy:y(GATE_ALT),r:5,fill:'#12804a'},svg);
     el('text',{x:x(FAP_D),y:y(GATE_ALT)-10,'text-anchor':'middle','font-size':11,'font-weight':700,fill:'#12804a'},svg,'G/S');
+    var dx=x(Math.max(0,DECEL_D-s.extra)),dy=y(Math.min(AMAX,pathAlt(DECEL_D,s)));el('circle',{cx:dx,cy:dy,r:8,fill:'#fff',stroke:'#b01fa8','stroke-width':2},svg);el('text',{x:dx,y:dy+4,'text-anchor':'middle','font-size':10,'font-weight':700,fill:'#b01fa8'},svg,'D');
     if(s.extra)el('text',{x:X0+6,y:Y1+14,'font-size':11,'font-weight':700,fill:'#12804a'},svg,'+'+s.extra+' NM track miles from ATC');
     ghosts.forEach(function(g){poly(g.trail,{stroke:g.col,'stroke-width':2.5,opacity:.9});});
     if(trail.length>1)poly(trail,{stroke:'#14110a','stroke-width':2.5});
@@ -384,7 +387,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     else{el('rect',{x:25,y:hy-10,width:40,height:20,rx:5,fill:'#d9dee2',stroke:'#14110a','stroke-width':1.5},svgEl);el('line',{x1:31,x2:59,y1:hy,y2:hy,stroke:'#14110a','stroke-width':2},svgEl);}}
   function drawLevers(){
     var sb=$('lv-sb');track(sb,[['RET',0],['1/2',0.5],['FULL',1]]);handle(sb,s.sb);
-    $('ro-sb').textContent=s.flaps===4?'INHIB':s.sb<0.02?'RET':(s.sb>0.5?'½ (AP)':Math.round(s.sb*200)+'% of ½');
+    $('ro-sb').textContent=s.gear?'ARMED':s.flaps===4?'INHIB':s.sb<0.02?'RET':(s.sb>0.5?'½ (AP)':Math.round(s.sb*200)+'% of ½');
     var fl=$('lv-fl');track(fl,[['0',0],['1',.25],['2',.5],['3',.75],['FULL',1]]);handle(fl,s.flaps/4,'flap');
     $('ro-fl').textContent=s.flaps?'VFE '+VFE[s.flaps]:'CONF 0';
     var lg=$('lv-lg');lg.innerHTML='';el('rect',{x:30,y:20,width:30,height:150,rx:6,fill:'#22282e'},lg);
@@ -399,9 +402,9 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     e.addEventListener('pointerdown',function(ev){on=true;e.setPointerCapture(ev.pointerId);onPos(pos(ev));render();});
     e.addEventListener('pointermove',function(ev){if(on){onPos(pos(ev));render();}});
     e.addEventListener('pointerup',function(){on=false;});}
-  leverDrag('lv-sb',function(f){s.sb=f;});                                   // free travel
+  leverDrag('lv-sb',function(f){if(!s.gear)s.sb=f;});                                   // free travel
   leverDrag('lv-fl',function(f){s.flaps=Math.round(f*4);});                  // detents, as on the real lever
-  $('lv-lg').addEventListener('click',function(){if(!s.gear&&s.ias>VLO+2){s.gearMsg='VLO '+VLO;render();return;}s.gear=!s.gear;s.gearMsg='';render();});
+  $('lv-lg').addEventListener('click',function(){if(!s.gear&&s.ias>VLO+2){s.gearMsg='VLO '+VLO;render();return;}s.gear=!s.gear;s.gearMsg='';if(s.gear)s.sb=0;render();});
   $('lv-sb').addEventListener('keydown',function(e){if(e.key==='ArrowDown')s.sb=Math.min(1,s.sb+0.05);else if(e.key==='ArrowUp')s.sb=Math.max(0,s.sb-0.05);else return;e.preventDefault();render();});
   $('lv-fl').addEventListener('keydown',function(e){if(e.key==='ArrowDown')s.flaps=Math.min(4,s.flaps+1);else if(e.key==='ArrowUp')s.flaps=Math.max(0,s.flaps-1);else return;e.preventDefault();render();});
   $('lv-lg').addEventListener('keydown',function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();$('lv-lg').dispatchEvent(new Event('click'));}});
