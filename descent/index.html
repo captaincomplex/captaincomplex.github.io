@@ -388,6 +388,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
       else{cls='done';
         big=s.result==='win'?'Stable, but with an overspeed':s.result==='unstable'?'Not stable at 1,000 ft: '+s.why:s.result==='fast'?'Too fast: G/S captured at '+Math.round(s.capIas)+' kt':s.result==='high'?'Too high: above the glideslope at 3,000 ft point':s.result==='notarmed'?'APPR not armed: no glideslope capture':'Glideslope missed';
         txt=(s.result==='unstable'?'Go around. Configure earlier: gear down, then flaps 3 and FULL, slowing as you go.':s.result==='fast'?'Slow down earlier: flaps 1 below 230 kt, flaps 2 below 200 kt.':s.result==='high'?'You needed more drag or more track miles, earlier.':s.result==='notarmed'?'Press APPR before reaching the glideslope.':'')+ov;}}
+    else if(s.gsCap){cls='win';big='G/S captured at '+Math.round(s.capIas)+' kt';txt='Now get stable by 1,000 ft: gear down, CONF 3 or FULL, below VAPP + 30.';}
     else{var n=need(s.alt,s),av=s.d-GATE_D;
       if(vdev>800){cls='high';big='High: '+Math.round(vdev/100)*100+' ft above the path';txt='About '+n.toFixed(0)+' NM needed, '+av.toFixed(0)+' NM to go.';}
       else if(vdev<-800){cls='low';big='Low: '+Math.round(-vdev/100)*100+' ft below the path';txt='DES holds speed and descends gently to rejoin.';}
@@ -458,15 +459,16 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
   var timer=null;
   function stop(){if(timer){clearInterval(timer);timer=null;}$('play').textContent='▶ Play';}
   $('play').addEventListener('click',function(){if(timer){stop();render();return;}if(s.done){s=fresh(start,+$('wind').value);trail=[];}
-    $('play').textContent='❚❚ Pause';timer=setInterval(function(){acc+=rate*0.05;while(acc>=0.5&&!s.done){step(s,0.5);acc-=0.5;}trail.push([s.d-s.extra,s.alt]);if(s.done){stop();if(s.result==='win'&&!s.ovspd)confetti();}render();},50);});
+    $('play').textContent='❚❚ Pause';timer=setInterval(function(){acc+=rate*0.05;var was=s.gsCap;while(acc>=0.5&&!s.done){step(s,0.5);acc-=0.5;}if(!was&&s.gsCap)confetti(true);trail.push([s.d-s.extra,s.alt]);if(s.done){stop();if(s.result==='win'&&!s.ovspd)confetti();}render();},50);});
   var rate=10,acc=0;
   [].forEach.call(document.querySelectorAll('[data-rate]'),function(b){b.addEventListener('click',function(){rate=+b.dataset.rate;[].forEach.call(document.querySelectorAll('[data-rate]'),function(x){x.setAttribute('aria-pressed',x===b);});});});
-  function confetti(){var c=$('confetti');if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  function confetti(small){var c=$('confetti');if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     var ctx=c.getContext('2d'),W=c.width=innerWidth,H=c.height=innerHeight,cols=['#f2b705','#12804a','#0a7096','#c0321a','#b01fa8','#fbf8ef','#3fd6ff'],ps=[];
     function burst(x0,dir){for(var i=0;i<220;i++)ps.push({x:x0,y:H*.75,vx:dir*(Math.random()*16+4)+(Math.random()-.5)*6,vy:-Math.random()*22-10,r:Math.random()*7+5,c:cols[i%cols.length],a:Math.random()*6,va:(Math.random()-.5)*.5});}
-    burst(0,1);burst(W,-1);setTimeout(function(){burst(W*.5,0.4);burst(W*.5,-0.4);},500);setTimeout(function(){burst(0,1);burst(W,-1);},1100);
+    if(small){for(var k=0;k<2;k++)burst(W*.5,k?0.35:-0.35);ps=ps.slice(0,180);}
+    else{burst(0,1);burst(W,-1);setTimeout(function(){burst(W*.5,0.4);burst(W*.5,-0.4);},500);setTimeout(function(){burst(0,1);burst(W,-1);},1100);}
     var t0=performance.now();(function frame(t){var e=t-t0;ctx.clearRect(0,0,W,H);ps.forEach(function(p){p.vy+=.32;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);ctx.restore();});
-      if(e<5200)requestAnimationFrame(frame);else ctx.clearRect(0,0,W,H);})(t0);}
+      if(e<(small?2600:5200))requestAnimationFrame(frame);else ctx.clearRect(0,0,W,H);})(t0);}
   $('reset').addEventListener('click',function(){stop();s=fresh(start,+$('wind').value);trail=[];render();});
   $('gust').addEventListener('click',function(){s.ias+=15;render();});
   $('miles').addEventListener('click',function(){s.d+=15;s.extra+=15;render();});
@@ -481,10 +483,10 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     start={d:d,alt:a,ias:a<10000?250:P[cur].ias,econ:P[cur].econ};s=fresh(start,+$('wind').value);trail=[];ghosts=[];$('cmp').classList.remove('on');syncTod();render();}
   [].forEach.call(document.querySelectorAll('[data-p]'),function(b){b.addEventListener('click',function(){stop();cur=b.dataset.p;ghosts=[];$('wind').value=P[cur].wind;$('cmp').classList.remove('on');
     [].forEach.call(document.querySelectorAll('[data-p]'),function(x){x.setAttribute('aria-pressed',x===b);});init();});});
-  $('compare').addEventListener('click',function(){stop();var w=+$('wind').value,rows='<tr><th>Strategy</th><th>Result</th><th>Overspeed</th><th>MORE DRAG</th></tr>';ghosts=[];
+  $('compare').addEventListener('click',function(){stop();var w=+$('wind').value,rows='<tr><th>Strategy</th><th>G/S</th><th>Result</th><th>Overspeed</th><th>MORE DRAG</th></tr>';ghosts=[];
     STRATS.forEach(function(sg){var r=simulate(start,w,sg),off=r.st.alt-GATE_ALT;ghosts.push({col:sg.col,trail:r.trail});
       var R={win:'Stable, '+Math.round(r.st.ias)+' kt',unstable:'Unstable: '+r.st.why,fast:'Too fast: '+Math.round(r.st.capIas)+' kt',high:'Too high',notarmed:'Not armed',missed:'Missed'};
-      rows+='<tr><td><span class="sw" style="background:'+sg.col+'"></span>'+sg.name+'</td><td>'+(R[r.st.result]||'—')+'</td><td>'+(r.st.ovspd>0?'+'+Math.round(r.st.ovspd)+' kt':'None')+'</td><td>'+(r.st.mdTime>0?Math.round(r.st.mdTime/60)+' min':'—')+'</td></tr>';});
+      rows+='<tr><td><span class="sw" style="background:'+sg.col+'"></span>'+sg.name+'</td><td>'+(r.st.gsCap?'Captured, '+Math.round(r.st.capIas)+' kt':'Not captured')+'</td><td>'+(R[r.st.result]||'—')+'</td><td>'+(r.st.ovspd>0?'+'+Math.round(r.st.ovspd)+' kt':'None')+'</td><td>'+(r.st.mdTime>0?Math.round(r.st.mdTime/60)+' min':'—')+'</td></tr>';});
     $('res').innerHTML=rows;$('cmp').classList.add('on');init();});
   init();
 })();
