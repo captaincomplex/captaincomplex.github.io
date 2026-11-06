@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Descent Management — xpdr.aero</title>
+<meta name="description" content="Fly an A320 descent with the FCU, speedbrake, flaps and gear: get from cruise to the glideslope at 180 kt without an overspeed, and compare strategies.">
+<meta name="theme-color" content="#14110a">
+<link rel="icon" href="../logo/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="../logo/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../logo/apple-touch-icon.png">
+<style>
+@font-face{font-family:"Familjen Grotesk";font-weight:500 700;font-style:normal;font-display:swap;src:url(../fonts/familjen-grotesk-latin.woff2) format("woff2")}
+@font-face{font-family:"Familjen Fallback";src:local("Arial"),local("Liberation Sans");size-adjust:102%;ascent-override:100%;descent-override:22%;line-gap-override:0%}
+:root{--f:"Familjen Grotesk","Familjen Fallback",system-ui,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,monospace;
+ --page:#14110a;--saf:#f2b705;--white:#fbf8ef;--cream:#f3ecd6;--ink:#14110a;--muted:#5f5747;--line:#d8ceb2;
+ --red:#c0321a;--amber:#a35a00;--green:#12804a;--cyan:#0a7096;
+ --panel:#4a5560;--panel-d:#38414a;--lcd:#121212;--lcd-ink:#ffae2e;--fma:#0b0f14;--fma-g:#37e46a;--fma-w:#f2f5f7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--f);line-height:1.5;padding:0 14px 14px}
+.wrap{max-width:1300px;margin:0 auto}
+.banner{background:var(--red);color:#fff;font-weight:700;padding:10px 16px;border-radius:12px;margin:14px 0;font-size:.9375rem}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.t{border-radius:26px;padding:clamp(16px,3vw,32px);display:flex;flex-direction:column;gap:14px;min-width:0}
+.c-y{background:var(--saf)}.c-w{background:var(--white)}.c-c{background:var(--cream)}
+h1{font-size:clamp(2.5rem,6vw,5rem);letter-spacing:-.04em;line-height:.95;margin:0}
+h2{font-size:clamp(1.5rem,2.6vw,2.1rem);letter-spacing:-.03em;margin:0;line-height:1}
+p{margin:0;max-width:68ch}
+.eyebrow{font-size:.8125rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+
+.top-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{font:600 .875rem var(--f);border:1.5px solid var(--ink);background:none;border-radius:12px;padding:8px 13px;cursor:pointer;color:var(--ink)}
+.btn:hover{background:var(--ink);color:var(--white)}
+.btn.pri{background:var(--ink);color:var(--white)}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.presets button{font:600 .8125rem var(--f);border:1.5px solid var(--line);background:var(--cream);border-radius:99px;padding:7px 12px;cursor:pointer}
+.presets button[aria-pressed=true]{border-color:var(--ink);background:var(--ink);color:var(--white)}
+.wind{display:flex;align-items:center;gap:8px;font-size:.875rem;font-weight:600}
+.wind input{width:130px;accent-color:var(--ink)}
+.wind output{font-family:var(--mono);min-width:8ch}
+
+.prof svg{width:100%;height:auto;display:block;touch-action:none;user-select:none;-webkit-user-select:none;background:#fff;border-radius:14px;border:1px solid var(--line)}
+.status{border-left:8px solid var(--green);background:var(--cream);border-radius:14px;padding:10px 16px;display:flex;flex-direction:column;gap:2px}
+.status.high{border-color:var(--red)}.status.low{border-color:var(--cyan)}.status.done{border-color:var(--ink)}
+.status .big{font-family:var(--mono);font-weight:700;font-size:1.2rem}
+.status.high .big{color:var(--red)}.status.low .big{color:var(--cyan)}
+.status span{font-size:.9375rem}
+
+/* Cockpit */
+.cockpit{display:grid;grid-template-columns:250px minmax(0,1fr) 270px;gap:12px;align-items:stretch}
+.fma{background:var(--fma);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;font-family:var(--mono)}
+.fma .cols{display:grid;grid-template-columns:1.1fr 1fr .8fr;border:1px solid #2b3240}
+.fma .cols span{padding:6px 2px;text-align:center;font-size:14px;font-weight:700;border-right:1px solid #2b3240;color:var(--fma-g)}
+.fma .cols span:last-child{border-right:0}
+.fma .data{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:13px}
+.fma .data b{color:#8d9aa6;font-weight:500;margin-right:5px}
+.fma .data span{color:var(--fma-w)}
+.fma .data .hot{color:#ff5a3d;font-weight:700}
+.warn{display:none;background:#ff2d1a;color:#fff;font:700 13px var(--mono);text-align:center;border-radius:5px;padding:3px;letter-spacing:.1em}
+.warn.on{display:block;animation:blink .6s steps(2) infinite}
+.msg{display:none;color:#fff;font:600 12px var(--mono);text-align:center;border:1px solid #fff;border-radius:4px;padding:2px}
+.msg.on{display:block}
+.mcdu{margin-top:auto;font:700 13px var(--mono);letter-spacing:.04em;text-align:left;background:#000;color:var(--fma-w);border:1px solid #3a4250;border-radius:4px;padding:7px 9px;cursor:pointer}
+.mcdu:hover{border-color:#8d9aa6}
+.mcdu.arm{color:#ffa51f}.mcdu.on{color:var(--fma-g);cursor:default}
+@keyframes blink{50%{opacity:.35}}
+
+.fcu{background:var(--panel);border-radius:12px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 0 0 0 2px var(--panel-d);color:#fff}
+.fcu .row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.fcu .unit{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+.fcu .lbl{font:700 10.5px var(--f);letter-spacing:.12em}
+.fcu .win{background:var(--lcd);border-radius:3px;width:100%;height:34px;display:flex;align-items:center;justify-content:center;gap:5px;font:700 18px var(--mono);color:var(--lcd-ink);letter-spacing:.02em}
+.fcu .dot{width:8px;height:8px;border-radius:50%;background:var(--lcd-ink);visibility:hidden;flex:none}
+.fcu .dot.on{visibility:visible}
+.kwrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+.kwrap .pl{font:700 9px var(--f);letter-spacing:.1em;color:#cfd6dc;background:none;border:0;cursor:pointer;padding:2px 6px;border-radius:4px}
+.kwrap .pl:hover{background:#2a3036}
+.knob{width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#707b86,#2a3036 70%);box-shadow:0 2px 0 #1e2328,inset 0 0 0 3px #22282e;position:relative;cursor:grab;touch-action:none;transition:transform .12s}
+.knob.pulled{transform:translateY(-3px) scale(1.04);box-shadow:0 5px 0 #1e2328,inset 0 0 0 3px #22282e}
+.knob.pushed{transform:translateY(2px) scale(.97)}
+.knob::after{content:"";position:absolute;left:50%;top:5px;width:3px;height:12px;margin-left:-1.5px;background:#e8eef2;border-radius:2px;transform-origin:1.5px 20px;transform:rotate(var(--rot,0deg))}
+.fcu .btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;border-top:1px solid #5d6873;padding-top:8px}
+.pb{font:700 10.5px var(--f);letter-spacing:.08em;color:#fff;background:#2a3036;border:1px solid #6b7680;border-radius:4px;padding:5px 10px;position:relative;cursor:default}
+.pb i{display:block;height:3px;margin-top:3px;border-radius:2px;background:#1a1f24}
+.pb.lit i{background:#37e46a;box-shadow:0 0 6px #37e46a}
+.pb.act{cursor:pointer}
+.alt-sel{display:flex;gap:2px;font:700 9px var(--f)}
+.alt-sel button{font:inherit;color:#cfd6dc;background:#2a3036;border:1px solid #6b7680;border-radius:3px;padding:1px 4px;cursor:pointer}
+.alt-sel button[aria-pressed=true]{color:#fff;border-color:#fff}
+
+.ped{background:var(--panel);border-radius:12px;padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;box-shadow:inset 0 0 0 2px var(--panel-d)}
+.ped .lv{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.ped .lbl{font:700 10px var(--f);letter-spacing:.08em;color:#fff;text-align:center;line-height:1.2}
+.ped svg{width:100%;max-width:100px;height:auto;touch-action:none;user-select:none;-webkit-user-select:none;cursor:ns-resize}
+.ped .ro{font:12px var(--mono);color:var(--lcd-ink);min-height:16px;text-align:center}
+
+.cmp{display:none;flex-direction:column;gap:8px}
+.cmp.on{display:flex}
+table.res{border-collapse:collapse;width:100%;font-size:.9375rem}
+table.res th,table.res td{text-align:left;padding:7px 10px 7px 0;border-top:1px solid var(--line);vertical-align:top}
+table.res th{font-size:.8125rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-top:0}
+table.res .sw{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:8px}
+.tablewrap{overflow-x:auto}
+.rate{display:flex;align-items:center;gap:6px;font-size:.875rem;font-weight:600}
+.rate .seg{display:flex;border:1.5px solid var(--ink);border-radius:10px;overflow:hidden}
+.rate .seg button{font:600 .8125rem var(--f);background:none;border:0;padding:6px 10px;cursor:pointer;color:var(--ink)}
+.rate .seg button[aria-pressed=true]{background:var(--ink);color:var(--white)}
+.fma .cols small{display:block;color:#3fd6ff;font-size:12px;font-weight:700}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+.status.win{border-color:var(--green);background:#e3f4e8}.status.win .big{color:var(--green)}
+
+.myth{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:12px}
+.myth div{background:var(--white);border-radius:16px;padding:16px 18px;font-size:.9375rem;display:flex;flex-direction:column;gap:6px}
+.myth div.key{outline:3px solid var(--red)}
+.myth s{color:var(--red);font-weight:700;text-decoration-thickness:2px}
+.top{padding:16px 4px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.top img{height:34px;width:auto;display:block}
+.top a.back{color:var(--cream);font-size:.9375rem;font-weight:500;text-decoration:none}.top a.back:hover{color:var(--saf)}
+.note{font-size:.8125rem;color:var(--muted);max-width:100ch}
+.nojs{font-size:.9375rem}
+.js .nojs{display:none}
+.refs{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;max-width:80ch}
+.refs li{display:flex;flex-direction:column;gap:2px}.refs .src{font-size:14px;color:var(--muted)}
+footer{margin-top:22px;padding:0 4px 8px;display:flex;justify-content:space-between;gap:12px 28px;flex-wrap:wrap;color:#a79d82;font-size:.875rem;line-height:1.5}
+footer p{max-width:80ch}footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--saf)}
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.q{background:#fff3c4;border:2px dashed var(--amber);border-radius:12px;padding:10px 14px;font-size:.875rem}
+.q b{color:var(--amber)}
+@media(max-width:1100px){.cockpit{grid-template-columns:minmax(0,1fr) 270px}.fma{grid-column:1/-1}}
+@media(max-width:700px){.cockpit{grid-template-columns:1fr}.fcu .row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a href="../"><img src="../logo/xpdr-lockup-A2.svg" alt="xpdr.aero" width="98" height="34"></a><a class="back" href="../explained/">Explained</a></div>
+<main class="grid">
+
+<section class="t c-y">
+  <p class="eyebrow">Interactive explainer · Airbus A320 family</p>
+  <h1>Descent Management</h1>
+  <p style="font-weight:500;font-size:1.125rem">Pick a situation, press Play, and fly it with the FCU, speedbrake, flaps and gear. Capture the glideslope at 180 kt or slower, without an overspeed. Activate the approach phase yourself. Then compare strategies.</p>
+</section>
+
+<section class="t c-w">
+  <p class="nojs">The descent simulator needs JavaScript. The points it teaches are in the section below.</p>
+  <div class="top-row">
+    <div class="presets" role="group" aria-label="Situations">
+      <button type="button" data-p="late" aria-pressed="true">Late descent</button>
+      <button type="button" data-p="short" aria-pressed="false">Shortcut to final</button>
+      <button type="button" data-p="fast" aria-pressed="false">High managed speed</button>
+      <button type="button" data-p="low" aria-pressed="false">Early descent, now low</button>
+    </div>
+    <span style="flex:1"></span>
+    <label class="wind" for="wind">Wind <input id="wind" type="range" min="-40" max="60" step="any" value="10"><output id="o-wind"></output></label>
+  </div>
+  <div class="top-row">
+    <button class="btn pri" type="button" id="play">▶ Play</button>
+    <button class="btn" type="button" id="reset">Reset</button>
+    <button class="btn" type="button" id="miles">Ask ATC: +15 NM</button>
+    <button class="btn" type="button" id="gust">Gust +15 kt</button>
+    <span class="rate">Play speed <span class="seg" role="group" aria-label="Play speed"><button type="button" data-rate="1" aria-pressed="false">1×</button><button type="button" data-rate="5" aria-pressed="false">5×</button><button type="button" data-rate="10" aria-pressed="true">10×</button><button type="button" data-rate="30" aria-pressed="false">30×</button></span></span>
+    <span style="flex:1"></span>
+    <button class="btn" type="button" id="compare">Compare strategies</button>
+  </div>
+  <div class="prof"><svg id="prof" viewBox="0 0 760 290" aria-label="Vertical profile. Drag the aircraft when paused."></svg></div>
+  <div class="status" id="status"><span class="big" id="st-big"></span><span id="st-txt"></span></div>
+
+  <div class="cockpit">
+    <div class="fma" aria-label="Flight mode annunciator and flight data">
+      <div class="cols"><span id="fma-thr"></span><span id="fma-vert"></span><span id="fma-lat">NAV</span></div>
+      <div class="data">
+        <div><b>IAS</b><span id="d-ias"></span></div><div><b>VMAX</b><span id="d-vmax"></span></div>
+        <div><b>ALT</b><span id="d-alt"></span></div><div><b>V/S</b><span id="d-vs"></span></div>
+        <div><b>VDEV</b><span id="d-vdev"></span></div><div><b>TO G/S</b><span id="d-dist"></span></div>
+      </div>
+      <div class="warn" id="ovspd">OVERSPEED</div>
+      <div class="msg" id="mdrag">MORE DRAG</div>
+      <button type="button" class="mcdu" id="apph"></button>
+    </div>
+
+    <div class="fcu" aria-label="Flight control unit">
+      <div class="row">
+        <div class="unit"><span class="lbl">SPD</span><div class="win"><span id="w-spd"></span><span class="dot" id="dot-spd"></span></div>
+          <div class="kwrap"><button class="pl" type="button" data-k="spd" data-a="pull">▲ PULL</button><div class="knob" id="k-spd" tabindex="0" role="slider" aria-label="Speed knob"></div><button class="pl" type="button" data-k="spd" data-a="push">▼ PUSH</button></div></div>
+        <div class="unit"><span class="lbl">HDG</span><div class="win"><span>---</span><span class="dot on"></span></div>
+          <div class="kwrap"><span class="pl" style="visibility:hidden">▲</span><div class="knob" aria-hidden="true" style="cursor:default"></div><span class="pl" style="visibility:hidden">▼</span></div></div>
+        <div class="unit"><span class="lbl">ALT</span><div class="win"><span id="w-alt"></span><span class="dot" id="dot-alt"></span></div>
+          <div class="kwrap"><button class="pl" type="button" data-k="alt" data-a="pull">▲ PULL</button><div class="knob" id="k-alt" tabindex="0" role="slider" aria-label="Altitude knob"></div><button class="pl" type="button" data-k="alt" data-a="push">▼ PUSH</button></div>
+          <div class="alt-sel" role="group" aria-label="Altitude increment"><button type="button" data-inc="100" aria-pressed="false">100</button><button type="button" data-inc="1000" aria-pressed="true">1000</button></div></div>
+        <div class="unit"><span class="lbl">V/S</span><div class="win"><span id="w-vs"></span></div>
+          <div class="kwrap"><button class="pl" type="button" data-k="vs" data-a="pull">▲ PULL</button><div class="knob" id="k-vs" tabindex="0" role="slider" aria-label="Vertical speed knob"></div><button class="pl" type="button" data-k="vs" data-a="push">▼ PUSH</button></div></div>
+      </div>
+      <div class="btns"><span class="pb lit">AP<i></i></span><span class="pb lit">A/THR<i></i></span><button class="pb act" type="button" id="exped">EXPED<i></i></button><button class="pb act" type="button" id="appr">APPR<i></i></button></div>
+    </div>
+
+    <div class="ped" aria-label="Pedestal and panel levers">
+      <div class="lv"><span class="lbl">SPEED<br>BRAKE</span><svg id="lv-sb" viewBox="0 0 104 200" role="slider" tabindex="0" aria-label="Speedbrake lever"></svg><span class="ro" id="ro-sb"></span></div>
+      <div class="lv"><span class="lbl">FLAPS</span><svg id="lv-fl" viewBox="0 0 104 200" role="slider" tabindex="0" aria-label="Flap lever"></svg><span class="ro" id="ro-fl"></span></div>
+      <div class="lv"><span class="lbl">L/G</span><svg id="lv-lg" viewBox="0 0 104 200" role="switch" tabindex="0" aria-label="Landing gear lever"></svg><span class="ro" id="ro-lg"></span></div>
+    </div>
+  </div>
+
+  <div class="cmp" id="cmp">
+    <h2 style="font-size:1.375rem">Five strategies, same situation</h2>
+    <div class="tablewrap"><table class="res" id="res"></table></div>
+  </div>
+
+  <p class="note">How the model works: a simplified A320 at idle descends about 3 NM per 1,000 ft clean, a little steeper when faster, and slows about 10 kt per NM in level flight. In DES, managed speed may vary ±20 kt around its target, capped at VMAX (350 kt / M.82, approximated); below the path DES rejoins at about 1,000 ft/min. Half speedbrake steepens the path by about 25% at 300 kt, less at lower speeds; with the autopilot engaged the A320 gives no more than half, and it is inhibited in CONF FULL. Gear and flaps add drag; VFE 230/200/185/177 kt, VLO 250 kt, VLE 280 kt. EXPED descends at idle at 340 kt / M.80. Once the approach phase is active, managed speed targets green dot 210 kt, then S 195 and F 180 kt. The glideslope is 3°, captured inside 12 NM. All figures are illustrative and vary with weight, type, MSN and FMS standard; on the real aircraft the approach phase also activates on its own at the DECEL point.</p>
+</section>
+
+<section class="t c-c">
+  <h2>What people get wrong</h2>
+  <div class="myth">
+    <div class="key"><s>“High managed speed in DES is safe: the FMS won't overspeed.”</s><p>Above the path, DES stays at idle and lets speed run up to the top of its range. With a high managed speed that range reaches VMAX, so there's no margin left: a gust or a tailwind change gives an overspeed. Select a lower speed, or use the speedbrake before the speed builds. Try “High managed speed” and press Gust.</p></div>
+    <div><s>“DES holds the path at the target speed.”</s><p>It holds the path within a speed range, not both exactly. Above the path it adds no drag for you: it asks for MORE DRAG.</p></div>
+    <div><s>“The speedbrake will fix it.”</s><p>Its effect falls with speed, and with the autopilot on you get at most half. Gear and flaps add more drag, but only once you've slowed below their limits.</p></div>
+    <div><s>“3 × altitude is enough.”</s><p>Add for tailwind and for slowing to 250 kt at FL100. Together that's often 10–15 NM.</p></div>
+  </div>
+</section>
+<section class="t c-w">
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Your aircraft's FCOM: auto flight system (DES, OP DES, V/S, EXPED; managed speed; approach phase)<span class="src">Airbus, operator revision. The authority for mode behaviour, speed targets and limits on your MSN and FMS standard.</span></li>
+    <li>Your aircraft's FCTM: descent and approach<span class="src">Airbus, operator revision. Descent profile, energy management and the use of speedbrake, gear and flaps.</span></li>
+    <li>Your aircraft's FCOM limitations<span class="src">VMO/MMO, VFE, VLO and VLE, and speedbrake limitations, for your type.</span></li>
+  </ul>
+</section>
+</main>
+<footer><p>Training illustration only. The simulator is a simplified model; its figures are illustrative and vary by type, weight, MSN and FMS standard. Your FCOM, FCTM and QRH are the authority.</p><p>Part of <a href="../">xpdr.aero</a> · <a href="../explained/">Explained</a> · <a href="mailto:support@xpdr.aero">support@xpdr.aero</a></p></footer>
+</div>
+<script>
+(function(){
+  document.documentElement.classList.add('js');
+  var NS='http://www.w3.org/2000/svg';
+  function el(t,a,p,x){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(x!=null)e.textContent=x;if(p)p.appendChild(e);return e;}
+  var $=function(id){return document.getElementById(id);};
+
+  /* ---------- draft aircraft model ---------- */
+  var G=32.174,KT=1.68781,NM=6076.1,GATE_ALT=3000,GATE_D=13,GS_FT=318,FAP_D=3000/318,RANGE=20,VMO=350,VLE=280,VLO=250;
+  var K0=0.0549,KSB=0.0137,KGEAR=0.019,KFLAP=[0,0.004,0.010,0.016,0.026];
+  var VFE=[999,230,200,185,177],VLSC=[210,185,160,150,140],FTGT=[0,195,180,170,145];
+  function vmaxClean(alt){return alt>25000?VMO-(alt-25000)*0.0085:VMO;}           // rough M.82 above the crossover
+  function vmax(st){var v=vmaxClean(st.alt);if(st.flaps)v=Math.min(v,VFE[st.flaps]);if(st.gear)v=Math.min(v,VLE);return v;}
+  function tas(ias,alt){return ias*(1+0.02*alt/1000);}
+  function kdrag(st){var V=st.ias,sb=st.flaps===4?0:Math.min(st.sb,0.5);
+    return K0*(0.85+0.15*Math.pow(V/280,2))+KSB*sb*2*Math.pow(V/300,2)+(st.gear?KGEAR:0)+KFLAP[st.flaps];}
+
+  function managedTarget(st){var des=st.alt<11000?250:st.econ;
+    if(st.apprPhase)return st.flaps?FTGT[st.flaps]:210;                 // green dot, then S / F
+    return st.flaps?Math.min(des,VFE[st.flaps]-5):des;}
+  function target(st){if(st.exped)return Math.min(340,vmaxClean(st.alt)-10);return st.spdManaged?managedTarget(st):st.spdSel;}
+
+  /* Reference path: rule of thumb with current wind and managed speed, clean */
+  function need(alt,st){var a=alt-GATE_ALT;if(a<=0)return 0;var wf=Math.max(0.6,(tas(st.econ,alt/2)+st.wind)/tas(st.econ,alt/2));
+    return a/1000*3.0*wf+(alt>10000?Math.max(0,st.econ-250)/10:0);}
+  function pathAlt(d,st){var av=d-GATE_D;if(av<=0)return GATE_ALT*(d/GATE_D);var lo=GATE_ALT,hi=40000;
+    for(var i=0;i<26;i++){var m=(lo+hi)/2;if(need(m,st)>av)hi=m;else lo=m;}return lo;}
+
+  function step(st,dt){
+    if(st.done)return;
+    var V=st.ias,Vf=tas(V,st.alt)*KT,gs=(tas(V,st.alt)+st.wind)*KT;
+    var dHe=-kdrag(st)*Vf,tgt=Math.max(VLSC[st.flaps],target(st)),vm=vmax(st);
+    var rg=st.spdManaged&&!st.exped?RANGE:2;                          // the speed range applies to managed speed only
+    var hi=Math.min(tgt+rg,vm),lo=Math.max(VLSC[st.flaps],tgt-rg);
+    if(st.alt<10300)hi=Math.min(hi,Math.max(250,tgt));
+    var pa=pathAlt(st.d,st),err=st.alt-pa,dh,dV,thr='THR IDLE',vert;
+    var slope=(pa-pathAlt(Math.max(0,st.d-0.5),st))/0.5,pathRate=-slope*gs/NM;
+    var hold=function(){return Math.max(-1,Math.min(1,(tgt-V)*0.15))*KT;};
+    st.moreDrag=false;
+    var mode=st.exped?'OPDES':st.vmode;
+    if(mode==='DES'){
+      vert='DES';
+      if(err<-250){thr='SPEED';dh=-1000/60;dV=hold();}
+      else{dh=pathRate-err*0.01;dV=(dHe-dh)*G/Vf;
+        if(V>hi+1){dV=-1*KT;dh=dHe+Vf*KT/G;if(dh>0){dh=0;dV=dHe*G/Vf;}}
+        else if(V>=hi-0.5&&dV>0){dV=0;dh=dHe;if(err>300)st.moreDrag=true;}
+        else if(V<=lo&&dV<0){dV=0;dh=dHe;}}
+    }else if(mode==='OPDES'){
+      vert=st.exped?'EXP DES':'OP DES';dV=hold();dh=dHe-Vf*dV/G;if(dh>0){dh=0;dV=dHe*G/Vf;}
+    }else{
+      vert='V/S '+st.vsSel;dh=st.vsSel/60;var dvIdle=(dHe-dh)*G/Vf,w=hold();
+      if(dvIdle>w){dV=dvIdle;}else{dV=w;thr='SPEED';}
+    }
+    if(st.alt<=st.fcuAlt+20&&dh<0){dh=0;st.alt=Math.max(st.alt,st.fcuAlt);vert='ALT';var hv=hold(),idle=dHe*G/Vf;if(hv<idle){dV=idle;thr='THR IDLE';}else{dV=hv;thr='SPEED';}}
+    st.alt+=dh*dt;st.ias=Math.max(VLSC[st.flaps]-10,V+dV/KT*dt);st.vs=dh*60;
+    st.d-=gs/NM*dt;st.t+=dt;st.thr=thr;st.vert=vert;
+    var over=st.ias-vmax(st);if(over>4)st.ovspd=Math.max(st.ovspd,over);
+    var gsAlt=st.d*GS_FT;
+    if(st.appr&&st.d<12&&Math.abs(st.alt-gsAlt)<40){st.gsCap=true;st.done=true;st.capIas=st.ias;st.result=st.ias<=181?'win':'fast';}
+    else if(st.d<FAP_D-0.8){st.done=true;st.result=st.alt>gsAlt+150?'high':!st.appr?'notarmed':'missed';}
+  }
+
+  /* ---------- situations and strategies ---------- */
+  var P={late:{d:85,alt:30000,ias:300,econ:300},
+         short:{d:42,alt:13000,ias:280,econ:290},
+         fast:{d:72,alt:24000,ias:330,econ:330},
+         low:{d:85,alt:11000,ias:280,econ:290}};
+  function fresh(p,wind){return {d:p.d,alt:p.alt,ias:p.ias,econ:p.econ,wind:wind,vs:0,sb:0,flaps:0,gear:false,
+    spdManaged:true,spdSel:p.ias,vmode:'DES',vsSel:-1500,fcuAlt:GATE_ALT,exped:false,appr:false,apprPhase:false,apprArm:false,gsCap:false,result:null,capIas:0,t:0,done:false,ovspd:0,moreDrag:false,mdTime:0,extra:0};}
+
+  function approach(st){if(st.d<30)st.appr=true;                    // every strategy flies the same approach
+    if(st.d<25){st.apprPhase=true;st.spdManaged=true;if(st.ias<=VFE[1]+2&&st.flaps<1)st.flaps=1;}
+    if(st.d<20&&st.ias<=VFE[2]+2&&st.flaps<2)st.flaps=2;}
+  var STRATS=[
+    {name:'DES, hands off',col:'#8a8170',run:function(st){}},
+    {name:'Speedbrake when high',col:'#0a7096',run:function(st){var e=st.alt-pathAlt(st.d,st);if(e>500)st.sb=0.5;else if(e<150)st.sb=0;}},
+    {name:'Slow to 250, gear down',col:'#a35a00',run:function(st){var e=st.alt-pathAlt(st.d,st);
+      if(e>800&&!st.gear){st.spdManaged=false;st.spdSel=250;}
+      if(e>800&&st.ias<=VLO+3)st.gear=true;}},
+    {name:'Speedbrake, then gear and flap 1',col:'#b01fa8',run:function(st){var e=st.alt-pathAlt(st.d,st);
+      if(e>500&&!st.gear)st.sb=0.5;
+      if(e>1500&&st.alt<16000){st.spdManaged=false;st.spdSel=Math.min(st.spdSel,220);}
+      if(e>1500&&st.ias<=VLO+3){st.gear=true;}
+      if(e>1500&&st.gear&&st.ias<=225){st.flaps=Math.max(st.flaps,1);st.sb=0.5;}
+      if(e<150)st.sb=0;}},
+    {name:'Ask ATC for +15 NM',col:'#12804a',init:function(st){st.d+=15;st.extra=15;},run:function(st){}}
+  ];
+  function simulate(p,wind,strat){var st=fresh(p,wind),tr=[];if(strat.init)strat.init(st);var n=0;
+    while(!st.done&&n<8000){strat.run(st);approach(st);step(st,0.5);if(st.moreDrag)st.mdTime+=0.5;if(n%6===0)tr.push([st.d-st.extra,st.alt]);n++;}
+    tr.push([st.d-st.extra,st.alt]);return {st:st,trail:tr};}
+
+  /* ---------- state, drawing ---------- */
+  var cur='late',s,trail=[],ghosts=[];
+  function init(){s=fresh(P[cur],+$('wind').value);trail=[];render();}
+  var svg=$('prof'),X0=56,X1=744,Y0=254,Y1=14,DMAX=110,AMAX=32000;
+  function x(d){return X1-(d/DMAX)*(X1-X0);}function y(a){return Y0-(a/AMAX)*(Y0-Y1);}
+  function poly(pts,attrs){return el('polyline',Object.assign({points:pts.map(function(p){return x(Math.min(DMAX,p[0]))+','+y(p[1]);}).join(' '),fill:'none'},attrs),svg);}
+  function drawProfile(){
+    svg.innerHTML='';
+    for(var a=0;a<=30000;a+=5000){el('line',{x1:X0,x2:X1,y1:y(a),y2:y(a),stroke:'#eee6cf'},svg);el('text',{x:X0-6,y:y(a)+4,'text-anchor':'end','font-size':11,'font-family':'ui-monospace,monospace',fill:'#5f5747'},svg,a?'FL'+a/100:'0');}
+    for(var d=0;d<=100;d+=20)el('text',{x:x(d),y:Y0+18,'text-anchor':'middle','font-size':11,'font-family':'ui-monospace,monospace',fill:'#5f5747'},svg,d+' NM');
+    var pts=[];for(var d2=0;d2<=DMAX;d2+=1.5)pts.push([d2,Math.min(AMAX,pathAlt(d2+s.extra,s))]);
+    poly(pts,{stroke:'#b01fa8','stroke-width':2,'stroke-dasharray':'7 4',opacity:.8});
+    el('line',{x1:x(20),x2:x(FAP_D),y1:y(20*GS_FT),y2:y(GATE_ALT),stroke:'#12804a','stroke-width':1.5,'stroke-dasharray':'3 3'},svg);
+    el('line',{x1:x(FAP_D),x2:x(0),y1:y(GATE_ALT),y2:y(0),stroke:'#12804a','stroke-width':2.5},svg);
+    el('line',{x1:x(GATE_D),x2:x(FAP_D),y1:y(GATE_ALT),y2:y(GATE_ALT),stroke:'#14110a','stroke-width':1.5,'stroke-dasharray':'2 3'},svg);
+    el('circle',{cx:x(FAP_D),cy:y(GATE_ALT),r:5,fill:'#12804a'},svg);
+    el('text',{x:x(FAP_D),y:y(GATE_ALT)-10,'text-anchor':'middle','font-size':11,'font-weight':700,fill:'#12804a'},svg,'G/S');
+    if(s.extra)el('text',{x:X0+6,y:Y1+14,'font-size':11,'font-weight':700,fill:'#12804a'},svg,'+'+s.extra+' NM track miles from ATC');
+    ghosts.forEach(function(g){poly(g.trail,{stroke:g.col,'stroke-width':2.5,opacity:.9});});
+    if(trail.length>1)poly(trail,{stroke:'#14110a','stroke-width':2.5});
+    var px=x(Math.min(DMAX,s.d-s.extra)),py=y(s.alt);
+    el('path',{d:'M'+(px+14)+' '+py+' l-26 -6 l0 12 z',fill:'#14110a'},svg);
+  }
+  function render(){
+    drawProfile();
+    var pa=pathAlt(s.d,s),vdev=s.alt-pa,vm=vmax(s);
+    $('fma-thr').textContent=s.thr||'THR IDLE';
+    $('fma-vert').innerHTML=(s.gsCap?'G/S':(s.vert||(s.exped?'EXP DES':s.vmode==='OPDES'?'OP DES':s.vmode==='VS'?'V/S '+s.vsSel:'DES')))+(s.appr&&!s.gsCap?'<small>G/S</small>':'');
+    $('fma-lat').innerHTML=s.gsCap?'LOC':'NAV'+(s.appr?'<small>LOC</small>':'');
+    $('appr').classList.toggle('lit',s.appr);
+    var ak=$('apph');ak.textContent=s.apprPhase?'APPR PHASE ACTIVE':s.apprArm?'CONFIRM APPR PHASE*':'<ACTIVATE APPR PHASE';ak.className='mcdu'+(s.apprPhase?' on':s.apprArm?' arm':'');
+    $('d-ias').textContent=Math.round(s.ias)+' kt';$('d-ias').className=s.ias>vm-5?'hot':'';
+    $('d-vmax').textContent=Math.round(vm)+' kt';
+    $('d-alt').textContent=Math.round(s.alt/10)*10+' ft';$('d-vs').textContent=(s.vs>0?'+':'')+Math.round(s.vs/50)*50;
+    $('d-vdev').textContent=(vdev>0?'+':'')+Math.round(vdev/10)*10+' ft';$('d-dist').textContent=Math.max(0,s.d-FAP_D).toFixed(1)+' NM';
+    $('ovspd').className='warn'+(s.ias>vm+4?' on':'');$('mdrag').className='msg'+(s.moreDrag?' on':'');
+    $('w-spd').textContent=s.spdManaged&&!s.exped?'---':Math.round(s.exped?target(s):s.spdSel);$('dot-spd').className='dot'+(s.spdManaged?' on':'');
+    $('w-alt').textContent=String(Math.round(s.fcuAlt)).padStart(5,'0');$('dot-alt').className='dot'+(s.vmode==='DES'&&!s.exped?' on':'');
+    $('w-vs').textContent=s.vmode==='VS'&&!s.exped?(s.vsSel<0?'−':'+')+String(Math.abs(s.vsSel)).padStart(4,'0'):'-----';
+    $('exped').classList.toggle('lit',s.exped);
+    $('k-spd').className='knob '+(s.spdManaged?'pushed':'pulled');$('k-alt').className='knob '+(s.vmode==='DES'?'pushed':'pulled');$('k-vs').className='knob '+(s.vmode==='VS'?'pulled':'');
+    var st=$('status'),big,txt,cls='';
+    if(s.done){var ov=s.ovspd>0?' You overspeed by '+Math.round(s.ovspd)+' kt on the way.':'';
+      if(s.result==='win'&&!s.ovspd){cls='win';big='G/S captured at '+Math.round(s.capIas)+' kt';txt='Configured and on the glideslope.';}
+      else{cls='done';
+        big=s.result==='win'?'G/S captured, but with an overspeed':s.result==='fast'?'Too fast: G/S captured at '+Math.round(s.capIas)+' kt':s.result==='high'?'Too high: above the glideslope at 3,000 ft point':s.result==='notarmed'?'APPR not armed: no glideslope capture':'Glideslope missed';
+        txt=(s.result==='fast'?'Slow down earlier: flaps 1 below 230 kt, flaps 2 below 200 kt.':s.result==='high'?'You needed more drag or more track miles, earlier.':s.result==='notarmed'?'Press APPR before reaching the glideslope.':'')+ov;}}
+    else{var n=need(s.alt,s),av=s.d-GATE_D;
+      if(vdev>800){cls='high';big='High: '+Math.round(vdev/100)*100+' ft above the path';txt='About '+n.toFixed(0)+' NM needed, '+av.toFixed(0)+' NM to go.';}
+      else if(vdev<-800){cls='low';big='Low: '+Math.round(-vdev/100)*100+' ft below the path';txt='DES holds speed and descends gently to rejoin.';}
+      else{big='On profile';txt='Within about 800 ft of the path.';}}
+    st.className='status '+cls;$('st-big').textContent=big;$('st-txt').textContent=txt;
+    $('o-wind').textContent=(s.wind>=0?'tail ':'head ')+Math.abs(Math.round(s.wind))+' kt';
+    drawLevers();
+  }
+
+  /* ---------- levers ---------- */
+  var TOP=24,BOT=170;
+  function track(svgEl,marks){svgEl.innerHTML='';el('rect',{x:39,y:TOP-12,width:12,height:BOT-TOP+24,rx:6,fill:'#22282e'},svgEl);
+    marks.forEach(function(m){var yy=TOP+m[1]*(BOT-TOP);el('line',{x1:56,x2:70,y1:yy,y2:yy,stroke:'#e8eef2','stroke-width':2},svgEl);
+      el('text',{x:73,y:yy+4,'font-size':10,'font-weight':700,fill:'#fff','font-family':'system-ui'},svgEl,m[0]);});}
+  function handle(svgEl,f,shape){var hy=TOP+f*(BOT-TOP);
+    if(shape==='flap'){el('rect',{x:24,y:hy-9,width:42,height:18,rx:3,fill:'#d9dee2',stroke:'#14110a','stroke-width':1.5},svgEl);el('path',{d:'M28 '+(hy-2)+' h34 M28 '+(hy+3)+' h34',stroke:'#14110a','stroke-width':1.2},svgEl);}
+    else{el('rect',{x:25,y:hy-10,width:40,height:20,rx:5,fill:'#d9dee2',stroke:'#14110a','stroke-width':1.5},svgEl);el('line',{x1:31,x2:59,y1:hy,y2:hy,stroke:'#14110a','stroke-width':2},svgEl);}}
+  function drawLevers(){
+    var sb=$('lv-sb');track(sb,[['RET',0],['1/2',0.5],['FULL',1]]);handle(sb,s.sb);
+    $('ro-sb').textContent=s.flaps===4?'INHIB':s.sb<0.02?'RET':(s.sb>0.5?'½ (AP)':Math.round(s.sb*200)+'% of ½');
+    var fl=$('lv-fl');track(fl,[['0',0],['1',.25],['2',.5],['3',.75],['FULL',1]]);handle(fl,s.flaps/4,'flap');
+    $('ro-fl').textContent=s.flaps?'VFE '+VFE[s.flaps]:'CONF 0';
+    var lg=$('lv-lg');lg.innerHTML='';el('rect',{x:30,y:20,width:30,height:150,rx:6,fill:'#22282e'},lg);
+    el('text',{x:45,y:14,'text-anchor':'middle','font-size':10,'font-weight':700,fill:'#fff','font-family':'system-ui'},lg,'UP');
+    el('text',{x:45,y:188,'text-anchor':'middle','font-size':10,'font-weight':700,fill:'#fff','font-family':'system-ui'},lg,'DOWN');
+    var gy=s.gear?150:40;el('line',{x1:45,x2:45,y1:95,y2:gy,stroke:'#c9d0d6','stroke-width':6,'stroke-linecap':'round'},lg);
+    el('circle',{cx:45,cy:gy,r:13,fill:'#f1f3f4',stroke:'#14110a','stroke-width':1.5},lg);
+    $('ro-lg').textContent=s.gear?'DOWN':(s.gearMsg||'UP');
+  }
+  function leverDrag(id,onPos){var e=$(id),on=false;
+    function pos(ev){var r=e.getBoundingClientRect(),yy=(ev.clientY-r.top)/r.height*200;return Math.max(0,Math.min(1,(yy-TOP)/(BOT-TOP)));}
+    e.addEventListener('pointerdown',function(ev){on=true;e.setPointerCapture(ev.pointerId);onPos(pos(ev));render();});
+    e.addEventListener('pointermove',function(ev){if(on){onPos(pos(ev));render();}});
+    e.addEventListener('pointerup',function(){on=false;});}
+  leverDrag('lv-sb',function(f){s.sb=f;});                                   // free travel
+  leverDrag('lv-fl',function(f){s.flaps=Math.round(f*4);});                  // detents, as on the real lever
+  $('lv-lg').addEventListener('click',function(){if(!s.gear&&s.ias>VLO+2){s.gearMsg='VLO '+VLO;render();return;}s.gear=!s.gear;s.gearMsg='';render();});
+  $('lv-sb').addEventListener('keydown',function(e){if(e.key==='ArrowDown')s.sb=Math.min(1,s.sb+0.05);else if(e.key==='ArrowUp')s.sb=Math.max(0,s.sb-0.05);else return;e.preventDefault();render();});
+  $('lv-fl').addEventListener('keydown',function(e){if(e.key==='ArrowDown')s.flaps=Math.min(4,s.flaps+1);else if(e.key==='ArrowUp')s.flaps=Math.max(0,s.flaps-1);else return;e.preventDefault();render();});
+  $('lv-lg').addEventListener('keydown',function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();$('lv-lg').dispatchEvent(new Event('click'));}});
+
+  /* ---------- FCU: turn by circular drag or wheel; PULL/PUSH ---------- */
+  var altInc=1000;
+  function knob(id,onTurn){var k=$(id),last=null,acc=0,rot=0;
+    function ang(ev){var r=k.getBoundingClientRect();return Math.atan2(ev.clientY-(r.top+r.height/2),ev.clientX-(r.left+r.width/2))*180/Math.PI;}
+    k.addEventListener('pointerdown',function(ev){last=ang(ev);k.setPointerCapture(ev.pointerId);});
+    k.addEventListener('pointermove',function(ev){if(last==null)return;var a=ang(ev),d=a-last;if(d>180)d-=360;if(d<-180)d+=360;last=a;acc+=d;
+      while(Math.abs(acc)>=15){var n=acc>0?1:-1;acc-=n*15;rot+=n*15;onTurn(n);}k.style.setProperty('--rot',rot+'deg');render();});
+    k.addEventListener('pointerup',function(){last=null;});
+    k.addEventListener('wheel',function(ev){ev.preventDefault();var n=ev.deltaY<0?1:-1;rot+=n*15;onTurn(n);k.style.setProperty('--rot',rot+'deg');render();},{passive:false});
+    k.addEventListener('keydown',function(ev){var n=ev.key==='ArrowUp'||ev.key==='ArrowRight'?1:ev.key==='ArrowDown'||ev.key==='ArrowLeft'?-1:0;if(!n)return;ev.preventDefault();rot+=n*15;onTurn(n);k.style.setProperty('--rot',rot+'deg');render();});
+  }
+  knob('k-spd',function(n){if(s.spdManaged)return;s.spdSel=Math.max(140,Math.min(350,s.spdSel+n));});
+  knob('k-alt',function(n){s.fcuAlt=Math.max(1000,Math.min(39000,s.fcuAlt+n*altInc));});
+  knob('k-vs',function(n){if(s.vmode!=='VS')return;s.vsSel=Math.max(-6000,Math.min(0,s.vsSel+n*100));});
+  [].forEach.call(document.querySelectorAll('[data-inc]'),function(b){b.addEventListener('click',function(){altInc=+b.dataset.inc;[].forEach.call(document.querySelectorAll('[data-inc]'),function(x){x.setAttribute('aria-pressed',x===b);});});});
+  [].forEach.call(document.querySelectorAll('.pl[data-k]'),function(b){b.addEventListener('click',function(){
+    var k=b.dataset.k,a=b.dataset.a;
+    if(k==='spd'){if(a==='pull'){if(s.spdManaged)s.spdSel=Math.round(s.ias);s.spdManaged=false;}else s.spdManaged=true;}
+    if(k==='alt'){s.exped=false;s.vmode=a==='push'?'DES':'OPDES';}
+    if(k==='vs'){s.exped=false;if(a==='pull'){if(s.vmode!=='VS')s.vsSel=Math.min(0,Math.round(s.vs/100)*100)||-1000;}else s.vsSel=0;s.vmode='VS';}
+    s.vert=null;s.thr=null;render();});});
+  $('exped').addEventListener('click',function(){s.exped=!s.exped;s.vert=null;render();});
+  $('appr').addEventListener('click',function(){s.appr=!s.appr;render();});
+  $('apph').addEventListener('click',function(){if(s.apprPhase)return;if(s.apprArm){s.apprPhase=true;s.apprArm=false;}else s.apprArm=true;render();});
+
+  /* ---------- play, compare, situations ---------- */
+  var timer=null;
+  function stop(){if(timer){clearInterval(timer);timer=null;}$('play').textContent='▶ Play';}
+  $('play').addEventListener('click',function(){if(timer){stop();render();return;}if(s.done)init();
+    $('play').textContent='❚❚ Pause';timer=setInterval(function(){acc+=rate*0.05;while(acc>=0.5&&!s.done){step(s,0.5);acc-=0.5;}trail.push([s.d-s.extra,s.alt]);if(s.done){stop();if(s.result==='win'&&!s.ovspd)confetti();}render();},50);});
+  var rate=10,acc=0;
+  [].forEach.call(document.querySelectorAll('[data-rate]'),function(b){b.addEventListener('click',function(){rate=+b.dataset.rate;[].forEach.call(document.querySelectorAll('[data-rate]'),function(x){x.setAttribute('aria-pressed',x===b);});});});
+  function confetti(){var c=$('confetti');if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    var ctx=c.getContext('2d'),W=c.width=innerWidth,H=c.height=innerHeight,cols=['#f2b705','#12804a','#0a7096','#c0321a','#b01fa8','#fbf8ef','#3fd6ff'],ps=[];
+    function burst(x0,dir){for(var i=0;i<220;i++)ps.push({x:x0,y:H*.75,vx:dir*(Math.random()*16+4)+(Math.random()-.5)*6,vy:-Math.random()*22-10,r:Math.random()*7+5,c:cols[i%cols.length],a:Math.random()*6,va:(Math.random()-.5)*.5});}
+    burst(0,1);burst(W,-1);setTimeout(function(){burst(W*.5,0.4);burst(W*.5,-0.4);},500);setTimeout(function(){burst(0,1);burst(W,-1);},1100);
+    var t0=performance.now();(function frame(t){var e=t-t0;ctx.clearRect(0,0,W,H);ps.forEach(function(p){p.vy+=.32;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);ctx.restore();});
+      if(e<5200)requestAnimationFrame(frame);else ctx.clearRect(0,0,W,H);})(t0);}
+  $('reset').addEventListener('click',function(){stop();init();});
+  $('gust').addEventListener('click',function(){s.ias+=15;render();});
+  $('miles').addEventListener('click',function(){s.d+=15;s.extra+=15;render();});
+  $('wind').addEventListener('input',function(e){s.wind=+e.target.value;render();});
+  [].forEach.call(document.querySelectorAll('[data-p]'),function(b){b.addEventListener('click',function(){stop();cur=b.dataset.p;ghosts=[];$('cmp').classList.remove('on');
+    [].forEach.call(document.querySelectorAll('[data-p]'),function(x){x.setAttribute('aria-pressed',x===b);});init();});});
+  $('compare').addEventListener('click',function(){stop();var w=+$('wind').value,rows='<tr><th>Strategy</th><th>Result</th><th>Overspeed</th><th>MORE DRAG</th></tr>';ghosts=[];
+    STRATS.forEach(function(sg){var r=simulate(P[cur],w,sg),off=r.st.alt-GATE_ALT;ghosts.push({col:sg.col,trail:r.trail});
+      var R={win:'G/S at '+Math.round(r.st.capIas)+' kt',fast:'Too fast: '+Math.round(r.st.capIas)+' kt',high:'Too high',notarmed:'Not armed',missed:'Missed'};
+      rows+='<tr><td><span class="sw" style="background:'+sg.col+'"></span>'+sg.name+'</td><td>'+(R[r.st.result]||'—')+'</td><td>'+(r.st.ovspd>0?'+'+Math.round(r.st.ovspd)+' kt':'None')+'</td><td>'+(r.st.mdTime>0?Math.round(r.st.mdTime/60)+' min':'—')+'</td></tr>';});
+    $('res').innerHTML=rows;$('cmp').classList.add('on');init();});
+  init();
+})();
+</script>
+<canvas id="confetti" aria-hidden="true"></canvas>
+</body></html>
