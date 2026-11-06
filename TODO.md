@@ -1,5 +1,6 @@
 # xpdr.aero to-do
 
+- [x] Crap-5 (flight computer) and Note to Key (guitar theory), two ChatGPT-made projects, added as tiles linking to their GitHub repos (6 Nov 2026). [ ] Link to a live version of each once the public addresses are confirmed.
 - [x] **Redesign the website.** Direction A (colour-blocked tiles) built 5 Oct 2026, typeset with Impeccable. The `/equalize/` page restyled to match (four styles shown, not all sixteen).
 - [ ] **You're Famous needs work.** Marked "Needs work · to do later" on its card. Revisit before it is published.
 - [x] Perspective wordmark (golden P, shutter on the i's peak) fills the picture panel on its tile; the matching redrawn P icon is in the brand set.
