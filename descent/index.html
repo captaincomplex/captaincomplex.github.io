@@ -137,7 +137,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
 <section class="t c-y">
   <p class="eyebrow">Interactive explainer · Airbus A320 family</p>
   <h1>Descent Management</h1>
-  <p style="font-weight:500;font-size:1.125rem">Pick a situation, press Play, and fly it with the FCU, speedbrake, flaps and gear. Capture the glideslope at 180 kt or slower, without an overspeed. Activate the approach phase yourself. Then compare strategies.</p>
+  <p style="font-weight:500;font-size:1.125rem">Pick a situation, press Play, and fly it with the FCU, speedbrake, flaps and gear. Choose how far past top of descent ATC kept you, or drag the aircraft. Get stable by 1,000 ft: on the glideslope, gear down, landing flaps, below VAPP + 30, with no overspeed. Then compare strategies.</p>
 </section>
 
 <section class="t c-w">
@@ -150,7 +150,8 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
       <button type="button" data-p="low" aria-pressed="false">Early descent, now low</button>
     </div>
     <span style="flex:1"></span>
-    <label class="wind" for="wind">Wind <input id="wind" type="range" min="-40" max="60" step="any" value="10"><output id="o-wind"></output></label>
+    <label class="wind" for="tod">Descent clearance <input id="tod" type="range" min="-45" max="40" step="any" value="25"><output id="o-tod" style="min-width:15ch"></output></label>
+    <label class="wind" for="wind">Wind <input id="wind" type="range" min="-40" max="60" step="any" value="20"><output id="o-wind"></output></label>
   </div>
   <div class="top-row">
     <button class="btn pri" type="button" id="play">▶ Play</button>
@@ -204,7 +205,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     <div class="tablewrap"><table class="res" id="res"></table></div>
   </div>
 
-  <p class="note">How the model works: a simplified A320 at idle descends about 3 NM per 1,000 ft clean, a little steeper when faster, and slows about 10 kt per NM in level flight. In DES, managed speed may vary ±20 kt around its target, capped at VMAX (350 kt / M.82, approximated); below the path DES rejoins at about 1,000 ft/min. Half speedbrake steepens the path by about 25% at 300 kt, less at lower speeds; with the autopilot engaged the A320 gives no more than half, and it is inhibited in CONF FULL. Gear and flaps add drag; VFE 230/200/185/177 kt, VLO 250 kt, VLE 280 kt. EXPED descends at idle at 340 kt / M.80. Once the approach phase is active, managed speed targets green dot 210 kt, then S 195 and F 180 kt. The glideslope is 3°, captured inside 12 NM. All figures are illustrative and vary with weight, type, MSN and FMS standard; on the real aircraft the approach phase also activates on its own at the DECEL point.</p>
+  <p class="note">How the model works: at idle, clean, the aircraft descends about 3 NM per 1,000 ft (a little steeper when faster) and slows about 10 kt per NM in level flight. In DES, managed speed may vary ±20 kt around its target, capped at VMAX (350 kt / M.82), and no more than 5 kt above a 250 kt target below FL100; below the path DES rejoins at about 1,000 ft/min. Half speedbrake steepens the path by about 25% at 300 kt, less when slower; with the autopilot engaged the A320 gives no more than half; it is inhibited in CONF FULL, and once the gear is down the spoilers are armed for landing (operator SOP), so no speedbrake. Gear and flaps add drag; VFE 230/200/185/177 kt, VLO 250 kt, VLE 280 kt. EXPED descends at idle at 340 kt / M.80. Passing the DECEL point (D) activates the approach phase, or activate it earlier yourself: managed speed then targets green dot 210 kt, then S 180, F 150, 145 and 140 kt. The descent path allows for slowing to approach speeds before 3,000 ft. The glideslope is 3° and can be captured within 20 NM. Stable at 1,000 ft here means on the glideslope, gear down, CONF 3 or FULL and below VAPP + 30 (VAPP 140 kt FULL, 145 kt CONF 3), following one operator's criteria; yours may differ. Approach speeds depend on weight and drag figures are approximate; your FCOM and FCTM are the authority.</p>
 </section>
 
 <section class="t c-c">
@@ -235,13 +236,13 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
   var $=function(id){return document.getElementById(id);};
 
   /* ---------- draft aircraft model ---------- */
-  var G=32.174,KT=1.68781,NM=6076.1,GATE_ALT=3000,GATE_D=13,GS_FT=318,FAP_D=3000/318,RANGE=20,VMO=350,VLE=280,VLO=250;
+  var G=32.174,KT=1.68781,NM=6076.1,GATE_ALT=3000,GATE_D=13,GS_FT=318,FAP_D=3000/318,DECEL_D=20,GS_RANGE=20,STABLE_ALT=1000,APPDEC=6,RANGE=20,VMO=350,VLE=280,VLO=250;
   var K0=0.0549,KSB=0.0137,KGEAR=0.019,KFLAP=[0,0.004,0.010,0.016,0.026];
-  var VFE=[999,230,200,185,177],VLSC=[210,185,160,150,140],FTGT=[0,195,180,170,145];
+  var VFE=[999,230,200,185,177],VLSC=[190,160,135,130,125],FTGT=[0,180,150,145,140];
   function vmaxClean(alt){return alt>25000?VMO-(alt-25000)*0.0085:VMO;}           // rough M.82 above the crossover
   function vmax(st){var v=vmaxClean(st.alt);if(st.flaps)v=Math.min(v,VFE[st.flaps]);if(st.gear)v=Math.min(v,VLE);return v;}
   function tas(ias,alt){return ias*(1+0.02*alt/1000);}
-  function kdrag(st){var V=st.ias,sb=st.flaps===4?0:Math.min(st.sb,0.5);
+  function kdrag(st){var V=st.ias,sb=st.flaps===4||st.gear?0:Math.min(st.sb,0.5);
     return K0*(0.85+0.15*Math.pow(V/280,2))+KSB*sb*2*Math.pow(V/300,2)+(st.gear?KGEAR:0)+KFLAP[st.flaps];}
 
   function managedTarget(st){var des=st.alt<11000?250:st.econ;
@@ -251,7 +252,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
 
   /* Reference path: rule of thumb with current wind and managed speed, clean */
   function need(alt,st){var a=alt-GATE_ALT;if(a<=0)return 0;var wf=Math.max(0.6,(tas(st.econ,alt/2)+st.wind)/tas(st.econ,alt/2));
-    return a/1000*3.0*wf+(alt>10000?Math.max(0,st.econ-250)/10:0);}
+    return a/1000*3.0*wf+(alt>10000?Math.max(0,st.econ-250)/10:0)+Math.min(1,a/4000)*APPDEC;}   // + slowing for the approach
   function pathAlt(d,st){var av=d-GATE_D;if(av<=0)return GATE_ALT*(d/GATE_D);var lo=GATE_ALT,hi=40000;
     for(var i=0;i<26;i++){var m=(lo+hi)/2;if(need(m,st)>av)hi=m;else lo=m;}return lo;}
 
@@ -262,12 +263,16 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     var rg=st.spdManaged&&!st.exped?RANGE:2;                          // the speed range applies to managed speed only
     var hi=Math.min(tgt+rg,vm),lo=Math.max(VLSC[st.flaps],tgt-rg);
     if(st.alt<10300)hi=Math.min(hi,Math.max(250,tgt));
+    if(st.alt<10000&&tgt>=250)hi=Math.min(hi,tgt+5);                     // below FL100, 250 kt target: at most +5 kt
     var pa=pathAlt(st.d,st),err=st.alt-pa,dh,dV,thr='THR IDLE',vert;
     var slope=(pa-pathAlt(Math.max(0,st.d-0.5),st))/0.5,pathRate=-slope*gs/NM;
     var hold=function(){return Math.max(-1,Math.min(1,(tgt-V)*0.15))*KT;};
     st.moreDrag=false;
-    var mode=st.exped?'OPDES':st.vmode;
-    if(mode==='DES'){
+    var mode=st.gsCap?'GS':st.exped?'OPDES':st.vmode;
+    if(mode==='GS'){                                                     // on the glideslope: track it, A/THR holds speed if idle allows
+      vert='G/S';dh=-GS_FT*gs/NM+(st.d*GS_FT-st.alt)*0.02;var hv2=hold(),id2=(dHe-dh)*G/Vf;
+      if(hv2<id2){dV=id2;}else{dV=hv2;thr='SPEED';}
+    }else if(mode==='DES'){
       vert='DES';
       if(err<-250){thr='SPEED';dh=-1000/60;dV=hold();}
       else{dh=pathRate-err*0.01;dV=(dHe-dh)*G/Vf;
@@ -280,26 +285,34 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
       vert='V/S '+st.vsSel;dh=st.vsSel/60;var dvIdle=(dHe-dh)*G/Vf,w=hold();
       if(dvIdle>w){dV=dvIdle;}else{dV=w;thr='SPEED';}
     }
-    if(st.alt<=st.fcuAlt+20&&dh<0){dh=0;st.alt=Math.max(st.alt,st.fcuAlt);vert='ALT';var hv=hold(),idle=dHe*G/Vf;if(hv<idle){dV=idle;thr='THR IDLE';}else{dV=hv;thr='SPEED';}}
+    if(!st.gsCap&&st.alt<=st.fcuAlt+20&&dh<0){dh=0;st.alt=Math.max(st.alt,st.fcuAlt);vert='ALT';var hv=hold(),idle=dHe*G/Vf;if(hv<idle){dV=idle;thr='THR IDLE';}else{dV=hv;thr='SPEED';}}
     st.alt+=dh*dt;st.ias=Math.max(VLSC[st.flaps]-10,V+dV/KT*dt);st.vs=dh*60;
     st.d-=gs/NM*dt;st.t+=dt;st.thr=thr;st.vert=vert;
     var over=st.ias-vmax(st);if(over>4)st.ovspd=Math.max(st.ovspd,over);
+    if(!st.apprPhase&&st.d<=DECEL_D){st.apprPhase=true;st.apprArm=false;}   // passing DECEL activates the approach phase
     var gsAlt=st.d*GS_FT;
-    if(st.appr&&st.d<12&&Math.abs(st.alt-gsAlt)<40){st.gsCap=true;st.done=true;st.capIas=st.ias;st.result=st.ias<=181?'win':'fast';}
-    else if(st.d<FAP_D-0.8){st.done=true;st.result=st.alt>gsAlt+150?'high':!st.appr?'notarmed':'missed';}
+    if(!st.gsCap&&st.appr&&st.d<GS_RANGE&&Math.abs(st.alt-gsAlt)<40){st.gsCap=true;st.capIas=st.ias;}
+    else if(!st.gsCap&&st.d<FAP_D-0.8){st.done=true;st.result=st.alt>gsAlt+150?'high':!st.appr?'notarmed':'missed';}
+    if(st.gsCap&&st.alt<=STABLE_ALT){st.done=true;var vapp=st.flaps===4?140:145;st.vapp=vapp;   // stable at 1,000 ft (operator criteria)
+      st.why=!st.gear?'gear not down':st.flaps<3?'not in landing configuration (CONF 3 or FULL)':st.ias>=vapp+30?Math.round(st.ias)+' kt, above VAPP + 30':'';
+      st.result=st.why?'unstable':'win';}
   }
 
   /* ---------- situations and strategies ---------- */
-  var P={late:{d:85,alt:30000,ias:300,econ:300},
-         short:{d:42,alt:13000,ias:280,econ:290},
-         fast:{d:72,alt:24000,ias:330,econ:330},
-         low:{d:85,alt:11000,ias:280,econ:290}};
+  var P={late:{off:25,alt:30000,ias:300,econ:300,wind:20},              // off: NM past top of descent (negative: early)
+         short:{off:14,alt:13000,ias:280,econ:290,wind:10},
+         fast:{off:13,alt:24000,ias:330,econ:330,wind:10},
+         low:{off:-44,alt:11000,ias:280,econ:290,wind:0}};
+  function todD(alt,st){return GATE_D+need(alt,st);}
   function fresh(p,wind){return {d:p.d,alt:p.alt,ias:p.ias,econ:p.econ,wind:wind,vs:0,sb:0,flaps:0,gear:false,
     spdManaged:true,spdSel:p.ias,vmode:'DES',vsSel:-1500,fcuAlt:GATE_ALT,exped:false,appr:false,apprPhase:false,apprArm:false,gsCap:false,result:null,capIas:0,t:0,done:false,ovspd:0,moreDrag:false,mdTime:0,extra:0};}
 
   function approach(st){if(st.d<30)st.appr=true;                    // every strategy flies the same approach
-    if(st.d<25){st.apprPhase=true;st.spdManaged=true;if(st.ias<=VFE[1]+2&&st.flaps<1)st.flaps=1;}
-    if(st.d<20&&st.ias<=VFE[2]+2&&st.flaps<2)st.flaps=2;}
+    if(st.d<25){st.spdManaged=true;if(st.ias<=VFE[1]+2&&st.flaps<1)st.flaps=1;}
+    if(st.d<20&&st.ias<=VFE[2]+2&&st.flaps<2)st.flaps=2;
+    if(st.d<9&&st.ias<=VLO+2)st.gear=true;
+    if(st.gear&&st.d<8&&st.ias<=VFE[3]+2&&st.flaps<3)st.flaps=3;
+    if(st.flaps===3&&st.d<7&&st.ias<=VFE[4]+2)st.flaps=4;}
   var STRATS=[
     {name:'DES, hands off',col:'#8a8170',run:function(st){}},
     {name:'Speedbrake when high',col:'#0a7096',run:function(st){var e=st.alt-pathAlt(st.d,st);if(e>500)st.sb=0.5;else if(e<150)st.sb=0;}},
@@ -310,7 +323,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
       if(e>500&&!st.gear)st.sb=0.5;
       if(e>1500&&st.alt<16000){st.spdManaged=false;st.spdSel=Math.min(st.spdSel,220);}
       if(e>1500&&st.ias<=VLO+3){st.gear=true;}
-      if(e>1500&&st.gear&&st.ias<=225){st.flaps=Math.max(st.flaps,1);st.sb=0.5;}
+      if(e>1500&&st.gear&&st.ias<=225){st.flaps=Math.max(st.flaps,1);}
       if(e<150)st.sb=0;}},
     {name:'Ask ATC for +15 NM',col:'#12804a',init:function(st){st.d+=15;st.extra=15;},run:function(st){}}
   ];
@@ -320,8 +333,11 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
 
   /* ---------- state, drawing ---------- */
   var cur='late',s,trail=[],ghosts=[];
-  function init(){s=fresh(P[cur],+$('wind').value);trail=[];render();}
-  var svg=$('prof'),X0=56,X1=744,Y0=254,Y1=14,DMAX=110,AMAX=32000;
+  var start;
+  function setStart(){var p=P[cur],w=+$('wind').value,probe={econ:p.econ,wind:w};start={d:todD(p.alt,probe)-p.off,alt:p.alt,ias:p.ias,econ:p.econ};}
+  function init(){setStart();s=fresh(start,+$('wind').value);trail=[];syncTod();render();}
+  function syncTod(){var o=todD(s.alt,s)-s.d;$('tod').value=Math.max(-45,Math.min(40,o));$('o-tod').textContent=o>=0?Math.round(o)+' NM past ToD':Math.round(-o)+' NM before ToD';}
+  var svg=$('prof'),X0=56,X1=744,Y0=254,Y1=14,DMAX=125,AMAX=32000;
   function x(d){return X1-(d/DMAX)*(X1-X0);}function y(a){return Y0-(a/AMAX)*(Y0-Y1);}
   function poly(pts,attrs){return el('polyline',Object.assign({points:pts.map(function(p){return x(Math.min(DMAX,p[0]))+','+y(p[1]);}).join(' '),fill:'none'},attrs),svg);}
   function drawProfile(){
@@ -335,11 +351,18 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     el('line',{x1:x(GATE_D),x2:x(FAP_D),y1:y(GATE_ALT),y2:y(GATE_ALT),stroke:'#14110a','stroke-width':1.5,'stroke-dasharray':'2 3'},svg);
     el('circle',{cx:x(FAP_D),cy:y(GATE_ALT),r:5,fill:'#12804a'},svg);
     el('text',{x:x(FAP_D),y:y(GATE_ALT)-10,'text-anchor':'middle','font-size':11,'font-weight':700,fill:'#12804a'},svg,'G/S');
+    var dx=x(Math.max(0,DECEL_D-s.extra)),dy=y(Math.min(AMAX,pathAlt(DECEL_D,s)));el('circle',{cx:dx,cy:dy,r:8,fill:'#fff',stroke:'#b01fa8','stroke-width':2},svg);el('text',{x:dx,y:dy+4,'text-anchor':'middle','font-size':10,'font-weight':700,fill:'#b01fa8'},svg,'D');
     if(s.extra)el('text',{x:X0+6,y:Y1+14,'font-size':11,'font-weight':700,fill:'#12804a'},svg,'+'+s.extra+' NM track miles from ATC');
     ghosts.forEach(function(g){poly(g.trail,{stroke:g.col,'stroke-width':2.5,opacity:.9});});
     if(trail.length>1)poly(trail,{stroke:'#14110a','stroke-width':2.5});
     var px=x(Math.min(DMAX,s.d-s.extra)),py=y(s.alt);
-    el('path',{d:'M'+(px+14)+' '+py+' l-26 -6 l0 12 z',fill:'#14110a'},svg);
+    var ac=el('g',{transform:'translate('+px+' '+py+') scale(1.15)',class:'ac'},svg);
+    el('path',{d:'M-20 -2 L13 -3 Q19 -2.6 21 0 Q19 2.4 13 2.6 L-17 2.6 Q-20 1.5 -20 -2 Z',fill:'#14110a'},ac);   // fuselage
+    el('path',{d:'M-19 -2 L-24 -11 L-19.5 -11 L-12 -2 Z',fill:'#14110a'},ac);                                  // fin
+    el('path',{d:'M-20 0.5 L-26 2 L-15 2 Z',fill:'#14110a'},ac);                                                // tailplane
+    el('path',{d:'M-3 1.5 L-10 5.5 L-6 5.5 L5 1.5 Z',fill:'#14110a'},ac);                                       // wing
+    el('rect',{x:-1,y:3.2,width:8,height:3.2,rx:1.6,fill:'#14110a'},ac);                                        // engine
+    el('path',{d:'M15 -1.6 L18.5 -1.2 L17.5 0 L15 0 Z',fill:'#fbf8ef'},ac);                                     // cockpit window
   }
   function render(){
     drawProfile();
@@ -361,10 +384,11 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     $('k-spd').className='knob '+(s.spdManaged?'pushed':'pulled');$('k-alt').className='knob '+(s.vmode==='DES'?'pushed':'pulled');$('k-vs').className='knob '+(s.vmode==='VS'?'pulled':'');
     var st=$('status'),big,txt,cls='';
     if(s.done){var ov=s.ovspd>0?' You overspeed by '+Math.round(s.ovspd)+' kt on the way.':'';
-      if(s.result==='win'&&!s.ovspd){cls='win';big='G/S captured at '+Math.round(s.capIas)+' kt';txt='Configured and on the glideslope.';}
+      if(s.result==='win'&&!s.ovspd){cls='win';big='Stable at 1,000 ft';txt='On the glideslope, CONF '+(s.flaps===4?'FULL':'3')+', gear down, '+Math.round(s.ias)+' kt (VAPP '+s.vapp+').';}
       else{cls='done';
-        big=s.result==='win'?'G/S captured, but with an overspeed':s.result==='fast'?'Too fast: G/S captured at '+Math.round(s.capIas)+' kt':s.result==='high'?'Too high: above the glideslope at 3,000 ft point':s.result==='notarmed'?'APPR not armed: no glideslope capture':'Glideslope missed';
-        txt=(s.result==='fast'?'Slow down earlier: flaps 1 below 230 kt, flaps 2 below 200 kt.':s.result==='high'?'You needed more drag or more track miles, earlier.':s.result==='notarmed'?'Press APPR before reaching the glideslope.':'')+ov;}}
+        big=s.result==='win'?'Stable, but with an overspeed':s.result==='unstable'?'Not stable at 1,000 ft: '+s.why:s.result==='fast'?'Too fast: G/S captured at '+Math.round(s.capIas)+' kt':s.result==='high'?'Too high: above the glideslope at 3,000 ft point':s.result==='notarmed'?'APPR not armed: no glideslope capture':'Glideslope missed';
+        txt=(s.result==='unstable'?'Go around. Configure earlier: gear down, then flaps 3 and FULL, slowing as you go.':s.result==='fast'?'Slow down earlier: flaps 1 below 230 kt, flaps 2 below 200 kt.':s.result==='high'?'You needed more drag or more track miles, earlier.':s.result==='notarmed'?'Press APPR before reaching the glideslope.':'')+ov;}}
+    else if(s.gsCap){cls='win';big='G/S captured at '+Math.round(s.capIas)+' kt';txt='Now get stable by 1,000 ft: gear down, CONF 3 or FULL, below VAPP + 30.';}
     else{var n=need(s.alt,s),av=s.d-GATE_D;
       if(vdev>800){cls='high';big='High: '+Math.round(vdev/100)*100+' ft above the path';txt='About '+n.toFixed(0)+' NM needed, '+av.toFixed(0)+' NM to go.';}
       else if(vdev<-800){cls='low';big='Low: '+Math.round(-vdev/100)*100+' ft below the path';txt='DES holds speed and descends gently to rejoin.';}
@@ -384,7 +408,7 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     else{el('rect',{x:25,y:hy-10,width:40,height:20,rx:5,fill:'#d9dee2',stroke:'#14110a','stroke-width':1.5},svgEl);el('line',{x1:31,x2:59,y1:hy,y2:hy,stroke:'#14110a','stroke-width':2},svgEl);}}
   function drawLevers(){
     var sb=$('lv-sb');track(sb,[['RET',0],['1/2',0.5],['FULL',1]]);handle(sb,s.sb);
-    $('ro-sb').textContent=s.flaps===4?'INHIB':s.sb<0.02?'RET':(s.sb>0.5?'½ (AP)':Math.round(s.sb*200)+'% of ½');
+    $('ro-sb').textContent=s.gear?'ARMED':s.flaps===4?'INHIB':s.sb<0.02?'RET':(s.sb>0.5?'½ (AP)':Math.round(s.sb*200)+'% of ½');
     var fl=$('lv-fl');track(fl,[['0',0],['1',.25],['2',.5],['3',.75],['FULL',1]]);handle(fl,s.flaps/4,'flap');
     $('ro-fl').textContent=s.flaps?'VFE '+VFE[s.flaps]:'CONF 0';
     var lg=$('lv-lg');lg.innerHTML='';el('rect',{x:30,y:20,width:30,height:150,rx:6,fill:'#22282e'},lg);
@@ -399,9 +423,9 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
     e.addEventListener('pointerdown',function(ev){on=true;e.setPointerCapture(ev.pointerId);onPos(pos(ev));render();});
     e.addEventListener('pointermove',function(ev){if(on){onPos(pos(ev));render();}});
     e.addEventListener('pointerup',function(){on=false;});}
-  leverDrag('lv-sb',function(f){s.sb=f;});                                   // free travel
+  leverDrag('lv-sb',function(f){if(!s.gear)s.sb=f;});                                   // free travel
   leverDrag('lv-fl',function(f){s.flaps=Math.round(f*4);});                  // detents, as on the real lever
-  $('lv-lg').addEventListener('click',function(){if(!s.gear&&s.ias>VLO+2){s.gearMsg='VLO '+VLO;render();return;}s.gear=!s.gear;s.gearMsg='';render();});
+  $('lv-lg').addEventListener('click',function(){if(!s.gear&&s.ias>VLO+2){s.gearMsg='VLO '+VLO;render();return;}s.gear=!s.gear;s.gearMsg='';if(s.gear)s.sb=0;render();});
   $('lv-sb').addEventListener('keydown',function(e){if(e.key==='ArrowDown')s.sb=Math.min(1,s.sb+0.05);else if(e.key==='ArrowUp')s.sb=Math.max(0,s.sb-0.05);else return;e.preventDefault();render();});
   $('lv-fl').addEventListener('keydown',function(e){if(e.key==='ArrowDown')s.flaps=Math.min(4,s.flaps+1);else if(e.key==='ArrowUp')s.flaps=Math.max(0,s.flaps-1);else return;e.preventDefault();render();});
   $('lv-lg').addEventListener('keydown',function(e){if(e.key===' '||e.key==='Enter'){e.preventDefault();$('lv-lg').dispatchEvent(new Event('click'));}});
@@ -434,26 +458,35 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid 
   /* ---------- play, compare, situations ---------- */
   var timer=null;
   function stop(){if(timer){clearInterval(timer);timer=null;}$('play').textContent='▶ Play';}
-  $('play').addEventListener('click',function(){if(timer){stop();render();return;}if(s.done)init();
-    $('play').textContent='❚❚ Pause';timer=setInterval(function(){acc+=rate*0.05;while(acc>=0.5&&!s.done){step(s,0.5);acc-=0.5;}trail.push([s.d-s.extra,s.alt]);if(s.done){stop();if(s.result==='win'&&!s.ovspd)confetti();}render();},50);});
+  $('play').addEventListener('click',function(){if(timer){stop();render();return;}if(s.done){s=fresh(start,+$('wind').value);trail=[];}
+    $('play').textContent='❚❚ Pause';timer=setInterval(function(){acc+=rate*0.05;var was=s.gsCap;while(acc>=0.5&&!s.done){step(s,0.5);acc-=0.5;}if(!was&&s.gsCap)confetti(true);trail.push([s.d-s.extra,s.alt]);if(s.done){stop();if(s.result==='win'&&!s.ovspd)confetti();}render();},50);});
   var rate=10,acc=0;
   [].forEach.call(document.querySelectorAll('[data-rate]'),function(b){b.addEventListener('click',function(){rate=+b.dataset.rate;[].forEach.call(document.querySelectorAll('[data-rate]'),function(x){x.setAttribute('aria-pressed',x===b);});});});
-  function confetti(){var c=$('confetti');if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  function confetti(small){var c=$('confetti');if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
     var ctx=c.getContext('2d'),W=c.width=innerWidth,H=c.height=innerHeight,cols=['#f2b705','#12804a','#0a7096','#c0321a','#b01fa8','#fbf8ef','#3fd6ff'],ps=[];
     function burst(x0,dir){for(var i=0;i<220;i++)ps.push({x:x0,y:H*.75,vx:dir*(Math.random()*16+4)+(Math.random()-.5)*6,vy:-Math.random()*22-10,r:Math.random()*7+5,c:cols[i%cols.length],a:Math.random()*6,va:(Math.random()-.5)*.5});}
-    burst(0,1);burst(W,-1);setTimeout(function(){burst(W*.5,0.4);burst(W*.5,-0.4);},500);setTimeout(function(){burst(0,1);burst(W,-1);},1100);
+    if(small){for(var k=0;k<2;k++)burst(W*.5,k?0.35:-0.35);ps=ps.slice(0,180);}
+    else{burst(0,1);burst(W,-1);setTimeout(function(){burst(W*.5,0.4);burst(W*.5,-0.4);},500);setTimeout(function(){burst(0,1);burst(W,-1);},1100);}
     var t0=performance.now();(function frame(t){var e=t-t0;ctx.clearRect(0,0,W,H);ps.forEach(function(p){p.vy+=.32;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);ctx.restore();});
-      if(e<5200)requestAnimationFrame(frame);else ctx.clearRect(0,0,W,H);})(t0);}
-  $('reset').addEventListener('click',function(){stop();init();});
+      if(e<(small?2600:5200))requestAnimationFrame(frame);else ctx.clearRect(0,0,W,H);})(t0);}
+  $('reset').addEventListener('click',function(){stop();s=fresh(start,+$('wind').value);trail=[];render();});
   $('gust').addEventListener('click',function(){s.ias+=15;render();});
   $('miles').addEventListener('click',function(){s.d+=15;s.extra+=15;render();});
   $('wind').addEventListener('input',function(e){s.wind=+e.target.value;render();});
-  [].forEach.call(document.querySelectorAll('[data-p]'),function(b){b.addEventListener('click',function(){stop();cur=b.dataset.p;ghosts=[];$('cmp').classList.remove('on');
+  $('tod').addEventListener('input',function(e){stop();P[cur].off=+e.target.value;ghosts=[];$('cmp').classList.remove('on');init();});
+  var dragAc=false;
+  svg.addEventListener('pointerdown',function(ev){if(timer)return;dragAc=true;svg.setPointerCapture(ev.pointerId);dragTo(ev);});
+  svg.addEventListener('pointermove',function(ev){if(dragAc)dragTo(ev);});
+  svg.addEventListener('pointerup',function(){dragAc=false;});
+  function dragTo(ev){var rc=svg.getBoundingClientRect(),px=(ev.clientX-rc.left)/rc.width*760,py=(ev.clientY-rc.top)/rc.height*290;
+    var d=Math.max(GATE_D+2,Math.min(DMAX,(X1-px)/(X1-X0)*DMAX)),a=Math.max(GATE_ALT+500,Math.min(AMAX-1000,(Y0-py)/(Y0-Y1)*AMAX));
+    start={d:d,alt:a,ias:a<10000?250:P[cur].ias,econ:P[cur].econ};s=fresh(start,+$('wind').value);trail=[];ghosts=[];$('cmp').classList.remove('on');syncTod();render();}
+  [].forEach.call(document.querySelectorAll('[data-p]'),function(b){b.addEventListener('click',function(){stop();cur=b.dataset.p;ghosts=[];$('wind').value=P[cur].wind;$('cmp').classList.remove('on');
     [].forEach.call(document.querySelectorAll('[data-p]'),function(x){x.setAttribute('aria-pressed',x===b);});init();});});
-  $('compare').addEventListener('click',function(){stop();var w=+$('wind').value,rows='<tr><th>Strategy</th><th>Result</th><th>Overspeed</th><th>MORE DRAG</th></tr>';ghosts=[];
-    STRATS.forEach(function(sg){var r=simulate(P[cur],w,sg),off=r.st.alt-GATE_ALT;ghosts.push({col:sg.col,trail:r.trail});
-      var R={win:'G/S at '+Math.round(r.st.capIas)+' kt',fast:'Too fast: '+Math.round(r.st.capIas)+' kt',high:'Too high',notarmed:'Not armed',missed:'Missed'};
-      rows+='<tr><td><span class="sw" style="background:'+sg.col+'"></span>'+sg.name+'</td><td>'+(R[r.st.result]||'—')+'</td><td>'+(r.st.ovspd>0?'+'+Math.round(r.st.ovspd)+' kt':'None')+'</td><td>'+(r.st.mdTime>0?Math.round(r.st.mdTime/60)+' min':'—')+'</td></tr>';});
+  $('compare').addEventListener('click',function(){stop();var w=+$('wind').value,rows='<tr><th>Strategy</th><th>G/S</th><th>Result</th><th>Overspeed</th><th>MORE DRAG</th></tr>';ghosts=[];
+    STRATS.forEach(function(sg){var r=simulate(start,w,sg),off=r.st.alt-GATE_ALT;ghosts.push({col:sg.col,trail:r.trail});
+      var R={win:'Stable, '+Math.round(r.st.ias)+' kt',unstable:'Unstable: '+r.st.why,fast:'Too fast: '+Math.round(r.st.capIas)+' kt',high:'Too high',notarmed:'Not armed',missed:'Missed'};
+      rows+='<tr><td><span class="sw" style="background:'+sg.col+'"></span>'+sg.name+'</td><td>'+(r.st.gsCap?'Captured, '+Math.round(r.st.capIas)+' kt':'Not captured')+'</td><td>'+(R[r.st.result]||'—')+'</td><td>'+(r.st.ovspd>0?'+'+Math.round(r.st.ovspd)+' kt':'None')+'</td><td>'+(r.st.mdTime>0?Math.round(r.st.mdTime/60)+' min':'—')+'</td></tr>';});
     $('res').innerHTML=rows;$('cmp').classList.add('on');init();});
   init();
 })();
