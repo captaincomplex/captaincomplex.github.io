@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Top of Drop — xpdr.aero</title>
+<meta name="description" content="An arcade descent game: from FL380 to stable at 1,000 ft, idle thrust all the way. Dodge thunderstorms, traffic, icing and mountains, or switch to the simulator.">
+<meta name="theme-color" content="#14110a">
+<link rel="icon" href="../logo/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="../logo/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="../logo/apple-touch-icon.png">
+<style>
+@font-face{font-family:"Familjen Grotesk";font-weight:500 700;font-style:normal;font-display:swap;src:url(../fonts/familjen-grotesk-latin.woff2) format("woff2")}
+@font-face{font-family:"Familjen Fallback";src:local("Arial"),local("Liberation Sans");size-adjust:102%;ascent-override:100%;descent-override:22%;line-gap-override:0%}
+:root{--f:"Familjen Grotesk","Familjen Fallback",system-ui,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,monospace;--ink:#14110a;--saf:#f2b705;--white:#fbf8ef;--red:#c0321a;--green:#12804a}
+*{box-sizing:border-box}
+body{margin:0;background:#14110a;color:var(--ink);font-family:var(--f);padding:0 12px 14px}
+.wrap{max-width:1100px;margin:0 auto}
+.banner{background:var(--red);color:#fff;font-weight:700;padding:8px 14px;border-radius:12px;margin:12px 0;font-size:.9rem}
+.game{background:var(--saf);border-radius:24px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.head svg{height:54px;width:auto}
+.head p{margin:0;font-weight:700;font-size:1rem}
+.stage{position:relative}
+canvas{width:100%;height:auto;display:block;border-radius:16px;border:3px solid var(--ink);background:#7ec8f2;touch-action:manipulation}
+.overlay{position:absolute;inset:3px;border-radius:13px;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:18px;text-align:center;overflow:auto}
+.overlay.on{display:flex}
+#title{background:radial-gradient(circle at 50% 30%,#2b3a8f,#0b0f2e 70%);color:#fff}
+#title .logo{width:min(560px,90%);height:auto;filter:drop-shadow(0 6px 0 #000)}
+#title .modes{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.mode{font:900 1.5rem var(--f);letter-spacing:.06em;text-transform:uppercase;color:#14110a;background:linear-gradient(#ffe36b,#f2b705);border:4px solid #fff;border-radius:14px;padding:16px 28px;cursor:pointer;box-shadow:0 6px 0 #000;min-width:220px;text-decoration:none;display:flex;flex-direction:column;gap:4px}
+.mode small{font:700 .8rem var(--f);letter-spacing:0;text-transform:none}
+.mode.sim{background:linear-gradient(#9fe7ff,#3fa9d6)}
+.mode:hover,.mode:focus-visible{transform:translateY(-3px) scale(1.03);outline:none;box-shadow:0 9px 0 #000}
+.blink{font:800 .95rem var(--mono);letter-spacing:.2em;animation:bl 1.1s steps(2) infinite;color:#ffd34d}
+@keyframes bl{50%{opacity:0}}
+#tips{background:rgba(11,15,46,.94);color:#fff;text-align:left;align-items:stretch}
+#tips h2{margin:0;font:900 1.6rem var(--f);text-align:center;color:#ffd34d}
+#tips .obj{background:#ffd34d;color:#14110a;border-radius:10px;padding:10px 14px;font-weight:800}
+#tips ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:.95rem;line-height:1.4}
+#tips b{color:#9fe7ff}
+#tips .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+#tips label{font-weight:600;font-size:.9rem;display:flex;gap:8px;align-items:center}
+.pad{display:grid;grid-template-columns:1.9fr 1.15fr .95fr .75fr;gap:8px}
+.grp{background:var(--white);border:3px solid var(--ink);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.grp b{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase}
+.row{display:flex;gap:5px;flex-wrap:wrap}
+.k{font:800 .9rem var(--f);border:3px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink);padding:7px 5px;cursor:pointer;box-shadow:0 3px 0 var(--ink);min-width:44px;flex:1}
+.k:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.k.on{background:var(--ink);color:var(--saf)}
+.k.no{animation:shake .3s}
+.k.small{font-size:.75rem;padding:5px 6px;box-shadow:0 2px 0 var(--ink);background:#ffe9e4}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.k.big{background:var(--green);color:#fff;font-size:1.1rem}
+.top{padding:16px 4px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.top img{height:34px;width:auto;display:block}
+.top a.back{color:#f3ecd6;font-size:.9375rem;font-weight:500;text-decoration:none}.top a.back:hover{color:var(--saf)}
+.nojs{background:var(--white);border-radius:14px;padding:14px 16px;font-weight:600}
+footer{margin-top:18px;padding:0 4px 8px;display:flex;justify-content:space-between;gap:12px 28px;flex-wrap:wrap;color:#a79d82;font-size:.875rem;line-height:1.5}
+footer p{max-width:80ch;margin:0}footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--saf)}
+.q{background:#fff3c4;border:2px dashed #a35a00;border-radius:12px;padding:10px 14px;font-size:.875rem;margin-top:12px;color:var(--ink)}
+@media(max-width:820px){.pad{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><a href="../"><img src="../logo/xpdr-lockup-A2.svg" alt="xpdr.aero" width="98" height="34"></a><a class="back" href="../explained/">Explained</a></div>
+<div class="game">
+  <div class="head">
+    <svg viewBox="0 0 420 90" role="img" aria-label="Top of Drop logo">
+      <defs><linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff7c2"/><stop offset=".45" stop-color="#f2b705"/><stop offset=".55" stop-color="#c47e00"/><stop offset="1" stop-color="#ffe36b"/></linearGradient></defs>
+      <path d="M12 18 L150 18 Q240 18 300 56 L392 70" fill="none" stroke="#14110a" stroke-width="5" stroke-dasharray="10 7" stroke-linecap="round"/>
+      <path d="M372 64 l26 7 -26 8 z" fill="#c0321a" stroke="#14110a" stroke-width="2"/>
+      <text x="14" y="62" font-family="system-ui" font-weight="900" font-style="italic" font-size="44" letter-spacing="-1" fill="url(#chrome)" stroke="#14110a" stroke-width="2.5" paint-order="stroke">TOP OF DROP</text>
+      <text x="16" y="84" font-family="ui-monospace,Menlo,monospace" font-weight="800" font-size="13" fill="#14110a" letter-spacing="3">IDLE ALL THE WAY</text>
+    </svg>
+    <p>From FL380 to stable at 1,000 ft. Idle thrust, no excuses.</p>
+  </div>
+  <noscript><p class="nojs">Top of Drop needs JavaScript. You can read about descent management, and fly the full simulator, on the <a href="../descent/">Descent Management</a> page.</p></noscript>
+  <div class="stage">
+    <canvas id="c" width="1060" height="560" aria-label="Arcade descent game"></canvas>
+    <div class="overlay on" id="title">
+      <svg class="logo" viewBox="0 0 420 110" role="img" aria-label="Top of Drop">
+        <defs><linearGradient id="chrome2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff7c2"/><stop offset=".45" stop-color="#f2b705"/><stop offset=".55" stop-color="#c47e00"/><stop offset="1" stop-color="#ffe36b"/></linearGradient></defs>
+        <path d="M12 22 L150 22 Q240 22 300 62 L392 78" fill="none" stroke="#fff" stroke-width="5" stroke-dasharray="10 7" stroke-linecap="round" opacity=".8"/>
+        <path d="M372 72 l26 7 -26 8 z" fill="#c0321a" stroke="#fff" stroke-width="2"/>
+        <text x="14" y="70" font-family="system-ui" font-weight="900" font-style="italic" font-size="46" letter-spacing="-1" fill="url(#chrome2)" stroke="#14110a" stroke-width="3" paint-order="stroke">TOP OF DROP</text>
+        <text x="16" y="98" font-family="ui-monospace,Menlo,monospace" font-weight="800" font-size="14" fill="#9fe7ff" letter-spacing="4">IDLE ALL THE WAY</text>
+      </svg>
+      <div class="modes">
+        <button class="mode" type="button" id="m-arcade">Arcade<small>Bright, fast, hazards everywhere</small></button>
+        <a class="mode sim" href="../descent/" id="m-sim">Simulator<small>FCU, levers, the real figures</small></a>
+      </div>
+      <span class="blink">SELECT MODE</span>
+    </div>
+    <div class="overlay" id="tips">
+      <h2>Before you push</h2>
+      <p class="obj">Objective: get from FL380 to <u>stable at 1,000 ft</u> on the glideslope: gear down, flaps 3 or FULL, below VAPP + 30, no overspeed.</p>
+      <ul>
+        <li><b>Highest score:</b> one continuous descent at idle thrust, all the way to glideslope capture. Levelling off adds thrust and costs the PERFECT star.</li>
+        <li><b>Gates:</b> about 3 NM per 1,000 ft. FL100 by about 40 NM, slowing to 250 kt; 3,000 ft and slowing by about 10 NM. Add miles for a tailwind.</li>
+        <li><b>Stay “on the glide”</b> (inside the green cone) and you are on a sensible path. The glideslope captures itself.</li>
+        <li><b>Speedbrake:</b> drag grows with speed squared, so it is strongest when fast. Not available once the gear is down.</li>
+        <li><b>Gear:</b> lots of drag, below 250 kt only. <b>Flaps:</b> each stage has a speed limit, and you can't slow below clean minimum speed without them.</li>
+        <li><b>Anti-ice:</b> switch it on in icing cloud or ice builds and costs stars. It raises idle thrust, so you descend more shallowly.</li>
+        <li><b>Landing lights:</b> a tiny bit of drag. Mostly for morale.</li>
+        <li><b>Hazards:</b> fly into a thunderstorm and it's over; get close and you lose points. Same near the mountains (keep 2,000 ft clear). TCAS traffic: level off on a TA or the RA flies itself and costs a star.</li>
+      </ul>
+      <div class="foot"><label><input type="checkbox" id="noTips"> Don't show this again</label><button class="k big" type="button" id="tipsGo" style="flex:none;padding:10px 26px">Let's go</button></div>
+    </div>
+  </div>
+  <div class="pad" id="pad">
+    <div class="grp"><b>Speed</b><div class="row" id="spd"></div></div>
+    <div class="grp"><b>Altitude · ice · lights</b><div class="row"><button class="k" id="lvl" type="button">Level off</button><button class="k" id="ai" type="button">Anti-ice</button></div><div class="row"><button class="k" id="ll" type="button">Ldg lights</button><button class="k small" id="ga" type="button">Go-around</button></div></div>
+    <div class="grp"><b>Drag</b><div class="row"><button class="k" id="sb" type="button" style="font-size:.8rem">Speed­brake</button><button class="k" id="gear" type="button">Gear</button></div></div>
+    <div class="grp"><b>Flaps <span id="fl">0</span></b><div class="row"><button class="k" id="fup" type="button">− Up</button><button class="k" id="fdn" type="button">+ Dn</button></div></div>
+  </div>
+  <button class="k big" id="go" type="button" style="display:none">▶ Start</button>
+</div>
+<footer><p>An arcade game built on a simplified A320 model. Its figures are illustrative, not for operational use; your FCOM, FCTM and operations manual are the authority.</p><p>Part of <a href="../">xpdr.aero</a> · <a href="../explained/">Explained</a> · <a href="../descent/">Simulator</a></p></footer>
+</div>
+<script>
+(function(){
+  var c=document.getElementById('c');if(window.innerWidth<600){c.width=640;c.height=780;}     // taller picture on phones
+  var ctx=c.getContext('2d'),W=c.width,H=c.height;
+  /* ---- simplified A320 ---- */
+  var G=32.174,KT=1.68781,NM=6076.1,GS_FT=318,FAP_D=3000/318,VMO=350,VLE=280,VLO=250;
+  var K0=0.0549,KSB=0.0137,KGEAR=0.019,KFLAP=[0,0.004,0.010,0.016,0.026],VFE=[999,230,200,185,177],MINSPD=[210,180,150,145,140];
+  var SPDS=[340,320,300,290,270,250,210,180,150],FLOOR=3000,TIME=14;
+  function sos(a){var T=Math.max(216.65,288.15-1.98*a/1000);return 661.47*Math.sqrt(T/288.15);}
+  function tas(i,a){return i*(1+0.02*a/1000);}
+  function machToIas(m,a){return m*sos(a)/(1+0.02*a/1000);}
+  function vmax(st){var v=Math.min(VMO,machToIas(0.82,st.alt));if(st.flaps)v=Math.min(v,VFE[st.flaps]);if(st.gear)v=Math.min(v,VLE);return v;}
+  function kd(st){var sb=st.sb&&!st.gear&&st.flaps<4?0.5:0;                        // speedbrake drag ∝ IAS² (dynamic pressure)
+    return K0*(0.85+0.15*Math.pow(st.ias/280,2))+KSB*sb*2*Math.pow(st.ias/300,2)+(st.gear?KGEAR:0)+KFLAP[st.flaps]-(st.ai?0.0028:0)+(st.ll?0.0003:0);}
+
+  /* ---- continuous descent path: idle segment, a shallower slowing segment, then the glideslope ---- */
+  var IDLE_NM=3.3,DEC_D=16,   /* NM per 1,000 ft at idle: still air about 3.0, plus typical tailwind and Mach acceleration */
+      ALT_DEC=3000+(DEC_D-FAP_D)*1000/5.5;
+  function pathAlt(d){if(d<=FAP_D)return d*GS_FT;if(d<=DEC_D)return 3000+(d-FAP_D)*1000/5.5;return ALT_DEC+(d-DEC_D)*1000/IDLE_NM;}
+  function tol(d){return d<=FAP_D?Math.max(60,250*d/FAP_D):250+22*(d-FAP_D);}
+
+  /* ---- terrain ---- */
+  var peaks=[];
+  function terr(d){if(d<7)return 0;var h=120+60*Math.sin(d*.9);peaks.forEach(function(p){h=Math.max(h,p.h*Math.exp(-Math.pow((d-p.d)/p.w,2)));});return h;}
+
+  function windAt(st,alt){var L=st.layers,i=0;while(i<L.length-1&&alt<L[i+1][0])i++;if(i>=L.length-1)return L[L.length-1][1];var a0=L[i][0],a1=L[i+1][0],f=(a0-alt)/(a0-a1);return L[i][1]+(L[i+1][1]-L[i][1])*f;}
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  function newLayers(){return [[39000,rnd(45,90)],[30000,rnd(30,70)],[20000,rnd(10,50)],[10000,rnd(-15,30)],[4000,rnd(-20,25)],[0,rnd(-15,15)]];}
+
+  var s,state='title',last=0;
+  function todD(a){return DEC_D+(a-ALT_DEC)*IDLE_NM/1000;}
+  function reset(){s={d:todD(38000)-rnd(10,15),alt:38000,ias:machToIas(0.78,38000),tgtSpd:300,level:false,lvlAlt:0,sb:false,gear:false,flaps:0,ai:false,ll:false,
+      gs:false,capIas:0,ovs:0,ovT:0,layers:newLayers(),t:0,msg:'',msgT:0,score:0,trail:[],gust:0,gustPend:null,thrust:false,hits:0,raCount:0,tc:null,storms:[],ice:[],
+      laser:null,ga:0,flash:0,shake:0,iceAcc:0,inIce:false,close:0,terrPen:0,slow:0};
+    spawn();sync();}
+  function say(m,t){s.msg=m;s.msgT=t||2.2;}
+  function spawn(){
+    peaks=[];var np=2+(Math.random()<.5?1:0);for(var i=0;i<np;i++){var pd=rnd(18,55);peaks.push({d:pd,w:rnd(2,4.5),h:Math.max(1500,Math.min(9000,pathAlt(pd)-rnd(2600,4200)))});}
+    var n=1+(Math.random()<.75?1:0),used=[];for(var j=0;j<n;j++){var dc=rnd(30,80);if(used.some(function(u){return Math.abs(u-dc)<14;}))continue;used.push(dc);s.storms.push({dc:dc,ac:pathAlt(dc)+rnd(-500,500),seed:Math.random()});}
+    var nI=2+(Math.random()<.5?1:0);for(var k=0;k<nI;k++){var d2=rnd(22,80),p2=pathAlt(d2);if(p2>19000||p2<4500||s.storms.some(function(q){return Math.abs(q.dc-d2)<10;}))continue;var th=rnd(1800,4000);
+      s.ice.push({d0:d2+rnd(3,7),d1:d2-rnd(3,7),lo:p2-th*.6,hi:p2+th*.4,seed:Math.random()});}
+    s.laser=Math.random()<0.65?{d:rnd(9,17),ang:0}:null;
+    s.drone={d:4.6,alt:4.6*GS_FT-260,t:0,flee:false,gone:false};
+    s.tc=Math.random()<0.8?{d:rnd(40,85),alt:0,st:'pending',taReal:0}:null;
+    s.crane={d:-0.35};}
+
+  /* ---- one simulation step (sim seconds) ---- */
+  var STORM_R=18,CLOSE_R=38,GROUND=H-60,AX=W*0.28,NMPX=W/34;
+  function yAlt(a){return GROUND-Math.sqrt(Math.max(0,a)/40000)*(GROUND-30);}
+  function xD(d){return AX+(s.d-d)*NMPX;}
+  function step(dt){
+    var V=s.ias,wind=windAt(s,s.alt)+s.gust,Vf=tas(V,s.alt)*KT,gs=(tas(V,s.alt)+wind)*KT,dHe=-kd(s)*Vf;
+    var sel=Math.min(s.tgtSpd,machToIas(s.tgtSpd>=320?0.80:0.78,s.alt)),tgt=Math.max(MINSPD[s.flaps],sel);   // Mach above the crossover; never below the minimum for the flap setting
+    var hold=Math.max(-1,Math.min(1,(tgt-V)*0.15))*KT,dh,dV,gsAlt=s.d*GS_FT;
+    if(!s.gs&&s.d<20&&Math.abs(s.alt-gsAlt)<60){s.gs=true;s.capIas=V;s.score+=500;say('G/S CAPTURED +500');burst(70);}
+    var T=s.tc;
+    if(T&&T.st==='pending'&&s.d-T.d<16){var pr=s.alt+(s.vs||0)/60*(16*NM/gs);T.alt=Math.max(4000,Math.round((pr-450+Math.random()*500)/100)*100);T.st='none';}
+    if(T&&(T.st==='none'||T.st==='ta'||T.st==='ra')){var rng=s.d-T.d,cs=Math.abs(s.alt-T.alt),ps=Math.abs(s.alt+(s.vs||0)/60*Math.max(0,rng*NM/gs)-T.alt);
+      if(T.st==='none'&&rng<12&&rng>0&&(ps<1200||cs<1200)){T.st='ta';say('TRAFFIC, TRAFFIC · LEVEL OFF',3);}
+      if(T.st==='ta'&&!s.level&&T.taReal>5&&rng<4.5&&ps<700){T.st='ra';s.raCount++;T.raVs=cs<500?1500:0;say(T.raVs?'RA: CLIMB, CLIMB':'RA: LEVEL OFF, LEVEL OFF',3);}
+      if(rng<-1){if(T.st==='ra')say('CLEAR OF CONFLICT');T.st='clear';}}
+    if(T&&T.st==='ra'){dh=T.raVs/60;var i0=(dHe-dh)*G/Vf;dV=hold<i0?i0:hold;s.thrust=true;}
+    else if(s.gs){dh=-GS_FT*gs/NM+(gsAlt-s.alt)*0.03;var i1=(dHe-dh)*G/Vf;dV=hold<i1?i1:hold;}
+    else if(!s.level&&s.alt>FLOOR+30){dV=hold;dh=dHe-Vf*dV/G;if(dh>0){dh=0;dV=dHe*G/Vf;}}
+    else{var la=s.level?s.lvlAlt:FLOOR;dh=(la-s.alt)*0.2;var i2=dHe*G/Vf;if(hold<i2)dV=i2;else{dV=hold;if(!s.gs)s.thrust=true;}}
+    s.alt+=dh*dt;s.ias=Math.max(MINSPD[s.flaps]-12,V+dV/KT*dt);s.d-=gs/NM*dt;s.t+=dt;s.vs=dh*60;s.wind=wind;
+    s.gust*=Math.pow(0.5,dt/8);
+    if(!s.gustPend&&Math.random()<dt/110){s.gustPend={t:3.2,mag:(Math.random()<.6?1:-1)*rnd(8,18)};say(s.gustPend.mag>0?'TURBULENCE AHEAD · SPEED MAY RISE':'TURBULENCE AHEAD',3);}
+    // icing
+    var was=s.inIce;s.inIce=s.ice.some(function(k){return s.d<=k.d0&&s.d>=k.d1&&s.alt>=k.lo&&s.alt<=k.hi;});
+    if(s.inIce&&!was)say(s.ai?'ICING CLOUD · ANTI-ICE ON ✓':'ICING! SWITCH ANTI-ICE ON');
+    if(s.inIce&&!s.ai)s.iceAcc=Math.min(1,s.iceAcc+dt/120);
+    // thunderstorms: screen-space, as drawn
+    s.close=0;for(var si=0;si<s.storms.length;si++){var k=s.storms[si],ex=(s.d-k.dc)*NMPX,ey=yAlt(k.ac)-yAlt(s.alt),dd=Math.sqrt(ex*ex+ey*ey);
+      if(dd<=STORM_R){s.shake=2;end('Flew into a thunderstorm');return;}if(dd<CLOSE_R){s.close=1;s.score=Math.max(0,s.score-dt*12);}}
+    // terrain
+    var th2=terr(s.d);if(s.alt<=th2){end('Flew into the mountains');return;}
+    if(s.d>6&&s.alt-th2<2000){s.terrPen=1;s.score=Math.max(0,s.score-dt*12);}else s.terrPen=0;
+    // lasers (screen-space)
+    var L=s.laser;if(L){L.ang=(Math.sin(s.t/14)*0.5+0.5)*1.1+0.2;L.on=(s.t%40)<10;var lx=xD(L.d),px=AX-lx,py=GROUND-4-yAlt(s.alt),cx=-Math.cos(L.ang),cy=Math.sin(L.ang);
+      if(L.on&&!L.done&&s.alt<7000&&px*cx+py*cy>0&&Math.abs(px*cy-py*cx)<6){L.done=true;s.hits++;s.flash=1.6;s.shake=0.8;s.score=Math.max(0,s.score-100);say('LASER STRIKE! −100');}}
+    // drone: darts away well before the aircraft arrives
+    var Dr=s.drone;if(Dr&&!Dr.gone){if(!Dr.flee&&s.d-Dr.d<2.4)Dr.flee=true;if(Dr.flee){Dr.alt-=dt*45;Dr.d-=dt*0.09;if(Dr.alt<0)Dr.gone=true;}}
+    // end conditions
+    if(!s.gs&&s.d<FAP_D-0.8){end(s.alt>gsAlt?'Too high for the glideslope':'Missed the glideslope');return;}
+    if(s.gs&&s.alt<=1000){var vapp=s.flaps===4?140:145,why=!s.gear?'Gear not down':s.flaps<3?'Flaps not set for landing':s.ias>=vapp+30?'Too fast: '+Math.round(s.ias)+' kt':'';
+      if(!why){s.score+=1000+(s.ovs?0:500)+(s.thrust?0:1000);burst(s.thrust?400:700);}end(why||'STABLE!');}
+  }
+  function end(m){state='over';s.result=m;var st=m==='STABLE!';
+    s.rate=[[s.gs,'G/S captured'],[st,'Stable at 1,000 ft'],[!s.ovs,'No overspeed'],[!s.hits,'No hazards hit'],[s.gs&&!s.thrust,'PERFECT: idle thrust all the way to G/S']];
+    s.iceLoss=Math.floor(s.iceAcc*3+0.001);s.raLoss=s.raCount?1:0;
+    s.stars=/thunderstorm|mountains/.test(m)?0:Math.max(0,s.rate.filter(function(x){return x[0];}).length-s.iceLoss-s.raLoss);if(st&&s.stars===5)s.result='PERFECT!';
+    go.textContent='▶ Fly again';go.style.display='';}
+
+  /* ---- drawing ---- */
+  var clouds=[];for(var i=0;i<14;i++)clouds.push({x:Math.random()*W*2,y:30+Math.random()*(GROUND-160),r:18+Math.random()*26,p:.3+Math.random()*.7});
+  var bld=[];for(var b=0;b<26;b++)bld.push({d:rnd(1.5,9),w:rnd(10,24),h:rnd(18,60),c:['#8c7a6b','#a59484','#6f6a73','#b4a48f'][b%4]});
+  function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  function draw(){
+    var g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#3d8fd9');g.addColorStop(.6,'#9fd6f5');g.addColorStop(1,'#ffd9a0');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff3b0';ctx.beginPath();ctx.arc(W-90,70,36,0,7);ctx.fill();
+    clouds.forEach(function(k){var x=((k.x+s.d*NMPX*k.p)%(W+200)+W+200)%(W+200)-100;ctx.fillStyle='rgba(255,255,255,'+(.55+.35*k.p)+')';
+      ctx.beginPath();ctx.arc(x,k.y,k.r,0,7);ctx.arc(x+k.r*.9,k.y+6,k.r*.75,0,7);ctx.arc(x-k.r*.9,k.y+8,k.r*.65,0,7);ctx.fill();});
+    ctx.font='700 11px ui-monospace,Menlo,monospace';ctx.fillStyle='rgba(20,17,10,.4)';[30000,20000,10000,5000].forEach(function(a){var yy=yAlt(a);ctx.fillRect(0,yy,26,1);ctx.fillText(a>=10000?'FL'+a/100:a,30,yy+4);});
+    // terrain: far hills, mountains, ground, buildings, crane
+    ctx.fillStyle='#7d9b6a';ctx.beginPath();ctx.moveTo(0,GROUND);for(var x0=0;x0<=W;x0+=8){var dd=s.d-(x0-AX)/NMPX;ctx.lineTo(x0,Math.min(GROUND,yAlt(terr(dd))));}ctx.lineTo(W,GROUND);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#fff';peaks.forEach(function(p){var px=xD(p.d);if(px<-60||px>W+60)return;var py=yAlt(p.h);ctx.beginPath();ctx.moveTo(px-14,py+14);ctx.lineTo(px,py);ctx.lineTo(px+14,py+14);ctx.closePath();ctx.fill();});
+    ctx.fillStyle='#5aa83c';ctx.fillRect(0,GROUND,W,H-GROUND);ctx.fillStyle='#3f7f29';for(var t=0;t<W;t+=40){var o=((t+s.d*NMPX)%40+40)%40;ctx.fillRect(t-o,GROUND,20,6);}
+    bld.forEach(function(q){var bx=xD(q.d);if(bx<-40||bx>W+40)return;ctx.fillStyle=q.c;ctx.fillRect(bx,GROUND-q.h,q.w,q.h);ctx.fillStyle='rgba(255,240,170,.8)';for(var wy=GROUND-q.h+5;wy<GROUND-6;wy+=9)ctx.fillRect(bx+3,wy,q.w-6,2);});
+    var rx=xD(0);if(rx<W+200){ctx.fillStyle='#46515c';ctx.fillRect(rx,GROUND-4,140,10);ctx.fillStyle='#fff';for(var m=0;m<6;m++)ctx.fillRect(rx+10+m*22,GROUND,12,2);}
+    var crx=xD(s.crane.d);if(crx<W+120){ctx.strokeStyle='#e8a000';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(crx,GROUND);ctx.lineTo(crx,GROUND-70);ctx.lineTo(crx-46,GROUND-70);ctx.moveTo(crx,GROUND-70);ctx.lineTo(crx+18,GROUND-70);ctx.moveTo(crx-30,GROUND-70);ctx.lineTo(crx-30,GROUND-50);ctx.stroke();
+      ctx.fillStyle='#e8a000';ctx.fillRect(crx+12,GROUND-74,8,8);ctx.fillStyle='#ff2d1a';ctx.beginPath();ctx.arc(crx,GROUND-74,2.5,0,7);ctx.fill();}
+    // path cone (continuous descent into the glideslope)
+    var top=[],bot=[];for(var cd=Math.min(140,s.d+40);cd>=0;cd-=1){var ca=pathAlt(cd),tl=tol(cd);top.push([xD(cd),yAlt(ca+tl)]);bot.push([xD(cd),yAlt(Math.max(0,ca-tl))]);}
+    ctx.fillStyle='rgba(18,128,74,.14)';ctx.beginPath();top.forEach(function(p,i){i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);});bot.slice().reverse().forEach(function(p){ctx.lineTo(p[0],p[1]);});ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(18,128,74,.5)';ctx.lineWidth=1.5;ctx.setLineDash([5,5]);[top,bot].forEach(function(L2){ctx.beginPath();L2.forEach(function(p,i){i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]);});ctx.stroke();});ctx.setLineDash([]);
+    // icing clouds
+    s.ice.forEach(function(k){var x0=xD(k.d0),x1=xD(k.d1);if(x1<-80||x0>W+80)return;var yt=yAlt(k.hi),yb=yAlt(k.lo);if(yb-yt<26){var m2=(yt+yb)/2;yt=m2-13;yb=m2+13;}
+      ctx.fillStyle='rgba(176,186,198,.88)';for(var xx=x0;xx<x1;xx+=18){ctx.beginPath();ctx.arc(xx,yt+8+Math.sin(xx*.07+k.seed*9)*4,14,0,7);ctx.fill();}
+      ctx.fillRect(x0,yt+8,x1-x0,yb-yt-8);ctx.fillStyle='#fff';ctx.font='800 14px system-ui';ctx.textAlign='center';ctx.fillText('❄ icing',(x0+x1)/2,(yt+yb)/2+5);ctx.textAlign='left';});
+    // thunderstorms: round symbol with a lightning strike, and a keep-clear ring
+    s.storms.forEach(function(k){var cx=xD(k.dc),cy=yAlt(k.ac);if(cx<-60||cx>W+60)return;
+      ctx.strokeStyle='rgba(229,50,43,.35)';ctx.lineWidth=2;ctx.setLineDash([4,5]);ctx.beginPath();ctx.arc(cx,cy,CLOSE_R,0,7);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='rgba(20,17,10,.6)';ctx.beginPath();ctx.arc(cx,cy,STORM_R-2,0,7);ctx.fill();ctx.strokeStyle='#e5322b';ctx.lineWidth=4;ctx.beginPath();ctx.arc(cx,cy,STORM_R-2,0,7);ctx.stroke();
+      var fl=Math.sin(performance.now()/120+k.seed*9)>0.3,R=STORM_R-2;ctx.fillStyle=fl?'#fff27a':'#f2b705';ctx.strokeStyle='#14110a';ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.moveTo(cx+8,cy-R-8);ctx.lineTo(cx-7,cy+2);ctx.lineTo(cx+1,cy+2);ctx.lineTo(cx-8,cy+R+8);ctx.lineTo(cx+10,cy-4);ctx.lineTo(cx+2,cy-4);ctx.lineTo(cx+12,cy-R-8);ctx.closePath();ctx.fill();ctx.stroke();});
+    // laser
+    var L=s.laser;if(L){var lx=xD(L.d);if(lx>-50&&lx<W+50){ctx.fillStyle='#14110a';ctx.fillRect(lx-4,GROUND-6,8,6);if(L.on){ctx.strokeStyle='rgba(60,255,90,.6)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(lx,GROUND-4);ctx.lineTo(lx-Math.cos(L.ang)*900,GROUND-4-Math.sin(L.ang)*900);ctx.stroke();}}}
+    // drone: an obvious quadcopter
+    var D=s.drone;if(D&&!D.gone){D.t+=1/60;var dx=xD(D.d+(D.flee?0:Math.sin(D.t*.7)*0.25)),dy=yAlt(D.alt+(D.flee?0:Math.sin(D.t*1.3)*60));if(dx<W+40){
+      ctx.fillStyle='#2b2f36';ctx.fillRect(dx-10,dy-4,20,8);ctx.strokeStyle='#2b2f36';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(dx-10,dy-2);ctx.lineTo(dx-20,dy-9);ctx.moveTo(dx+10,dy-2);ctx.lineTo(dx+20,dy-9);ctx.stroke();
+      var sp=Math.abs(Math.sin(performance.now()/35));ctx.fillStyle='rgba(43,47,54,.5)';[-20,20].forEach(function(o){ctx.beginPath();ctx.ellipse(dx+o,dy-10,11*sp+3,2.5,0,0,7);ctx.fill();});
+      ctx.fillStyle='#ff2d1a';ctx.beginPath();ctx.arc(dx-8,dy+5,2,0,7);ctx.fill();ctx.fillStyle='#37e46a';ctx.beginPath();ctx.arc(dx+8,dy+5,2,0,7);ctx.fill();
+      ctx.fillStyle='#14110a';ctx.beginPath();ctx.arc(dx,dy+5,3,0,7);ctx.fill();ctx.font='800 11px system-ui';ctx.fillText('DRONE',dx-18,dy-16);}}
+    // TCAS traffic
+    var Tc=s.tc;if(Tc&&(Tc.st==='none'||Tc.st==='ta'||Tc.st==='ra')&&s.d-Tc.d<22){var tx=xD(Tc.d),ty=yAlt(Tc.alt),rel=Math.round((Tc.alt-s.alt)/100);
+      if(Tc.st==='ra'){ctx.fillStyle='#ff2d1a';ctx.fillRect(tx-8,ty-8,16,16);}else if(Tc.st==='ta'){ctx.fillStyle='#ffa51f';ctx.beginPath();ctx.arc(tx,ty,8,0,7);ctx.fill();}
+      else{ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(tx,ty-9);ctx.lineTo(tx+7,ty);ctx.lineTo(tx,ty+9);ctx.lineTo(tx-7,ty);ctx.closePath();ctx.stroke();}
+      ctx.font='800 12px ui-monospace,Menlo,monospace';ctx.fillStyle=Tc.st==='ra'?'#ff2d1a':Tc.st==='ta'?'#ffa51f':'#fff';ctx.fillText((rel>=0?'+':'−')+String(Math.abs(rel)).padStart(2,'0'),tx+11,ty+4);}
+    // glideslope beam
+    if(xD(20)<W){ctx.strokeStyle='rgba(18,128,74,.75)';ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();for(var d=20;d>=0;d-=0.5){var X=xD(d),Y=yAlt(d*GS_FT);d===20?ctx.moveTo(X,Y):ctx.lineTo(X,Y);}ctx.stroke();ctx.setLineDash([]);}
+    // trail + aircraft + landing lights
+    ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=3;ctx.beginPath();s.trail.forEach(function(p,i){var X=xD(p[0]),Y=yAlt(p[1]);i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});ctx.stroke();
+    var sh=s.shake>0?(Math.random()-.5)*8*s.shake:0,ay=yAlt(s.alt)+sh;
+    if(s.ll){var lg=ctx.createLinearGradient(AX,ay,AX+220,ay+40);lg.addColorStop(0,'rgba(255,250,200,.8)');lg.addColorStop(1,'rgba(255,250,200,0)');ctx.fillStyle=lg;ctx.beginPath();ctx.moveTo(AX+30,ay+4);ctx.lineTo(AX+240,ay-20);ctx.lineTo(AX+240,ay+60);ctx.closePath();ctx.fill();}
+    drawJet(AX+sh,ay,s.ga>0?-14:Math.max(-12,Math.min(8,-(s.vs||0)/500)));
+    if(s.flash>0){var fa=Math.min(1,s.flash),rg=ctx.createRadialGradient(AX,ay,4,AX,ay,W*.7);rg.addColorStop(0,'rgba(190,255,190,'+fa+')');rg.addColorStop(.15,'rgba(60,255,90,'+(fa*.75)+')');rg.addColorStop(1,'rgba(30,200,60,'+(fa*.35)+')');
+      ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(220,255,220,'+fa+')';ctx.lineWidth=2;for(var q=0;q<12;q++){var an=q/12*Math.PI*2+s.t*.05,ln=W*(.25+.2*((q*7)%3));ctx.beginPath();ctx.moveTo(AX,ay);ctx.lineTo(AX+Math.cos(an)*ln,ay+Math.sin(an)*ln);ctx.stroke();}}
+    drawHud();
+    if(s.msgT>0){ctx.font='900 30px system-ui';ctx.textAlign='center';ctx.lineWidth=6;ctx.strokeStyle='#14110a';ctx.strokeText(s.msg,W/2,H*0.42);ctx.fillStyle=/OVER|LASER|RA:|TERRAIN|THUNDER/.test(s.msg)?'#ff5a3d':'#ffd34d';ctx.fillText(s.msg,W/2,H*0.42);ctx.textAlign='left';}
+    if(state==='ready'||state==='over'){ctx.fillStyle='rgba(20,17,10,.55)';ctx.fillRect(0,0,W,H);ctx.textAlign='center';ctx.fillStyle='#fff';
+      if(state==='ready'){ctx.font='900 40px system-ui';ctx.fillText('FL380, cleared late. Get it down!',W/2,H/2-10);ctx.font='600 18px system-ui';ctx.fillText('Press Start. There is no pause.',W/2,H/2+24);}
+      else{ctx.font='900 46px system-ui';ctx.fillStyle=/STABLE|PERFECT/.test(s.result)?'#9fe7b5':'#ffd34d';ctx.fillText(s.result,W/2,H/2-60);
+        ctx.font='900 44px system-ui';ctx.fillStyle='#ffd34d';ctx.fillText('★'.repeat(s.stars)+'☆'.repeat(5-s.stars),W/2,H/2-10);
+        ctx.font='600 17px system-ui';ctx.fillStyle='#fff';ctx.fillText('Score '+Math.round(s.score)+(s.gs?' · G/S at '+Math.round(s.capIas)+' kt':'')+(s.ovs?' · overspeed +'+Math.round(s.ovs)+' kt':''),W/2,H/2+22);
+        ctx.font='600 14px system-ui';(s.rate||[]).forEach(function(x,i){ctx.fillStyle=x[0]?'#9fe7b5':'rgba(255,255,255,.55)';ctx.fillText((x[0]?'★ ':'☆ ')+x[1],W/2,H/2+50+i*19);});
+        var ln2=H/2+50+5*19;if(s.iceLoss){ctx.fillStyle='#bfe4ff';ctx.fillText('❄ Ice: −'+s.iceLoss+' star'+(s.iceLoss>1?'s':''),W/2,ln2);ln2+=19;}if(s.raLoss){ctx.fillStyle='#ff9d7a';ctx.fillText('TCAS RA: −1 star',W/2,ln2);}}
+      ctx.textAlign='left';}
+    drawConfetti();
+  }
+  function drawHud(){
+    var vm=vmax(s),fl=s.alt>=18000?'FL'+String(Math.round(s.alt/100)).padStart(3,'0'):Math.round(s.alt/10)*10+' ft';
+    ctx.fillStyle='rgba(20,17,10,.84)';rr(W-300,12,286,150,12);ctx.fill();
+    ctx.font='700 12px ui-monospace,Menlo,monospace';ctx.fillStyle='#9aa7b2';ctx.fillText('ALTITUDE',W-288,32);ctx.fillText('TO RUNWAY',W-140,32);
+    ctx.font='900 30px ui-monospace,Menlo,monospace';ctx.fillStyle='#fff';ctx.fillText(fl,W-288,62);ctx.fillText(Math.max(0,s.d).toFixed(0)+' NM',W-140,62);
+    var mt=s.tgtSpd>=320?0.80:0.78,above=machToIas(mt,s.alt)<s.tgtSpd;
+    ctx.font='800 16px ui-monospace,Menlo,monospace';ctx.fillStyle=s.ias>vm?'#ff5a3d':'#fff';
+    ctx.fillText('SPD '+Math.round(s.ias)+' → '+(above?'M'+mt.toFixed(2).slice(1):Math.max(MINSPD[s.flaps],s.tgtSpd)),W-288,90);
+    var w=s.wind||0;ctx.fillStyle=w>=0?'#ff9d7a':'#9fe7b5';ctx.fillText((w>=0?'TAIL ':'HEAD ')+Math.abs(Math.round(w)),W-112,90);
+    ctx.fillStyle='#ffd34d';ctx.fillText('SCORE '+Math.round(s.score),W-288,114);
+    var dev=s.alt-pathAlt(s.d),tl=tol(s.d);ctx.fillStyle=Math.abs(dev)<=tl?'#9fe7b5':'#ff9d7a';ctx.fillText(Math.abs(dev)<=tl?'ON THE GLIDE':(dev>0?'HIGH':'LOW'),W-140,114);
+    ctx.font='700 12px ui-monospace,Menlo,monospace';ctx.fillStyle=s.thrust?'#ffb08a':'#9fe7b5';ctx.fillText(s.level?'LEVEL · THRUST':(s.thrust?'THRUST USED':'IDLE ✓'),W-288,136);
+    ctx.fillStyle=s.ai?'#3fd6ff':'rgba(255,255,255,.45)';ctx.fillText(s.ai?'ANTI-ICE ON':'ANTI-ICE OFF',W-180,136);ctx.fillStyle=s.gs?'#9fe7b5':'rgba(255,255,255,.45)';ctx.fillText(s.gs?'G/S ✓':'VMAX '+Math.round(vm),W-80,136);
+    if(s.iceAcc>0){ctx.fillStyle='#bfe4ff';ctx.fillRect(W-288,146,200*s.iceAcc,8);ctx.strokeStyle='#bfe4ff';ctx.strokeRect(W-288,146,200,8);ctx.fillText('ICE',W-80,155);}
+    var warn=s.close?'TOO CLOSE TO CB':s.terrPen?'TERRAIN! TOO LOW':'';if(warn){ctx.font='900 18px system-ui';ctx.fillStyle='#ff5a3d';ctx.textAlign='center';ctx.fillText(warn+' · POINTS LOST',W/2,34);ctx.textAlign='left';}
+  }
+  function drawJet(x,y,deg){ctx.save();ctx.translate(x,y);ctx.rotate(deg*Math.PI/180);ctx.scale(1.6,1.6);ctx.lineJoin='round';ctx.lineWidth=2;ctx.strokeStyle='#14110a';
+    ctx.fillStyle='#fbf8ef';ctx.beginPath();ctx.moveTo(-26,-5);ctx.quadraticCurveTo(-28,4,-20,6);ctx.lineTo(16,6);ctx.quadraticCurveTo(28,5,30,0);ctx.quadraticCurveTo(26,-7,14,-7);ctx.lineTo(-20,-7);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#f2b705';ctx.fillRect(-20,-1,36,3);
+    ctx.fillStyle='#c0321a';ctx.beginPath();ctx.moveTo(-22,-6);ctx.lineTo(-30,-20);ctx.lineTo(-23,-20);ctx.lineTo(-12,-6);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#d9dee2';ctx.beginPath();ctx.moveTo(-4,2);ctx.lineTo(-14,11);ctx.lineTo(-6,11);ctx.lineTo(8,2);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#4a5560';rr(-4,6,12,5,2.5);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#3fd6ff';ctx.beginPath();ctx.moveTo(21,-5);ctx.lineTo(27,-2);ctx.lineTo(21,-2);ctx.closePath();ctx.fill();
+    if(s.gear){ctx.lineWidth=1.5;[[-6,6],[14,6]].forEach(function(p){ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0],13);ctx.stroke();ctx.fillStyle='#14110a';ctx.beginPath();ctx.arc(p[0],14,2.2,0,7);ctx.fill();});}
+    if(s.sb&&!s.gear){ctx.fillStyle='#c0321a';ctx.fillRect(-4,-9,8,3);}
+    if(s.flaps){ctx.fillStyle='#14110a';ctx.save();ctx.translate(-12,9);ctx.rotate(s.flaps*0.15);ctx.fillRect(-6,0,8,2);ctx.restore();}
+    if(s.ll){ctx.fillStyle='#fff7a0';ctx.beginPath();ctx.arc(2,4,2.2,0,7);ctx.fill();}
+    ctx.restore();}
+
+  /* ---- confetti ---- */
+  var conf=[];function burst(n){if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;var cols=['#f2b705','#12804a','#3fd6ff','#c0321a','#b01fa8','#fff'];
+    for(var i=0;i<n;i++)conf.push({x:W/2+(Math.random()-.5)*W*.6,y:H*.2,vx:(Math.random()-.5)*12,vy:-Math.random()*12-3,r:Math.random()*6+4,c:cols[i%6],a:Math.random()*6,l:3.5});}
+  function drawConfetti(){conf=conf.filter(function(p){return p.l>0;}).slice(-900);conf.forEach(function(p){p.vy+=.3;p.x+=p.vx;p.y+=p.vy;p.a+=.2;p.l-=1/60;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);ctx.restore();});}
+
+  /* ---- controls ---- */
+  var $=function(id){return document.getElementById(id);},go=$('go');
+  SPDS.forEach(function(v,i){var b=document.createElement('button');b.className='k';b.type='button';b.textContent=v;b.dataset.v=v;b.title='Key '+(i+1);b.onclick=function(){setSpd(v,b);};$('spd').appendChild(b);});
+  function nope(b,m){b.classList.remove('no');void b.offsetWidth;b.classList.add('no');if(m)say(m);}
+  function setSpd(v,b){if(v<MINSPD[s.flaps]){nope(b||$('spd'),'FLAPS FIRST · MIN '+MINSPD[s.flaps]+' KT');}s.tgtSpd=v;sync();}
+  $('sb').onclick=function(){if(s.gear){nope($('sb'),'SPOILERS ARMED');return;}s.sb=!s.sb;sync();};
+  $('gear').onclick=function(){if(!s.gear&&s.ias>VLO+2){nope($('gear'),'TOO FAST FOR GEAR');return;}s.gear=!s.gear;if(s.gear)s.sb=false;sync();};
+  $('fdn').onclick=function(){if(s.flaps>=4)return;if(s.ias>VFE[s.flaps+1]+2){nope($('fdn'),'TOO FAST FOR FLAPS '+(s.flaps+1===4?'FULL':s.flaps+1));return;}s.flaps++;sync();};
+  $('fup').onclick=function(){if(s.flaps>0)s.flaps--;sync();};
+  $('ai').onclick=function(){if(state!=='play')return;s.ai=!s.ai;sync();};
+  $('ll').onclick=function(){if(state!=='play')return;s.ll=!s.ll;if(s.ll)say('LANDING LIGHTS ON · NEGLIGIBLE DRAG');sync();};
+  $('lvl').onclick=function(){if(state!=='play')return;s.level=!s.level;s.lvlAlt=Math.max(FLOOR,s.alt);sync();};
+  $('ga').onclick=function(){if(state!=='play')return;state='ga';s.ga=2.6;s.sb=false;say('GO AROUND! TOGA');};
+  function sync(){[].forEach.call($('spd').children,function(b){b.classList.toggle('on',+b.dataset.v===s.tgtSpd);});
+    $('lvl').classList.toggle('on',s.level);$('ai').classList.toggle('on',s.ai);$('ll').classList.toggle('on',s.ll);$('sb').classList.toggle('on',s.sb);$('gear').classList.toggle('on',s.gear);$('fl').textContent=s.flaps===4?'FULL':s.flaps;}
+  document.addEventListener('keydown',function(e){if(state!=='play')return;var k=e.key.toLowerCase(),n=+k;
+    if(n>=1&&n<=9)setSpd(SPDS[n-1]);else if(k==='l')$('lvl').click();else if(k==='i')$('ai').click();else if(k==='k')$('ll').click();else if(k==='a')$('ga').click();
+    else if(k==='s')$('sb').click();else if(k==='g')$('gear').click();else if(k==='f')$('fdn').click();else if(k==='v')$('fup').click();});
+  go.onclick=function(){reset();state='play';go.style.display='none';last=performance.now();};
+
+  /* ---- title and tips ---- */
+  function tipsSeen(){try{return localStorage.getItem('tod.tips')==='off';}catch(e){return false;}}
+  $('m-arcade').onclick=function(){$('title').classList.remove('on');if(tipsSeen()){state='ready';go.style.display='';}else{$('tips').classList.add('on');}};
+  $('tipsGo').onclick=function(){if($('noTips').checked){try{localStorage.setItem('tod.tips','off');}catch(e){}}$('tips').classList.remove('on');state='ready';go.style.display='';};
+
+  function frame(t){var dt=Math.min(0.05,(t-last)/1000);last=t;
+    if(state==='play'){
+      var T=s.tc;if(T&&T.st==='ta')T.taReal+=dt;
+      if(s.gustPend){s.gustPend.t-=dt;if(s.gustPend.t<=0){s.gust=s.gustPend.mag;s.ias+=s.gustPend.mag*0.6;say(s.gustPend.mag>0?'GUST! SPEED UP':'GUST!');s.gustPend=null;}}
+      var sim=dt*TIME,n=Math.ceil(sim/0.5);for(var i=0;i<n&&state==='play';i++)step(sim/n);
+      if(state==='play'){if(s.ias>vmax(s)+4){s.ovT+=dt;if(s.ovT>1.5){s.ovs=Math.max(s.ovs,s.ias-vmax(s));if(!s.ovWarn){s.ovWarn=true;say('OVERSPEED!');}}}else{s.ovT=0;s.ovWarn=false;}}
+      if(s.trail.length===0||s.trail[s.trail.length-1][0]-s.d>0.4)s.trail.push([s.d,s.alt]);if(s.trail.length>500)s.trail.shift();}
+    if(state==='ga'){s.ga-=dt;s.alt+=dt*TIME*45;s.ias=Math.min(s.ias+dt*20,220);s.d-=dt*TIME*.05;s.vs=2700;if(s.ga<=0){state='ready';reset();go.textContent='▶ Start';go.style.display='';}}
+    if(s.shake>0)s.shake-=dt;if(s.flash>0)s.flash-=dt;if(s.msgT>0)s.msgT-=dt;
+    draw();requestAnimationFrame(frame);}
+  reset();requestAnimationFrame(function(t){last=t;frame(t);});
+})();
+</script>
+</body></html>
